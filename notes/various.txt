@@ -8,3 +8,7 @@ GrouPy alterations:
 	
 - integer_indexing_cuda_kernel.py
 	renamed atomicAdd to atomicAddDouble as atomicAdd is implemented for Double in cuda-8.0
+
+gconv_experiments
+- succesfully ran MNIST-rot
+- unsuccesfully ran CIFAR10: CUDARuntimeError: cudaErrorMemoryAllocation: out of memory
