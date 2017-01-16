@@ -38,4 +38,24 @@ Werkwijze:
 Eerste stappen: 
 	- ipython stap voor stap code uitvoeren
 	- residual network in tensorflow / pipeline opzetten
-	- garray 2D -> 3D 
+	- garray 2D -> 3D
+
+
+28-12-16:
+Vier modellen: 
+	1) Resnet baseline
+	2) G-resnet
+	3) Aidence baseline
+	4) Aidence model met g-convolutions
+
+Main punten: 
+	1) Baseline ontwikkelen
+	2) GrouPy 2D -> 3D 
+	3) Experimenten draaien
+	4) Schrijven thesis
+
+To-do: 
+	- Resnet baseline ontwikkelen (± 2 weken) 
+Evalueren van resnet kan lang duren. Twee stappen: ontwikkelen tot het correct werkt, en kleine (dataset specifieke) foutjes eruit halen. 
+Werken in iPython notebook. Submodules. Eén resnet block.
+

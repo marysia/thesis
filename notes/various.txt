@@ -1,6 +1,11 @@
 Commands: 
 export PATH=/usr/local/cuda-8.0/bin:$PATH  
-export PYTHONPATH=$PYTHONPATH:/home/marysia/thesis/gconv_experiments export DATADIR=/home/marysia/thesis/gconv_experiments/data
+export PYTHONPATH=$PYTHONPATH:/home/marysia/thesis/gconv_experiments 
+export DATADIR=/home/marysia/thesis/data
+
+export PATH=/usr/local/cuda/bin:$PATH
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda/lib64"
+export CUDA_HOME=/usr/local/cuda
 
 GrouPy alterations: 
 - setup.py
@@ -12,3 +17,6 @@ GrouPy alterations:
 gconv_experiments
 - succesfully ran MNIST-rot
 - unsuccesfully ran CIFAR10: CUDARuntimeError: cudaErrorMemoryAllocation: out of memory
+
+Running:
+ipython gconv_experiments/gconv_experiments/MNIST_ROT/experiment.py -- --trainfn=MNIST-rot/train_all.npz --valfn=MNIST-rot/test.npz
