@@ -1,0 +1,14 @@
+Commands: 
+export PATH=/usr/local/cuda-8.0/bin:$PATH  
+export PYTHONPATH=$PYTHONPATH:/home/marysia/thesis/gconv_experiments export DATADIR=/home/marysia/thesis/gconv_experiments/data
+
+GrouPy alterations: 
+- setup.py
+	added 'groupy.gconv.chainer_gconv', 'groupy.gconv.tensorflow_gconv', 'groupy.gconv.theano_gconv',  'groupy.gconv.chainer_gconv.kernels', 'groupy.gconv.chainer_gconv.pooling' to packages
+	
+- integer_indexing_cuda_kernel.py
+	renamed atomicAdd to atomicAddDouble as atomicAdd is implemented for Double in cuda-8.0
+
+gconv_experiments
+- succesfully ran MNIST-rot
+- unsuccesfully ran CIFAR10: CUDARuntimeError: cudaErrorMemoryAllocation: out of memory

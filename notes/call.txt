@@ -1,0 +1,41 @@
+CALL
+
+14-12-16
+Doel: 3D implementatie van GrouPy 
+	- Tensorflow implementatie (nieuw)
+	- Chainer implementatie (origineel)
+TF vs Chainer: TF door meer mensen gebruikt. Chainer elegantere API en makkelijker nieuwe basisoperaties te creëren. Dat laatste is niet nodig omdat alle nodige basisoperaties al in TF gedefinieerd zijn. 
+
+GrouPy: 
+3 modules, waarvan 2 CPU. 
+	- garray
+	- gfunc
+	- gconv
+
+garray: 
+	elk element is een element uit een groep. 
+gfunc: 
+	elk element in de array is een functie op de groep
+gconv: 
+	group convoluties voor group equivariant CNNs
+
+
+Uitbreiding naar 3D: 
+	o garray: 
+		- Welke groep (zie: Wikipedia)
+		- Hoe werkt de baseclass
+		- Hoe werkt toevoegen nieuwe subclass
+		
+		Implementeren: 
+			- Point group (C4, D4)
+			- Space group (wallpaper group in 2D)
+			- Z2 --> Z3
+	
+Werkwijze: 
+	- Branch maken van GrouPy voor 3D implementatie
+	- Aparte repository voor experimenten
+	
+Eerste stappen: 
+	- ipython stap voor stap code uitvoeren
+	- residual network in tensorflow / pipeline opzetten
+	- garray 2D -> 3D 
