@@ -53,7 +53,6 @@ class Logger():
             revs = glob.glob(os.path.join(dir_path, fname + '_*.log'))
             self.prefix = fname + '_' + str(len(revs)+1) + '_'
             
-    
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         self.path = dir_path
