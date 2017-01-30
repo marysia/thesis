@@ -34,7 +34,7 @@ class Logger():
         fname = self.args[0].replace('.py', '')
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         date, time = timestamp.split(' ')
-        dir_path = 'logs'
+        dir_path = '../logs'
         
         # determine prefix and logging directory based on depth
         if not self.revision:
@@ -73,7 +73,16 @@ class Logger():
         src = self.args[0]
         dst = os.path.join(self.path, self.prefix+src.split('/')[-1])
         shutil.copy(src, dst)
-    
+
+    def backup_additional(self, files):
+        for path in files:
+            if os.path.exists(path):
+                x = self.args[0]
+                x = x.split('/')
+                x[-1] = path
+                src = '/'.join(x)
+                dst = os.path.join(self.path, self.prefix + path)
+                shutil.copy(src, dst)
     
     # --- writing functions --- #            
     def write_to_file(self, text, code, time=False): 
@@ -99,7 +108,10 @@ class Logger():
         ''' Writes result to log file. ''' 
         self.write_to_file(text, '[ERROR] \t', time)
         
-    # --- helper functions --- # 
+    # --- helper functions --- #
+    def copy(self):
+        shutil.copy(self.log_path, os.path.join('/home/marysia/thesis/logs', 'latest.log'))
+
     def get_time(self):
         ''' Returns timestamp in appropriate format. ''' 
         timestamp = datetime.datetime.now().strftime(" (%Y-%m-%d %H:%M:%S) ")

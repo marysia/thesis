@@ -6,14 +6,14 @@ from keras.layers.pooling import GlobalAveragePooling2D
 from keras.layers.normalization import BatchNormalization
 
 class Zuidhof():
-    def __init__(self, input_shape=(1, 7, 72, 72), base=16, blocks=4):
+    def __init__(self, input_shape=(7, 72, 72, 1), base=16, blocks=4):
         self.input_shape = input_shape
         self.base = base
         self.blocks = blocks
         self.inputs = Input(shape=input_shape)
         self.x = self.inputs # a tensor
         self.model = self.construct()
-        self.name = 'Zuidhof CNN'
+        self.name = 'ZuidhofCNN'
         self.description = '3D convolutional network based on Zuidhof\'s implementation for lung nodules. This version is not a resnet.'
 
 
@@ -35,8 +35,8 @@ class Zuidhof():
 
     def end_block(self, activation='relu', final_activation='softmax'):
         self.x = Flatten()(self.x)
-        self.x = Dense(512)(self.x)
-        self.x = Activation(activation)(self.x)
+        # self.x = Dense(512)(self.x)
+        # self.x = Activation(activation)(self.x)
         self.x = Dense(2)(self.x)
         self.x = Activation(final_activation)(self.x)
 
@@ -52,8 +52,9 @@ class Zuidhof():
         return Model(input=self.inputs, output=self.x)
 
 
+
 class CNN_3D():
-    def __init__(self, input_shape=(1, 7, 72, 72), base=16, blocks=4):
+    def __init__(self, input_shape=(7, 72, 72, 1), base=16, blocks=4):
         self.model = Sequential()
         self.base = base
         self.blocks = blocks
