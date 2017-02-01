@@ -6,12 +6,12 @@ import subprocess
 import signal
 
 
-# Class to interpret interrupt signal
 class ProgramEnder:
     '''
     Class to interpret interrupt/hangup signal.
     Used to gracefully exit running program.
     '''
+
     def __init__(self):
         self.terminate = False
         signal.signal(signal.SIGINT, self.set_exit)
@@ -23,11 +23,12 @@ class ProgramEnder:
         '''
         self.terminate = True
 
+
 def find_python_processes():
     '''
     Return all (pid, file, user) combinations of currently running python processes.
     '''
-    pids = psutil.pids()    # note: old version of psutil installed, newer = psutil.pids()
+    pids = psutil.pids()  # note: old version of psutil installed, newer = psutil.pids()
     processes = []
     for pid in pids:
         try:
@@ -44,6 +45,7 @@ def find_python_processes():
             pass
     return processes
 
+
 def running():
     '''
     Return verbose information of running processes.
@@ -52,21 +54,23 @@ def running():
     if len(processes) > 0:
         print('--- list of running python processes --- ')
         for pid, file, user in processes:
-            print('user: ' + str(user) + '\tpid: ' + str(pid) +'\tscript: ' + file )
+            print('user: ' + str(user) + '\tpid: ' + str(pid) + '\tscript: ' + file)
     else:
         print('--- No running python processes ---')
-
 
 
 def start(script):
     ''' Start script in background. '''
     # check if already running
-    if running(script):
+    processes = find_python_processes()
+    scripts = [elem[1] for elem in processes]
+    if script in scripts:
         print('%s is already running.' % script)
     else:
         print('Starting %s' % script)
         cmd = 'python ' + script + ' &'
         subprocess.Popen(cmd, shell=True)
+
 
 # send a terminating signal (sigint or sigkill) to the provided script
 def end(script, force=False):
@@ -96,8 +100,6 @@ def end(script, force=False):
         print('%s was not running.' % script)
 
 
-
-
 def main(argv):
     '''
     Handle command line arguments.
@@ -105,13 +107,14 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "hfrs:e:", ["start=", "end="])
     except getopt.GetoptError:
-        print 'fail.'
+        print('Incorrect use of flags. Use -h.')
         sys.exit(2)
 
     force = True if ('-f', '') in opts else False
     for opt, arg in opts:
         if opt == '-h':
-            print 'use.'
+            print(
+            'python control.py \n \t * -h for help \n \t * -r for running processes \n \t * -s <script> for starting \n \t * -e <script> for ending (add -f to force)')
             sys.exit()
         elif opt == '-r':
             running()
@@ -128,6 +131,7 @@ def main(argv):
             else:
                 print arg + ' is not a python file.'
             sys.exit()
+
 
 if __name__ == "__main__":
     args = sys.argv[1:]
