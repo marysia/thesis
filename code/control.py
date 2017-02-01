@@ -18,12 +18,15 @@ class ProgramEnder:
         signal.signal(signal.SIGHUP, self.set_exit)
 
     def set_exit(self, signum, frame):
+        '''
+        Set terminate to true.
+        '''
         self.terminate = True
 
-# return all (pid, filename) combinations of currently running python processes
-def find_python_processes(target=None):
-    if target is not None:
-        target = target.split('/')[-1]
+def find_python_processes():
+    '''
+    Return all (pid, file, user) combinations of currently running python processes.
+    '''
     pids = psutil.pids()    # note: old version of psutil installed, newer = psutil.pids()
     processes = []
     for pid in pids:
@@ -41,24 +44,22 @@ def find_python_processes(target=None):
             pass
     return processes
 
-# return whether or not the provided filename is currently running
-def running(script, info=False):
-    filename = script.split('/')[-1]
+def running():
+    '''
+    Return verbose information of running processes.
+    '''
     processes = find_python_processes()
-    if info:
-        if len(processes) > 0:
-            print('--- list of running python processes --- ')
-            for elem in processes:
-                print('user: ' + str(elem[2]) + '\tpid: ' + str(elem[0]) +'\tscript: ' + elem[1] )
-        else:
-            print('--- No running python processes ---')
+    if len(processes) > 0:
+        print('--- list of running python processes --- ')
+        for pid, file, user in processes:
+            print('user: ' + str(user) + '\tpid: ' + str(pid) +'\tscript: ' + file )
+    else:
+        print('--- No running python processes ---')
 
-    running_files = [file for pid, file, user in processes]
 
-    return filename in running_files
 
-# start the provided script with the provided parameters
 def start(script):
+    ''' Start script in background. '''
     # check if already running
     if running(script):
         print('%s is already running.' % script)
@@ -69,6 +70,11 @@ def start(script):
 
 # send a terminating signal (sigint or sigkill) to the provided script
 def end(script, force=False):
+    '''
+    Send a terminating signal (sigint or sigkill) to the provided script.
+    * script: script file name. do not include folder.
+    * force: false for sigint, true for sigkill
+    '''
     processes = find_python_processes()
     processes = [elem for elem in processes if (elem[1] == script and script != 'all')]
 
@@ -93,6 +99,9 @@ def end(script, force=False):
 
 
 def main(argv):
+    '''
+    Handle command line arguments.
+    '''
     try:
         opts, args = getopt.getopt(argv, "hfrs:e:", ["start=", "end="])
     except getopt.GetoptError:
@@ -105,7 +114,7 @@ def main(argv):
             print 'use.'
             sys.exit()
         elif opt == '-r':
-            running('', info=True)
+            running()
             sys.exit()
         elif opt in ("-s", "--start"):
             if '.py' in arg:
@@ -121,7 +130,5 @@ def main(argv):
             sys.exit()
 
 if __name__ == "__main__":
-
-
     args = sys.argv[1:]
     main(args)
