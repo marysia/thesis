@@ -39,6 +39,16 @@ def convert_data(pos, neg, size):
     X = X.astype('float32')
     return X, Y
 
+def normalize(X, Y):
+    # Data alterations
+    X, Y = shuffle_in_unison(X, Y)  # shuffle indices
+    X = X.reshape([-1, 7, 72, 72, 1])
+    Y = np_utils.to_categorical(Y)
+
+    X = (X - 127.5) / 127.5
+    X = X.astype('float32')
+    return X, Y
+
 # --- data conversion functions --- #
 def lidc():
     ''' Normalize, reshape and save LIDC positives and negatives with labels.
@@ -49,28 +59,20 @@ def lidc():
 
     negatives_data = np.load(datadir + 'lidc_negatives.npz')['patch']
     negatives_labels = np.zeros(len(negatives_data))
+    #
+    # X = np.concatenate([positives_data, negatives_data])
+    # Y = np.append(positives_labels, negatives_labels)
 
-    X = np.concatenate([positives_data, negatives_data])
-    Y = np.append(positives_labels, negatives_labels)
+    xtrain = np.concatenate([positives_data[0:1000], negatives_data[0:1000]])
+    xtest = np.concatenate([positives_data[1000:], negatives_data[1000:]])
 
-    # Data alterations
-    X, Y = shuffle_in_unison(X, Y)  # shuffle indices
+    ytrain = np.append(positives_labels[:1000], negatives_labels[:1000])
+    ytest = np.append(positives_labels[1000:], negatives_labels[1000:])
 
-    X = X.reshape([-1, 7, 72, 72, 1])
+    xtrain, ytrain = normalize(xtrain, ytrain)
+    xtest, ytest = normalize(xtest, ytest)
 
-    Y = np_utils.to_categorical(Y)
-
-    X = (X - 127.5) / 127.5
-    X = X.astype('float32')
-
-    train = 2000
-    X_train = X[:train, :, :]
-    X_test = X[train:, :, :]
-
-    Y_train = Y[:train]
-    Y_test = Y[train:]
-
-    np.savez('/home/marysia/thesis/data/lidc.npz', xtrain=X_train, xtest=X_test, ytrain=Y_train, ytest=Y_test)
+    np.savez('/home/marysia/thesis/data/lidc.npz', xtrain=xtrain, xtest=xtest, ytrain=ytrain, ytest=ytest)
 
 
 
@@ -102,8 +104,9 @@ def load_lidc(ordering='tf'):
     ytrain = data['ytrain']
     ytest = data['ytest']
 
+
     if ordering == 'th':
-        xtrain = xtrain.reshape([-1, 1, 7, 72, 72])  # reshape
+        xtrain = xtrain.reshape([-1, 1, 7, 72, 72])
         xtest = xtest.reshape([-1, 1, 7, 72, 72])
 
     return xtrain, ytrain, xtest, ytest
@@ -115,10 +118,9 @@ def load_candidates(ordering='tf'):
     xtest = data['xtest']
     ytrain = data['ytrain']
     ytest = data['ytest']
+
     if ordering == 'th':
         xtrain = xtrain.reshape([-1, 1, 7, 72, 72])
         xtest = xtest.reshape([-1, 1, 7, 72, 72])
 
     return xtrain, ytrain, xtest, ytest
-
-lidc()

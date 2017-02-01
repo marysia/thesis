@@ -31,10 +31,10 @@ class Logger():
         Creates a directory with timestamp in the the form of logs/date/time/filename
         and sets self.path (directory) and self.log_path (directory/log.log) as variables.
         '''
-        fname = self.args[0].replace('.py', '')
+        fname = self.args[0].split('/')[-1].replace('.py', '')
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         date, time = timestamp.split(' ')
-        dir_path = '../logs'
+        dir_path = '/home/marysia/thesis/logs'
         
         # determine prefix and logging directory based on depth
         if not self.revision:
@@ -75,6 +75,9 @@ class Logger():
         shutil.copy(src, dst)
 
     def backup_additional(self, files):
+        '''  Provides the user with the option to back up additional files.
+        * files: list of files which must reside in the same directory as the original script.
+        '''
         for path in files:
             if os.path.exists(path):
                 x = self.args[0]
@@ -122,7 +125,7 @@ class Logger():
         string = self.get_time() + 'Started ' + self.args[0] + ' with'
         if len(self.args) > 2: 
             for param in self.args[1:]:
-                string += '\t' + param
+                string += '\t' + str(param)
         else: 
             string += ' no parameters.'
         return string 
