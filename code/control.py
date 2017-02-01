@@ -24,18 +24,19 @@ class ProgramEnder:
 def find_python_processes(target=None):
     if target is not None:
         target = target.split('/')[-1]
-    pids = psutil.get_pid_list()    # note: old version of psutil installed, newer = psutil.pids()
+    pids = psutil.pids()    # note: old version of psutil installed, newer = psutil.pids()
     processes = []
     for pid in pids:
         try:
-            cmdline = psutil.Process(pid).cmdline()
-            if len(cmdline) > 1:
-                if ((target is None and 'python3.4' in cmdline or 'python' in cmdline or 'python3' in cmdline) or \
-                            (target is not None and target in cmdline[1])) \
-                        and not 'control.py' in cmdline[1]:
+            process = psutil.Process(pid)
+
+            if 'python' in process.name():
+                cmdline = process.cmdline()
+                if len(cmdline) == 2:
                     scriptname = [elem for elem in cmdline if '.py' in elem]
-                    scriptname = scriptname[0].split('/')[-1]  # take only the filename, ignore the directory
-                    processes.append((pid, scriptname))
+                    scriptname = str(scriptname[0]).split('/')[-1]
+
+                    processes.append((pid, scriptname, process.username()))
         except psutil.NoSuchProcess:
             pass
     return processes
@@ -48,23 +49,57 @@ def running(script, info=False):
         if len(processes) > 0:
             print('--- list of running python processes --- ')
             for elem in processes:
-                print('pid: ', elem[0], ' script: ', elem[1])
+                print('user: ' + str(elem[2]) + '\tpid: ' + str(elem[0]) +'\tscript: ' + elem[1] )
         else:
             print('--- No running python processes ---')
 
-    running_files = [file for pid, file in processes]
+    running_files = [file for pid, file, user in processes]
 
     return filename in running_files
 
+# start the provided script with the provided parameters
+def start(script):
+    # check if already running
+    if running(script):
+        print('%s is already running.' % script)
+    else:
+        print('Starting %s' % script)
+        cmd = 'python ' + script + ' &'
+        subprocess.Popen(cmd, shell=True)
+
+# send a terminating signal (sigint or sigkill) to the provided script
+def end(script, force=False):
+    processes = find_python_processes()
+    processes = [elem for elem in processes if (elem[1] == script and script != 'all')]
+
+    if len(processes) > 0:
+        for pid, file, user in processes:
+            print('Stopping %s with pid %s' % (file, str(pid)))
+            if force:
+                cmd = 'kill -9 ' + str(pid)
+            else:
+                cmd = 'kill -2 ' + str(pid)
+            subprocess.Popen(cmd, shell=True)
+
+            current_processes = find_python_processes()
+            if (pid, file, user) not in current_processes:
+                print('Stopped %s with pid %s succesfully.' % (file, str(pid)))
+            else:
+                print('Stopping %s with pid %s was not successful.' % (file, str(pid)))
+    else:
+        print('%s was not running.' % script)
+
+
+
 
 def main(argv):
-
     try:
         opts, args = getopt.getopt(argv, "hfrs:e:", ["start=", "end="])
     except getopt.GetoptError:
         print 'fail.'
         sys.exit(2)
 
+    force = True if ('-f', '') in opts else False
     for opt, arg in opts:
         if opt == '-h':
             print 'use.'
@@ -73,11 +108,20 @@ def main(argv):
             running('', info=True)
             sys.exit()
         elif opt in ("-s", "--start"):
-            print 'Start process ' + arg
+            if '.py' in arg:
+                start(arg)
+            else:
+                print arg + ' is not a python file.'
             sys.exit()
         elif opt in ("-e", "--end"):
-            print 'End process ' + arg
+            if '.py' in arg:
+                end(arg, force)
+            else:
+                print arg + ' is not a python file.'
             sys.exit()
 
 if __name__ == "__main__":
-   main(['-r'])
+
+
+    args = sys.argv[1:]
+    main(args)
