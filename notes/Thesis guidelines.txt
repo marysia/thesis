@@ -1,9 +1,0 @@
-Master thesis AI guideline
-> Before starting
-	Fill in PEP form (thesis supervisor should be in agreement with course list)
-	-> PEP form downloaded 
-> Register Master Thesis AI in Datanose
-	Link: https://datanose.nl/#project
-	Info required: title, EC, Examiner, Assessor, Daily supervisor, description, start date, end date, date interim assessment.
-> During the Master Thesis project
-	Interim assessment, mid-term presentation and feedback session. 
