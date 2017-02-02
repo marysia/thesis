@@ -1,3 +1,11 @@
+# laptop:
+.idea/
+.ipynb_checkpoints/
+marysia/
+docs/
+notes/
+
+# gpu0
 logs/
 data/
 code/*.pyc
