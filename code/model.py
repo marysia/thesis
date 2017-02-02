@@ -56,16 +56,14 @@ class Zuidhof():
 
         return Model(input=self.inputs, output=self.x)
 
-
-class fully3D():
+class Fully3D():
     def __init__(self, input_shape=(7, 72, 72, 1), base=16, blocks=4):
         self.model = Sequential()
+        self.name = 'Fully_3D'
         self.base = base
         self.blocks = blocks
         self.input_shape = input_shape
-        self.name = 'fully_3D'
         self.construct()
-
 
     def block(self, filters, first=False):
         if first:
@@ -77,13 +75,13 @@ class fully3D():
         self.model.add(Convolution3D(filters, 1, 3, 3, border_mode='same'))
         self.model.add(Activation('relu'))
         self.model.add(Dropout(.3))
-        #self.model.add(BatchNormalization())
+        self.model.add(BatchNormalization())
 
     def end_block(self):
         self.model.add(Flatten())
         # self.model.add(Dense(512, init='normal'))
         # self.model.add(Activation('relu'))
-        # self.model.add(Dropout(.5))
+        self.model.add(Dropout(.5))
         self.model.add(Dense(2, init='normal'))
         self.model.add(Activation('softmax'))
 
@@ -92,6 +90,63 @@ class fully3D():
         self.block(filters[0], first=True)
         for filter_nrs in filters[1:]:
             self.block(filter_nrs)
+        self.end_block()
+
+
+class Resnet():
+    def __init__(self, input_shape=(7, 72, 72, 1), base=16, blocks=4, activation='relu', border_mode='same',
+                 dropout=.3):
+        # initialize parameters
+        self.input_shape = input_shape
+        self.base = base
+        self.blocks = blocks
+        self.activation = activation
+        self.border_mode = border_mode
+        self.dropout = dropout
+        # construct
+        self.model = Sequential()
+        self.construct()
+        self.name = 'Resnet'
+
+    # --- blocks for model construction --- #
+    def start_block(self, filters):
+        self.model.add(Convolution3D(filters, 1, 3, 3, border_mode=self.border_mode, input_shape=self.input_shape))
+        self.model.add(BatchNormalization())
+        self.model.add(Activation(self.activation))
+        self.model.add(Dropout(self.dropout))
+        self.model.add(Convolution3D(filters, 1, 3, 3, border_mode=self.border_mode))
+
+    def mid_block(self, filters, subsample=(2, 2, 2)):
+        x = self.model
+        y = self.model
+        y.add(BatchNormalization())
+        y.add(Activation(self.activation))
+        y.add(Convolution3D(filters, 1, 3, 3, subsample=subsample, border_mode=self.border_mode))
+        y.add(BatchNormalization())
+        y.add(Activation(self.activation))
+        y.add(Dropout(self.dropout))
+        y.add(Convolution3D(filters, 1, 3, 3, border_mode=self.border_mode))
+        merged_model = Sequential()
+        merged_model.add(Merge([x, y], mode='sum'))
+        self.model = merged_model
+
+    def end_block(self):
+        self.model.add(Flatten())
+        self.model.add(Dense(512, init='normal'))
+        self.model.add(Activation(self.activation))
+        self.model.add(Dropout(.5))
+        self.model.add(Dense(2, init='normal'))
+        self.model.add(Activation('softmax'))
+
+    def construct(self):
+        filters = [self.base * (2 ** i) for i in range(self.blocks)]
+        # initial block
+        self.start_block(filters[0])
+        # middle blocks
+        for filter_nrs in filters[1:]:
+            self.mid_block(filter_nrs)
+        self.end_block()
+
 
 class CNN_3D():
     def __init__(self, input_shape=(7, 72, 72, 1), base=16, blocks=4, activation='relu', border_mode='same', dropout=.3):
