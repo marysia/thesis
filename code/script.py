@@ -1,3 +1,9 @@
+import time
+import sys
+from control import ProgramEnder
+from logger import Logger
+
+
 import model
 import sys
 import os
@@ -36,9 +42,7 @@ def train_model(network, data, params, log, accuracies, postfix=''):
 
 
 
-
 if __name__ == '__main__':
-    # -- argument parsing -- #
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='lidc')
     parser.add_argument('--order', type=str, default='th')
@@ -47,10 +51,10 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
     log_args = [__file__] + args.values()
 
-    # initialize logger
-    log = Logger(log_args, depth=3)
-    log.backup_additional(['model.py', 'logger.py', 'training.py', 'data.py'])
-    log.info(args)
+    log = Logger(sys.argv, depth=3)
+    log.info(log_args)
+    log.backup_additional(['model.py', 'data.py', 'training.py'])
+    ender = ProgramEnder()
 
     # get data
     if args['dataset'] == 'lidc':
@@ -66,20 +70,33 @@ if __name__ == '__main__':
     else:
         input_shape = (7, 72, 72, 1)
 
+
     # -- main script -- #
     start = datetime.datetime.now()
     accuracies = []
 
-    for i in xrange(args['repeats']):
+    i = 0
+    while not ender.terminate and i < args['repeats']:
         log.info('Attempt ' + str(i))
         network = model.Zuidhof(input_shape=input_shape)
-        accuracies = train_model(network, data, args, log, accuracies, postfix='_'+str(i))
+        #network = model.Fully3D(input_shape=input_shape)
+        accuracies = train_model(network, data, args, log, accuracies, postfix='_' + str(i))
+        i += 1
 
-    log.result('Mean of accuracies: ' + str(np.mean(accuracies)))
-    log.result('STD of accuracies: ' + str(np.std(accuracies)))
-    log.result('Max of accuracies: ' + str(np.max(accuracies)))
-    log.result('Min of accuracies: ' + str(np.min(accuracies)))
+    if ender.terminate:
+        log.error('Program was terminated. Exiting gracefully.')
+
+    if args['repeats'] > 1:
+        log.result('Mean of accuracies: ' + str(np.mean(accuracies)))
+        log.result('STD of accuracies: ' + str(np.std(accuracies)))
+        log.result('Max of accuracies: ' + str(np.max(accuracies)))
+        log.result('Min of accuracies: ' + str(np.min(accuracies)))
 
     end = datetime.datetime.now()
     log.info('Running script took ' + str((end-start).seconds) + ' seconds.\n')
     log.copy()
+
+
+
+
+

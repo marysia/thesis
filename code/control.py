@@ -36,11 +36,12 @@ def find_python_processes():
 
             if 'python' in process.name():
                 cmdline = process.cmdline()
-                if len(cmdline) == 2:
-                    scriptname = [elem for elem in cmdline if '.py' in elem]
-                    scriptname = str(scriptname[0]).split('/')[-1]
-
-                    processes.append((pid, scriptname, process.username()))
+                if len(cmdline) >= 2:
+                    #scriptname = [elem for elem in cmdline if '.py' in elem]
+                    scriptname = cmdline[1] if '.py' in cmdline[1] else None
+                    if scriptname is not None:
+                        #scriptname = str(scriptname[0]).split('/')[-1]
+                        processes.append((pid, scriptname, process.username()))
         except psutil.NoSuchProcess:
             pass
     return processes

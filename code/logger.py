@@ -32,7 +32,7 @@ class Logger():
         and sets self.path (directory) and self.log_path (directory/log.log) as variables.
         '''
         fname = self.args[0].split('/')[-1].replace('.py', '')
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H%M")
         date, time = timestamp.split(' ')
         dir_path = '/home/marysia/thesis/logs'
         
