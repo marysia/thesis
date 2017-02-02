@@ -78,7 +78,8 @@ if __name__ == '__main__':
     i = 0
     while not ender.terminate and i < args['repeats']:
         log.info('Attempt ' + str(i))
-        network = model.Zuidhof(input_shape=input_shape)
+        network = model.Resnet3D(input_shape=input_shape)
+        #network = model.Zuidhof(input_shape=input_shape)
         #network = model.Fully3D(input_shape=input_shape)
         accuracies = train_model(network, data, args, log, accuracies, postfix='_' + str(i))
         i += 1
