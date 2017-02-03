@@ -36,11 +36,11 @@ def find_python_processes():
             process = psutil.Process(pid)
             if 'python' in process.name():
                 cmdline = process.cmdline()
-                if len(cmdline) == 2:
+                if len(cmdline) >= 2 and not '/usr/bin/python' in cmdline[0] and not 'control.py' in cmdline:
                     scriptname = [elem for elem in cmdline if '.py' in elem]
-                    scriptname = str(scriptname[0]).split('/')[-1]
-
-                    processes.append((pid, scriptname, process.username()))
+                    if len(scriptname) > 0:
+                        scriptname = str(scriptname[0]).split('/')[-1]
+                        processes.append((pid, scriptname, process.username()))
         except psutil.NoSuchProcess:
             pass
     return processes
@@ -59,7 +59,7 @@ def running():
         print('--- No running python processes ---')
 
 
-def start(script, verbose):
+def start(script, verbose, params):
     ''' Start script in background. '''
     # check if already running
     process = psutil.Process(os.getpid())
@@ -78,9 +78,11 @@ def start(script, verbose):
             splitted = script.split('/')
             logname = splitted[-1].replace('.py', '.log')
             log = os.path.join('/'.join(splitted[:-1]), 'log', logname)
-            cmd = 'setsid ' + python + ' ' + script + '>' + log + ' &'
+            cmd = 'setsid ' + python + ' ' + script + ' ' + params + ' &>' + log
         else:
-            cmd = python + ' ' + script + ' &'
+            cmd = python + ' ' + script + ' ' + params + ' &'
+
+        print(cmd)
         subprocess.Popen(cmd, shell=True)
 
 # send a terminating signal (sigint or sigkill) to the provided script
@@ -129,7 +131,11 @@ def main(argv):
             sys.exit()
         elif opt in ("-s", "--start"):
             if '.py' in arg:
-                start(arg, verbose)
+                params = ''
+                parameters = argv[-1].strip()
+                if parameters[0] == '[' and parameters[-1] == ']':
+                    params = parameters[1:-1]
+                start(arg, verbose, params)
             else:
                 print(arg + ' is not a python file.')
             sys.exit()
@@ -143,4 +149,4 @@ def main(argv):
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    main(args)
+    main(['-r'])

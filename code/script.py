@@ -15,12 +15,20 @@ from data import load_lidc, load_candidates
 import argparse
 from keras import backend as K
 
+def get_network(name, input_shape):
+    if name == 'znet':
+        network = model.ZuidhofRN(input_shape=input_shape)
+    elif name == 'zcnn':
+        network = model.Zuidhof(input_shape=input_shape)
+    elif name == 'resnet':
+        network = model.Resnet3D(input_shape=input_shape)
+    return network
 
 def train_model(network, data, params, log, accuracies, postfix=''):
     ''' Trains and logs result for each model. '''
     log.info('Starting ' + network.name)
     # compile and train
-    train = Train(network.model, epochs=params['epochs'])
+    train = Train(network.model, epochs=params['epochs'], batch_size=params['batch_size'])
     train.compile_model()
     train.train_model(data['xtrain'], data['ytrain'], data['xtest'], data['ytest'])
 
@@ -42,18 +50,21 @@ def train_model(network, data, params, log, accuracies, postfix=''):
 
 
 if __name__ == '__main__':
+    print('HI STARTING NOW!')
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='lidc')
-    parser.add_argument('--order', type=str, default='th')
+    parser.add_argument('--order', type=str, default='tf')
     parser.add_argument('--epochs', type=int, default=5)
     parser.add_argument('--repeats', type=int, default=1)
+    parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--network', type=str, default='znet')
     args = vars(parser.parse_args())
     log_args = [__file__] + args.values()
 
     log = Logger(sys.argv, depth=3)
     log.info(args)
     log.backup_additional(['model.py', 'data.py', 'training.py'])
-    ender = ProgramEnder()
+    #ender = ProgramEnder()
 
     # get data
     if args['dataset'] == 'lidc':
@@ -75,23 +86,23 @@ if __name__ == '__main__':
     accuracies = []
 
     i = 0
-    while not ender.terminate and i < args['repeats']:
-        log.info('Attempt ' + str(i))
-        #network = model.Resnet3D(input_shape=input_shape)
-        #train_model(network, data, args, log, accuracies, postfix='_'+str(i))
-        # network = model.Zuidhof(input_shape=input_shape)
-        # train_model(network, data, args, log, accuracies, postfix='_'+str(i))
-        #network = model.Fully3D(input_shape=input_shape)
-        #train_model(network, data, args, log, accuracies, postfix='_' + str(i))
+    # while not ender.terminate and i < args['repeats']:
+    #     log.info('Attempt ' + str(i))
+    #
+    #     network = get_network(args['network'].lower(), input_shape)
+    #     train_model(network, data, args, log, accuracies, postfix='_' + str(i))
+    #     i += 1
+    #
+    # if ender.terminate:
+    #     log.error('Program was terminated. Exiting gracefully.')
 
-        network = model.ZuidhofRN(input_shape=input_shape)
-        train_model(network, data, args, log, accuracies, postfix='_' + str(i))
+
+    while i < args['repeats']:
+        network = get_network(args['network'].lower(), input_shape)
+        train_model(network, data, args, log, accuracies, postfix='_'+str(i))
         i += 1
 
-    if ender.terminate:
-        log.error('Program was terminated. Exiting gracefully.')
-
-    if args['repeats'] > 1 and False:
+    if args['repeats'] > 1:
         log.result('Mean of accuracies: ' + str(np.mean(accuracies)))
         log.result('STD of accuracies: ' + str(np.std(accuracies)))
         log.result('Max of accuracies: ' + str(np.max(accuracies)))
