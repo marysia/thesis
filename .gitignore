@@ -1,10 +1,9 @@
 # laptop:
 .idea/
 .ipynb_checkpoints/
+*.ipynb
 marysia/
 docs/
-notes/
-
 # gpu0
 logs/
 data/
