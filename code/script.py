@@ -41,7 +41,6 @@ def train_model(network, data, params, log, accuracies, postfix=''):
     return accuracies
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='lidc')
@@ -52,7 +51,7 @@ if __name__ == '__main__':
     log_args = [__file__] + args.values()
 
     log = Logger(sys.argv, depth=3)
-    log.info(log_args)
+    log.info(args)
     log.backup_additional(['model.py', 'data.py', 'training.py'])
     ender = ProgramEnder()
 
@@ -78,16 +77,21 @@ if __name__ == '__main__':
     i = 0
     while not ender.terminate and i < args['repeats']:
         log.info('Attempt ' + str(i))
-        network = model.Resnet3D(input_shape=input_shape)
-        #network = model.Zuidhof(input_shape=input_shape)
+        #network = model.Resnet3D(input_shape=input_shape)
+        #train_model(network, data, args, log, accuracies, postfix='_'+str(i))
+        # network = model.Zuidhof(input_shape=input_shape)
+        # train_model(network, data, args, log, accuracies, postfix='_'+str(i))
         #network = model.Fully3D(input_shape=input_shape)
-        accuracies = train_model(network, data, args, log, accuracies, postfix='_' + str(i))
+        #train_model(network, data, args, log, accuracies, postfix='_' + str(i))
+
+        network = model.ZuidhofRN(input_shape=input_shape)
+        train_model(network, data, args, log, accuracies, postfix='_' + str(i))
         i += 1
 
     if ender.terminate:
         log.error('Program was terminated. Exiting gracefully.')
 
-    if args['repeats'] > 1:
+    if args['repeats'] > 1 and False:
         log.result('Mean of accuracies: ' + str(np.mean(accuracies)))
         log.result('STD of accuracies: ' + str(np.std(accuracies)))
         log.result('Max of accuracies: ' + str(np.max(accuracies)))

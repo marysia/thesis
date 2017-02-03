@@ -4,6 +4,7 @@ import getopt
 import psutil
 import subprocess
 import signal
+import time
 
 
 class ProgramEnder:
@@ -28,20 +29,18 @@ def find_python_processes():
     '''
     Return all (pid, file, user) combinations of currently running python processes.
     '''
-    pids = psutil.pids()  # note: old version of psutil installed, newer = psutil.pids()
+    pids = psutil.pids()
     processes = []
     for pid in pids:
         try:
             process = psutil.Process(pid)
-
             if 'python' in process.name():
                 cmdline = process.cmdline()
-                if len(cmdline) >= 2:
-                    #scriptname = [elem for elem in cmdline if '.py' in elem]
-                    scriptname = cmdline[1] if '.py' in cmdline[1] else None
-                    if scriptname is not None:
-                        #scriptname = str(scriptname[0]).split('/')[-1]
-                        processes.append((pid, scriptname, process.username()))
+                if len(cmdline) == 2:
+                    scriptname = [elem for elem in cmdline if '.py' in elem]
+                    scriptname = str(scriptname[0]).split('/')[-1]
+
+                    processes.append((pid, scriptname, process.username()))
         except psutil.NoSuchProcess:
             pass
     return processes
@@ -60,27 +59,40 @@ def running():
         print('--- No running python processes ---')
 
 
-def start(script):
+def start(script, verbose):
     ''' Start script in background. '''
     # check if already running
+    process = psutil.Process(os.getpid())
+    python = process.name()
+    user = process.username()
+
     processes = find_python_processes()
-    scripts = [elem[1] for elem in processes]
-    if script in scripts:
+
+    scripts = [elem[1] for elem in processes if elem[2] == user]
+    if script.split('/')[-1] in scripts:
         print('%s is already running.' % script)
     else:
         print('Starting %s' % script)
-        cmd = 'python ' + script + ' &'
+
+        if not verbose:
+            splitted = script.split('/')
+            logname = splitted[-1].replace('.py', '.log')
+            log = os.path.join('/'.join(splitted[:-1]), 'log', logname)
+            cmd = 'setsid ' + python + ' ' + script + '>' + log + ' &'
+        else:
+            cmd = python + ' ' + script + ' &'
         subprocess.Popen(cmd, shell=True)
 
-
 # send a terminating signal (sigint or sigkill) to the provided script
-def end(script, force=False):
+def end(script, force):
     '''
     Send a terminating signal (sigint or sigkill) to the provided script.
     * script: script file name. do not include folder.
     * force: false for sigint, true for sigkill
     '''
+    user = psutil.Process(os.getpid()).username()
     processes = find_python_processes()
+    processes = [elem for elem in processes if (elem[2] == user)]
     processes = [elem for elem in processes if (elem[1] == script and script != 'all')]
 
     if len(processes) > 0:
@@ -91,12 +103,6 @@ def end(script, force=False):
             else:
                 cmd = 'kill -2 ' + str(pid)
             subprocess.Popen(cmd, shell=True)
-
-            current_processes = find_python_processes()
-            if (pid, file, user) not in current_processes:
-                print('Stopped %s with pid %s succesfully.' % (file, str(pid)))
-            else:
-                print('Stopping %s with pid %s was not successful.' % (file, str(pid)))
     else:
         print('%s was not running.' % script)
 
@@ -106,31 +112,32 @@ def main(argv):
     Handle command line arguments.
     '''
     try:
-        opts, args = getopt.getopt(argv, "hfrs:e:", ["start=", "end="])
+        opts, args = getopt.getopt(argv, "hfrvs:e:", ["start=", "end="])
     except getopt.GetoptError:
         print('Incorrect use of flags. Use -h.')
         sys.exit(2)
 
     force = True if ('-f', '') in opts else False
+    verbose = True if ('-v', '') in opts else False
     for opt, arg in opts:
         if opt == '-h':
             print(
-            'python control.py \n \t * -h for help \n \t * -r for running processes \n \t * -s <script> for starting \n \t * -e <script> for ending (add -f to force)')
+            'python control.py \n \t * -h for help \n \t * -r for running processes \n \t * -s <script> for starting (add -v print text to commandline) \n \t * -e <script> for ending (add -f to force)')
             sys.exit()
         elif opt == '-r':
             running()
             sys.exit()
         elif opt in ("-s", "--start"):
             if '.py' in arg:
-                start(arg)
+                start(arg, verbose)
             else:
-                print arg + ' is not a python file.'
+                print(arg + ' is not a python file.')
             sys.exit()
         elif opt in ("-e", "--end"):
             if '.py' in arg:
                 end(arg, force)
             else:
-                print arg + ' is not a python file.'
+                print(arg + ' is not a python file.')
             sys.exit()
 
 
