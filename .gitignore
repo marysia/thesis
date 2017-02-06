@@ -10,3 +10,5 @@ data/
 code/log/
 code/nohup.out
 code/*.pyc
+code/garray2d
+code/test_file.py
