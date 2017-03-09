@@ -39,8 +39,8 @@ def check_o_group(garray_module, garray_class, G):
     check_associative(a, b, c)
     check_identity(garray_module, a)
     check_inverse(garray_module, a)
-    check_closure_tmp(G)
-    check_inverses_tmp(G)
+    check_closed_under_composition_tmp(G)
+    check_closed_under_inverses_tmp(G)
     check_reparameterize_invertible(garray_class, a)
 
 
@@ -108,10 +108,10 @@ def check_inverse(garray_module, a):
 #   ->  return np.array(self._elements[int_data], dtype=np.int)
 # TypeError: only integer arrays with one element can be converted to an index
 # Temporary solution: redefine closed under composition and closed under inverses
-def check_closure_tmp(G):
+def check_closed_under_composition_tmp(G):
     '''
-    For all a, b in G, the result of the operation a * b
-    is also in G.
+    This function creates a set of products of each element combination
+    in G. This set must equal the original G for G to be closed under composition.
 
     :param G: a GArray containing every element of a finite group.
     '''
@@ -126,9 +126,10 @@ def check_closure_tmp(G):
                 product_group.append(product)
     check_same_groups(original_group, product_group)
 
-def check_inverses_tmp(G):
+def check_closed_under_inverses_tmp(G):
     '''
-    Create set of inverses and compare to original G.
+    This function creates a set of inverses of each element of G.
+    This set must equal the original G for G to be closed under inverses.
     '''
     original_group = []
     inverse_group = []
