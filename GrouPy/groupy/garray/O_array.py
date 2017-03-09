@@ -16,14 +16,15 @@ class OArray(MatrixGArray):
         assert data.dtype == np.int
         self._left_actions[OArray] = self.__class__.left_action_hmat
         super(OArray, self).__init__(data, p)
-        self._elements = self._get_elements()
+        self.elements = self.get_elements()
 
     def hmat2int(self, mat_data):
-        return (self._elements.index(mat_data.tolist()), )
+        return (self.elements.index(mat_data.tolist()), )
     def int2hmat(self, int_data):
-        return np.array(self._elements[int_data], dtype=np.int)
+        return np.array(self.elements[int_data], dtype=np.int)
 
-    def _get_elements(self):
+    @staticmethod
+    def get_elements(self):
         g1 = [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]  # 90o degree rotation over x
         g2 = [[0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0], [0, 0, 0, 1]]  # 90o degree rotation over y
         element_list = [g1, g2]
