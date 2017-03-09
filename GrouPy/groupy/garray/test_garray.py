@@ -31,6 +31,10 @@ def test_o_array():
     from groupy.garray import O_array
     check_o_group(O_array, O_array.OArray, O_array.O)
 
+def test_oh_array():
+    from groupy.garray import Oh_array
+    check_o_group(Oh_array, Oh_array.OhArray, Oh_array.Oh)
+
 def check_o_group(garray_module, garray_class, G):
     a = garray_module.rand()
     b = garray_module.rand()
