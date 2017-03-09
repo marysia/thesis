@@ -27,6 +27,22 @@ def test_d4_array():
     from groupy.garray import D4_array
     check_finite_group(D4_array, D4_array.D4Array, D4_array.D4)
 
+def test_o_array():
+    from groupy.garray import O_array
+    check_o_group(O_array, O_array.OArray, O_array.O)
+
+def check_o_group(garray_module, garray_class, G):
+    a = garray_module.rand()
+    b = garray_module.rand()
+    c = garray_module.rand()
+
+    check_associative(a, b, c)
+    check_identity(garray_module, a)
+    check_inverse(garray_module, a)
+    check_closure_tmp(G)
+    check_inverses_tmp(G)
+    check_reparameterize_invertible(garray_class, a)
+
 
 def check_wallpaper_group(garray_module, garray_class):
 
@@ -83,6 +99,58 @@ def check_inverse(garray_module, a):
     assert (a.inv().inv() == a).all()
 
 
+
+# TODO: could not use check_closed_composition and check_closed_inverse for O group
+# Error for Gf[:, None]*Gf[None,:] and Gf.inv() respectively
+# Traceback:
+#   -> self_mat = self.reparameterize(mat_p).data
+#   -> new_data = self._reparameterizations[(self.p, p)](self.data)
+#   ->  return np.array(self._elements[int_data], dtype=np.int)
+# TypeError: only integer arrays with one element can be converted to an index
+# Temporary solution: redefine closed under composition and closed under inverses
+def check_closure_tmp(G):
+    '''
+    For all a, b in G, the result of the operation a * b
+    is also in G.
+
+    :param G: a GArray containing every element of a finite group.
+    '''
+    original_group = []
+    product_group = []
+    for a in G:
+        original_group.append(a)
+        for b in G:
+            product = a * b
+            assert product in G
+            if product not in product_group:
+                product_group.append(product)
+    check_same_groups(original_group, product_group)
+
+def check_inverses_tmp(G):
+    '''
+    Create set of inverses and compare to original G.
+    '''
+    original_group = []
+    inverse_group = []
+    for a in G:
+        original_group.append(a)
+        inverse = a.inv()
+        assert a in G
+        if inverse not in inverse_group:
+            inverse_group.append(inverse)
+    check_same_groups(original_group, inverse_group)
+
+def check_same_groups(G, H):
+    '''
+    Groups G and H are the same if they are the same size
+    and every element in G is in H, and vice versa.
+    '''
+    assert len(G) == len(H)
+    for a in G:
+        assert a in H
+    for b in H:
+        assert b in G
+
 def check_garray_equal_as_sets(G, H):
     """
     Check that two GArrays G and H are equal as sets,
@@ -98,7 +166,6 @@ def check_garray_equal_as_sets(G, H):
     for i in range(Hf.size):
         hi = Hf[i]
         assert (hi == G).sum() > 0
-
 
 def check_closed_composition(G):
     """
