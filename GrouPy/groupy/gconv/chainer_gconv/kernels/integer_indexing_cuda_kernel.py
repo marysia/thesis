@@ -80,7 +80,7 @@ def index_group_func_kernel(input, T, U, V, output):
 _grad_index_group_func_str = \
     """
     // atomicAdd for doubles is not implemented in cuda, so have to add it here
-    __device__ double atomicAdd(double* address, double val)
+    __device__ double atomicAddDouble(double* address, double val)
     {{
         unsigned long long int* address_as_ull =
                                   (unsigned long long int*)address;
@@ -121,16 +121,16 @@ _grad_index_group_func_str = \
 
             int indexTUV[4] = {{output_transform, input_transform, u, v}};
             int index[5] = {{output_channel, input_channel, T[indexTUV], U[indexTUV], V[indexTUV]}};
-            atomicAdd(&grad_input[index], grad_output[i]);
+            atomicAdd{1}(&grad_input[index], grad_output[i]);
         }}
     }}
     """
-
+# help
 _grad_index_group_func_kernel32 = compile_with_cache(
-    _grad_index_group_func_str.format('float')
+    _grad_index_group_func_str.format('float', '')
 ).get_function('grad_indexing_kernel')
 _grad_index_group_func_kernel64 = compile_with_cache(
-    _grad_index_group_func_str.format('double')
+    _grad_index_group_func_str.format('double', 'Double')
 ).get_function('grad_indexing_kernel')
 
 
