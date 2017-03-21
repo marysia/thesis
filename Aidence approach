@@ -1,0 +1,81 @@
+1. Preprocessing
+2. Locatlization
+3. Post-processing
+4. Metadata & Boosting
+5. Type bepaling 
+
+1. Preprocessing
+	- Scale normalization: (2.5, .512, .512) 
+	- Orientation normalization: same orientation, mirror in z-axis if necessary
+	- Value normalization: [-1, 1] from Hounsfield units ([-1000, 300] for lung) 
+	- Consistency checks
+
+2. Localization
+	- 3D patches: 
+	3D volumes gaan in een 3D Resnet. 3D patches (7, 72, 72) zijn subsets van het totale volume van de scan. -1 padding wordt gebruikt om de pixels aan de randen mee te nemen. Een kleine patch als output, zoals (1, 56, 56), per pixel label. 
+
+	- Negatieve data:
+	Random sample binnen de lung mask. De data wordt in een 50/50 verhouding van positive/negative aangeboden, waar de negatieve examples een een hogere weging hebben, aangezien negatief in de praktijk meer voorkomt. -log2 wordt van de logit afgetrokken om te corrigeren voor weging. 
+
+	- Data augmentatie:
+	Alle lineaire augmentaties:
+		- Rotation (alleen over x en y, want z een andere diepte)
+		- Scaling (0.9 - 1.1, gebaseerd op paper van Nijmegen) 
+		- Mirrors over alle assen.
+	Geen non-lineaire. 
+	Rotationele augmentation maakt uit vanwege slechte labels. 
+
+	- Dataset: 
+		- NLST: bekend welke slice en nodule grootte, door Joris & co. exacte center geannoteerd (10% double reading). Door één radioloog geannoteerd in eerste instantie, dus door hem (of haar) gemistte nodules zijn volledig gemist. Annotaties van Joris & co. zijn ook niet zo goed, bijv. als er twee nodules op één slice te zien zijn, dat de verkeerde nodule geannoteerd werd. Enkel center geannoteerd. 
+
+		- LIDC: absolute ground truth. Vier radiologen hebben per pixel aangegeven of iets tot een nodule behoort of niet. Alleen als 3 of 4 radiologen iets als nodule hebben beoordeeld, wordt het opgenomen in de test set. In het geval dat 1 of 2 radiologen iets als nodule hebben beoordeeld, wordt dit aan de rest voorgelegd, en als zij het er niet mee eens waren (niet als nodule zagen), werd het niet opgenomen in de testset. Dit heeft geen invloed op de score (sensitivity voor bepaald aantal false positives) 
+
+	- Architectuur localisatie: 
+	input --(3d-2d reshape)--> 2D convolutie --> RESNET BLOCK --(2d-3d reshape)--> 3D convolutie --(3d-2d reshape)--> RESNET BLOCK --(2d-3d reswhape)--> 3D convolutie --(3d-2d reshape)--> RESNET BLOCK --(2d-3d reshape)--> 3D convolutie --> activation (sigmoid) met cross-entropy loss
+
+	RESNET layer: input --> (crelu, conv3x3, crelu, conv1x1) --> add
+					----> crop ---> 
+	RESNET BLOCK: 3 of 4 RESNET layers. 
+
+	- Architectuur details: 
+		- Weight normalization (w' = g * (w/||w_2||)) i.p.v. batch normalization
+			BN: output wordt gestandardiseerd naar mean 0, std 1
+			WN: ...? 
+		- Reshape: (b, z, y, x, c) gaat naar (b*z, y, x, c) of vice versa.
+			Reden: maar zeven slices in z, dus laat maar 3 3D convoluties toe. 
+		- Generaliseren naar het hele volume: 
+			Geen same padding, geen (max) pooling, geen srided. 
+			Voor generalisatie evenveel output als input nodig, dus geen pooling/strided
+			Geen padding, omdat dit andere (-1) data zou opleveren dan origineel. 
+		- Diepte netwerk: diepte van het netwerk wordt bepaald door de gestelde margins (7 depth betekent max drie 3D convoluties), maar max diepte is geen belemmering en anders 1x1 convs.
+		- Atrous convolutions: grotere filters die sneller reduceren (a 0 b 0 c) 
+		- Output: zelfde volume maar dan per pixel de kans dat een pixel deel van een nodule is, op basis van sigmoid met uitvoer cross-entropy loss.
+
+	- Kracht localisatie: 
+		- correct centrum vinden
+		- veel kandidaten vinden
+
+
+3. Post-processing
+	1. Enkel nodule candidaten die binnen de lung mask vallen.
+	2. T1 applyen: threshold op de logits.
+	3. Center of mass en grootte van de nodule bepalen.
+	4. T2 applyen: threshold op logits.
+	Threshold waardes werden empirisch bepaald op basis van de LIDC. 
+	Threshold + erode (??) 
+
+4. Boosting & metadata
+	Er wordt een 7x72x72 path om de center of mass van de candidaten gecreëerd.
+	Gemiddeld 20 candidaten per scan, maar soms uitschieters tot 300. Gemiddeld zijn er 1.6 true nodules per scan. De positieve en negatieve candidaten worden 50/50 aangeboden aan het netwerk en per patch komt er één kans uit: de kans dat de patch een nodule bevat. Het is mogelijk snel te averagen over verschillende modellen en middelen over symmetriën. Met symmetriën worden de 16 symmetriën bedoeld: rotatie en mirrors. (4 rotaties rond x, 4 rond y, en gemirrord = 16) 
+	Er wordt hetzelfde model gebruikt, maar dan met stride ipv dilated convolutions, wat reduceert tot één voxel. 
+
+
+5. Type bepaling nodule
+	De door localization en boosting gevonden nodules worden aangeboden aan een derde model dat het type nodule (ground glass lesion, solid, part-solid ???) bepaalt.  
+
+
+
+
+- random sample binnen de lung mask: alleen op scans waar geen nodules zijn? 
+- data augmentatie voor localisatie 
+- wat bedoelde je met threshold + erode?
