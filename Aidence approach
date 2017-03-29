@@ -55,6 +55,8 @@
 		- correct centrum vinden
 		- veel kandidaten vinden
 
+	- Symmetrieën: spiegel symmetrieën over het hele volume in localisatie zou naar zijn. 
+
 
 3. Post-processing
 	1. Enkel nodule candidaten die binnen de lung mask vallen.
@@ -67,8 +69,7 @@
 4. Boosting & metadata
 	Er wordt een 7x72x72 path om de center of mass van de candidaten gecreëerd.
 	Gemiddeld 20 candidaten per scan, maar soms uitschieters tot 300. Gemiddeld zijn er 1.6 true nodules per scan. De positieve en negatieve candidaten worden 50/50 aangeboden aan het netwerk en per patch komt er één kans uit: de kans dat de patch een nodule bevat. Het is mogelijk snel te averagen over verschillende modellen en middelen over symmetriën. Met symmetriën worden de 16 symmetriën bedoeld: rotatie en mirrors. (4 rotaties rond x, 4 rond y, en gemirrord = 16) 
-	Er wordt hetzelfde model gebruikt, maar dan met stride ipv dilated convolutions, wat reduceert tot één voxel. 
-
+	Er wordt hetzelfde model gebruikt, maar dan met stride ipv dilated convolutions, wat reduceert tot één voxel. Boosting model heeft heel veel last van gemiste nodules die wel door de localisatie zijn gedetecteerd maar (foutief) als negatieven bekend staan en daarmee false negatives zijn. 
 
 5. Type bepaling nodule
 	De door localization en boosting gevonden nodules worden aangeboden aan een derde model dat het type nodule (ground glass lesion, solid, part-solid ???) bepaalt.  

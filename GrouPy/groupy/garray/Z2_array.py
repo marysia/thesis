@@ -3,7 +3,6 @@ import numpy as np
 
 from groupy.garray.garray import GArray
 
-
 class Z2Array(GArray):
 
     parameterizations = ['int']

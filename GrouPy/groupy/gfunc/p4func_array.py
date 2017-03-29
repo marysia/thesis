@@ -3,7 +3,6 @@ import numpy as np
 import groupy.garray.p4_array as p4a
 from groupy.gfunc.gfuncarray import GFuncArray
 
-
 class P4FuncArray(GFuncArray):
 
     def __init__(self, v, umin=None, umax=None, vmin=None, vmax=None):

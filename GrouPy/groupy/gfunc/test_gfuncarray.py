@@ -1,5 +1,21 @@
 import numpy as np
 
+def test_oh_func():
+    import groupy.gfunc as gf
+    #from groupy.gfunc.Ohfunc_array import OhFuncArray
+    import groupy.garray.Oh_array as oh
+
+    v = np.random.randn(2, 6, 24, 2)
+    f = gf.OhFuncArray(v=v)
+
+    g = oh.rand()
+    h = oh.rand()
+
+    check_associative(g, h, f)
+    check_identity(oh, f)
+    check_invertible(g, f)
+    check_i2g_g2i_invertible(f)
+
 
 def test_p4_func():
     from groupy.gfunc.p4func_array import P4FuncArray
