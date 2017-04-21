@@ -3,6 +3,7 @@ import os
 import glob
 import datetime 
 import shutil
+import config
 
 class Logger():
     def __init__(self, args, time=False, depth=2, revision=False): 
@@ -34,7 +35,6 @@ class Logger():
         fname = self.args[0].split('/')[-1].replace('.py', '')
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H%M")
         date, time = timestamp.split(' ')
-        dir_path = '/home/marysia/thesis/logs'
         
         # determine prefix and logging directory based on depth
         if not self.revision:
@@ -44,13 +44,13 @@ class Logger():
                 dir_path = os.path.join(dir_path, fname)
                 self.prefix = timestamp.replace(' ', '_') + '_'
             elif self.depth == 2: 
-                dir_path = os.path.join(dir_path, fname, timestamp)
+                dir_path = os.path.join(config.log_dir, fname, timestamp)
             elif self.depth == 3: 
-                dir_path = os.path.join(dir_path, fname, date, time)
+                dir_path = os.path.join(config.log_dir, fname, date, time)
             else: 
                 raise Exception('Directory depth for logger is unclear.')
         else: 
-            revs = glob.glob(os.path.join(dir_path, fname + '_*.log'))
+            revs = glob.glob(os.path.join(config.log_dir, fname + '_*.log'))
             self.prefix = fname + '_' + str(len(revs)+1) + '_'
             
         if not os.path.exists(dir_path):
@@ -113,7 +113,7 @@ class Logger():
         
     # --- helper functions --- #
     def copy(self):
-        shutil.copy(self.log_path, os.path.join('/home/marysia/thesis/logs', 'latest.log'))
+        shutil.copy(self.log_path, os.path.join(config.log_dir, 'latest.log'))
 
     def get_time(self):
         ''' Returns timestamp in appropriate format. ''' 
@@ -129,3 +129,5 @@ class Logger():
         else: 
             string += ' no parameters.'
         return string 
+        
+print config.log_dir

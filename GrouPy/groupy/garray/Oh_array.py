@@ -48,23 +48,25 @@ class OhArray(MatrixGArray):
         # quick fix.
         if index.shape == ():
             hmat = self.get_hmat(index, m)
-            for k in range(4):
-                for l in range(4):
-                    out[..., k, l] = hmat[k, l]
+            out[..., 0:4, 0:4] = hmat
+
+            # for k in range(4):
+            #     for l in range(4):
+            #         out[..., k, l] = hmat[k, l]
         elif index.shape == (1,):
             hmat = self.get_hmat[index[0], m[0]]
-            for k in range(4):
-                for l in range(4):
-                    out[..., k, l] = hmat[k, l]
-
+            out[..., 0:4, 0:4] = hmat
+            # for k in range(4):
+            #     for l in range(4):
+            #         out[..., k, l] = hmat[k, l]
         else:
             for i in xrange(index.shape[0]):
                 for j in xrange(index.shape[1]):
                     hmat = self.get_hmat(index[i,j], m[i, j])
-
-                    for k in range(4):
-                        for l in range(4):
-                            out[i, j, k, l] = hmat[k, l]
+                    out[i, j, 0:4, 0:4] = hmat
+                    # for k in range(4):
+                    #     for l in range(4):
+                    #         out[i, j, k, l] = hmat[k, l]
 
         return out
 

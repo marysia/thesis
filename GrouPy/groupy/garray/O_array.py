@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import copy
 from groupy.garray.finitegroup import FiniteGroup
 from groupy.garray.matrix_garray import MatrixGArray
 
@@ -19,9 +20,25 @@ class OArray(MatrixGArray):
         self.elements = self.get_elements()
 
     def hmat2int(self, mat_data):
+
         return (self.elements.index(mat_data.tolist()), )
     def int2hmat(self, int_data):
-        return np.array(self.elements[int_data], dtype=np.int)
+        i = int_data[..., 0]
+        data = np.zeros(int_data.shape[:-1] + (4, 4), dtype=np.int)
+        if i.shape == ():
+            hmat = self.elements[i]
+            data[..., 0:4, 0:4] = hmat
+        elif i.shape == (1,):
+            hmat = self.elements[i[0]]
+            data[..., 0:4, 0:4] = hmat
+        else:
+            for j in xrange(int_data.shape[0]):
+                for k in xrange(int_data.shape[1]):
+                    hmat = self.elements[i[j, k]]
+                    data[j, k, 0:4, 0:4] = hmat
+        return data
+        #return np.array(self.elements[int_data], dtype=np.int)
+
 
     def get_elements(self):
         g1 = [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]  # 90o degree rotation over x

@@ -8,9 +8,11 @@ import numpy as np
 from groupy.garray.C4_array import C4
 from groupy.garray.D4_array import D4
 from groupy.garray.p4_array import C4_halfshift
+from groupy.garray.Oh_array import Oh
 from groupy.gfunc.z2func_array import Z2FuncArray
 from groupy.gfunc.p4func_array import P4FuncArray
 from groupy.gfunc.p4mfunc_array import P4MFuncArray
+from groupy.gfunc.ohfunc_array import OhFuncArray
 
 
 def make_c4_z2_indices(ksize):

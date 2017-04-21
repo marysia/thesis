@@ -35,6 +35,7 @@ def test_oh_array():
     from groupy.garray import Oh_array
     check_o_group(Oh_array, Oh_array.OhArray, Oh_array.Oh)
 
+
 def check_o_group(garray_module, garray_class, G):
     a = garray_module.rand()
     b = garray_module.rand()
@@ -47,6 +48,19 @@ def check_o_group(garray_module, garray_class, G):
     check_closed_under_inverses_tmp(G)
     check_reparameterize_invertible(garray_class, a)
 
+def check_space_group(garray_module, garray_class):
+    a = garray_module.rand(minu=-1, maxu=2, minv=-1, maxv=2, minw=1, maxw=2, size=(2, 3))
+    b = garray_module.rand(minu=-1, maxu=2, minv=-1, maxv=2, minw=1, maxw=2, size=(2, 3))
+    c = garray_module.rand(minu=-1, maxu=2, minv=-1, maxv=2, minw=1, maxw=2, size=(2, 3))
+
+    check_associative(a, b, c)
+    check_identity(garray_module, a)
+    check_inverse(garray_module, a)
+
+    check_reparameterize_invertible(garray_class, a)
+
+    m = garray_module.meshgrid(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2)
+    check_closed_inverse(m)
 
 def check_wallpaper_group(garray_module, garray_class):
 

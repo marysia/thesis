@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     log = Logger(sys.argv, depth=3)
     log.info(args)
-    log.backup_additional(['model.py', 'data.py', 'training.py'])
+    log.backup_additional(['resnet/model.py', 'resnet/data.py', 'resnet/training.py'])
     #ender = ProgramEnder()
 
     # get data

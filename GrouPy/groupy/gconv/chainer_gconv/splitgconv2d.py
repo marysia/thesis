@@ -117,6 +117,7 @@ class SplitGConv2D(chainer.Link):
             elif not nobias:
                 self.b.data[:] = self.xp.repeat(self.dtype.type(0.), self.out_channels)
 
+        # can delete, useless feature
         if filter_mask is not None:
             if not filter_mask.shape == (self.out_channels, self.in_channels, self.input_stabilizer_size):
                 raise ValueError('Invalid filter_mask shape. Got: ' + str(filter_mask.shape) +
