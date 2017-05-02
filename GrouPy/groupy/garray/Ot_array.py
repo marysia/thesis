@@ -21,83 +21,37 @@ class OtArray(MatrixGArray):
         self.base_elements = self.get_base_elements()
 
     def hmat2int(self, hmat_data):
-        out = np.zeros(hmat_data.shape[:-2] + (4,), dtype=np.int)
-
-        # handle different input shapes
-        if len(hmat_data.shape) == 2:
-            mat = hmat_data[0:3, 0:3]
-            u, v, w, _ = hmat_data[:, 3]
-            index = self.base_elements.index(mat.tolist())
-            out[..., 0] = index
-            out[..., 1] = u
-            out[..., 2] = v
-            out[..., 3] = w
-        elif len(hmat_data.shape) == 3:
-            for j in xrange(hmat_data.shape[0]):
-                mat = hmat_data[j][0:3, 0:3]
-                u, v, w, _ = hmat_data[j][:, 3]
-                index = self.base_elements.index(mat.tolist())
-                out[j, 0] = index
-                out[j, 1] = u
-                out[j, 2] = v
-                out[j, 3] = w
-        else:
-            for i in xrange(hmat_data.shape[0]):
-                for j in xrange(hmat_data.shape[1]):
-                    mat = hmat_data[i, j][0:3, 0:3]
-                    u, v, w, _ = hmat_data[i, j][:, 3]
-                    index = self.base_elements.index(mat.tolist())
-                    out[i, j, 0] = index
-                    out[i, j, 1] = u
-                    out[i, j, 2] = v
-                    out[i, j, 3] = w
-        return out
-
-    def int2hmat(self, int_data):
-        i = int_data[..., 0]
-        u = int_data[..., 1]
-        v = int_data[..., 2]
-        w = int_data[..., 3]
-        data = np.zeros(int_data.shape[:-1] + (4, 4), dtype=np.int)
-        if i.shape == ():
-            mat = self.base_elements[i]
-            data[..., 0:3, 0:3] = mat
-            data[..., 0, 3] = u
-            data[..., 1, 3] = v
-            data[..., 2, 3] = w
-            data[..., 3, 3] = 1
-        elif len(i.shape) == 1:
-            for j in xrange(i.shape[0]):
-                #TODO: THIS IS NOT YET UPDATED ON GPU01
-                mat = self.base_elements[i[j]]
-                data[j, 0:3, 0:3] = mat
-                data[j, 0, 3] = u[j]
-                data[j, 1, 3] = v[j]
-                data[j, 2, 3] = w[j]
-                data[j, 3, 3] = 1
-        if len(i.shape) == 2:
-            for j in xrange(int_data.shape[0]):
-                for k in xrange(int_data.shape[1]):
-                    mat = self.base_elements[i[j, k]]
-                    data[j, k, 0:3, 0:3] = mat
-                    data[j, k, 0, 3] = u[j, k]
-                    data[j, k, 1, 3] = v[j, k]
-                    data[j, k, 2, 3] = w[j, k]
-                    data[j, k, 3, 3] = 1
-        if len(i.shape) == 4:
-            for j in xrange(int_data.shape[0]):
-                for k in xrange(int_data.shape[1]):
-                    for l in xrange(int_data.shape[2]):
-                        for m in xrange(int_data.shape[3]):
-                            mat = self.base_elements[i[j, k, l, m]]
-                            data[j, k, l, m, 0:3, 0:3] = mat
-                            data[j, k, l, m, 0, 3] = u[j, k, l, m]
-                            data[j, k, l, m, 1, 3] = v[j, k, l, m]
-                            data[j, k, l, m, 2, 3] = w[j, k, l, m]
-                            data[j, k, l, m, 3, 3] = 1
-
+        input = hmat_data.reshape((-1, 4, 4))
+        data = np.zeros((input.shape[0], 4), dtype=np.int)
+        for i in xrange(input.shape[0]):
+            hmat = input[i]
+            mat = [elem[0:3] for elem in hmat.tolist()][0:3]
+            index, mirror = self.base_elements.index(mat)
+            u, v, w, _ = hmat[:, 3]
+            data[i, 0] = index
+            data[i, 1] = u
+            data[i, 2] = v
+            data[i, 3] = w
+        data = data.reshape(hmat_data.shape[:-2] + (4,))
         return data
 
+    def int2hmat(self, int_data):
+        i = int_data[..., 0].flatten()
+        u = int_data[..., 1].flatten()
+        v = int_data[..., 2].flatten()
+        w = int_data[..., 3].flatten()
+        data = np.zeros((len(i),) + (4, 4), dtype=np.int)
+
+        for j in xrange(len(i)):
+            mat = self.base_elements[i[j]]
+            data[j, 0:3, 0:3] = mat
+            data[j, 0, 3] = u[j]
+            data[j, 1, 3] = v[j]
+            data[j, 2, 3] = w[j]
+            data[j, 3, 3] = 1
+
+        data = data.reshape(int_data.shape[:-1] + (4, 4))
+        return data
 
     def get_base_elements(self):
         g1 = [[1, 0, 0], [0, 0, -1], [0, 1, 0]]  # 90o degree rotation over x

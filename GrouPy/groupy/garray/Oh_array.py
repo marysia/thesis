@@ -20,23 +20,15 @@ class OhArray(MatrixGArray):
         self.elements = self.get_elements()
 
     def hmat2int(self, hmat_data):
-        out = np.zeros(hmat_data.shape[:-2] + (2,), dtype=np.int)
-        if len(hmat_data.shape) == 2:
-            index, mirror = self.get_int(hmat_data)
-            out[..., 0] = index
-            out[..., 1] = mirror
-        elif len(hmat_data.shape) == 3:
-            for j in xrange(hmat_data.shape[0]):
-                index, mirror = self.get_int(hmat_data[j])
-                out[j, 0] = index
-                out[j, 1] = mirror
-        else:
-            for i in xrange(hmat_data.shape[0]):
-                for j in xrange(hmat_data.shape[1]):
-                    index, mirror = self.get_int(hmat_data[i, j])
-                    out[i, j, 0] = index
-                    out[i, j, 1] = mirror
-        return out
+        input = hmat_data.reshape((-1, 4, 4))
+        data = np.zeros((input.shape[0], 2), dtype=np.int)
+        for i in xrange(input.shape[0]):
+            hmat = input[i]
+            index, mirror = self.get_int(hmat)
+            data[i, 0] = index
+            data[i, 1] = mirror
+        data = data.reshape(hmat_data.shape[:-2] + (2,))
+        return data
 
     def get_int(self, hmat_data):
         assert hmat_data.shape == (4, 4)
@@ -47,26 +39,16 @@ class OhArray(MatrixGArray):
         return i, m
 
     def int2hmat(self, int_data):
-        index = int_data[..., 0]
-        m = int_data[..., 1]
-        out = np.zeros(int_data.shape[:-1] + (4, 4), dtype=np.int)
+        index = int_data[..., 0].flatten()
+        m = int_data[..., 1].flatten()
+        data = np.zeros((len(index),) + (4, 4), dtype=np.int)
 
-        # handle different input shapes
-        if index.shape == ():
-            hmat = self.get_hmat(index, m)
-            out[..., 0:4, 0:4] = hmat
-        elif len(index.shape) == 1:
-            for i in xrange(index.shape[0]):
-                hmat = self.get_hmat(index[i], m[i])
-                out[i, 0:4, 0:4] = hmat
-        else:
-            for i in xrange(index.shape[0]):
-                for j in xrange(index.shape[1]):
-                    hmat = self.get_hmat(index[i,j], m[i, j])
-                    out[i, j, 0:4, 0:4] = hmat
+        for j in xrange(len(index)):
+            hmat = self.get_hmat(index[j], m[j])
+            data[j, 0:4, 0:4] = hmat
 
-        return out
-
+        data = data.reshape(int_data.shape[:-1] + (4, 4))
+        return data
     def get_hmat(self, index, mirror):
         element = copy.deepcopy(self.elements[index])
         element = np.array(element, dtype=np.int)

@@ -22,41 +22,25 @@ class OArray(MatrixGArray):
         self.elements = self.get_elements()
 
     def hmat2int(self, hmat_data):
-        out = np.zeros(hmat_data.shape[:-2] + (1,), dtype=np.int)
-
-        # handle different input shapes
-        if len(hmat_data.shape) == 2:
-            out[..., 0] = self.elements.index(hmat_data.tolist())
-        elif len(hmat_data.shape) == 3:
-            for j in xrange(hmat_data.shape[0]):
-                index = self.elements.index(hmat_data[j].tolist())
-                out[j, 0] = index
-        else:
-            for i in xrange(hmat_data.shape[0]):
-                for j in xrange(hmat_data.shape[1]):
-                    index = self.elements.index(hmat_data[i, j].tolist())
-                    out[i, j, 0] = index
-        return out
-
-    def int2hmat(self, int_data):
-        index = int_data[..., 0]
-        data = np.zeros(int_data.shape[:-1] + (4, 4), dtype=np.int)
-
-        # handle different input shapes
-        if index.shape == ():
-            hmat = self.elements[index]
-            data[..., 0:4, 0:4] = hmat
-        elif len(index.shape) == 1:
-            for j in xrange(index.shape[0]):
-                hmat = self.elements[index[j]]
-                data[j, 0:4, 0:4] = hmat
-        else:
-            for j in xrange(int_data.shape[0]):
-                for k in xrange(int_data.shape[1]):
-                    hmat = self.elements[index[j, k]]
-                    data[j, k, 0:4, 0:4] = hmat
+        input = hmat_data.reshape((-1, 4, 4))
+        data = np.zeros((input.shape[0], 1), dtype=np.int)
+        for i in xrange(input.shape[0]):
+            hmat = input[i]
+            index = self.elements.index(hmat.tolist())
+            data[i, 0] = index
+        data = data.reshape(hmat_data.shape[:-2] + (1,))
         return data
 
+    def int2hmat(self, int_data):
+        i = int_data[..., 0].flatten()
+        data = np.zeros((len(i),) + (4, 4), dtype=np.int)
+
+        for j in xrange(len(i)):
+            hmat = self.elements[i[j]]
+            data[j, 0:4, 0:4] = hmat
+
+        data = data.reshape(int_data.shape[:-1] + (4, 4))
+        return data
 
     def get_elements(self):
         g1 = [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]  # 90o degree rotation over x
