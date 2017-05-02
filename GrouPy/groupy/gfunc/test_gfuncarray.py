@@ -82,7 +82,7 @@ def test_z2_func():
     g = d4a.rand(size=(1,))
     h = d4a.rand(size=(1,))
     check_associative(g, h, f)
-    check_identity(c4a, f)
+    check_identity(d4a, f)
     check_invertible(g, f)
     check_i2g_g2i_invertible(f)
 
@@ -90,6 +90,7 @@ def test_z2_func():
 def test_z3_func():
     from groupy.gfunc.z3func_array import Z3FuncArray
     import groupy.garray.O_array as o
+    import groupy.garray.Oh_array as oh
 
     v = np.random.randn(2, 6, 5, 5, 5)
     f = Z3FuncArray(v=v)
@@ -98,6 +99,16 @@ def test_z3_func():
     h = o.rand(size=(1,))
     check_associative(g, h, f)
     check_identity(o, f)
+    check_invertible(g, f)
+    check_i2g_g2i_invertible(f)
+
+    v = np.random.randn(2, 6, 5, 5, 5)
+    f = Z3FuncArray(v=v)
+
+    g = oh.rand(size=(1,))
+    h = oh.rand(size=(1,))
+    check_associative(g, h, f)
+    check_identity(oh, f)
     check_invertible(g, f)
     check_i2g_g2i_invertible(f)
 
