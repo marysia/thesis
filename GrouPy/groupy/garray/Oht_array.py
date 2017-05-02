@@ -4,6 +4,21 @@ import numpy as np
 from groupy.garray.finitegroup import FiniteGroup
 from groupy.garray.matrix_garray import MatrixGArray
 
+'''
+Implementation of the space group Oh that allows translations.
+It has no official name, and is therefore now referred to as Oht.
+
+Implementation is similar to that of group Oh. However, to represent
+the translations in a 3D space, the int parameterization is now
+in the form of (i, m, u, v, w) representing the index of the unmirrored
+element in the element list, the mirror (1 or -1)  and the translation
+in the x, y and z direction respectively.
+
+To accurately represent the translation, we use 4x4 homogeneous matrices
+(hmat) instead of the 3x3 matrix.
+
+Note: self.base_elements are 3x3 matrices.
+'''
 
 class OhtArray(MatrixGArray):
     parameterizations = ['int', 'hmat']
@@ -21,6 +36,13 @@ class OhtArray(MatrixGArray):
 
 
     def hmat2int(self, hmat_data):
+        '''
+        Transforms 4x4 matrix representation to int representation.
+        To handle any size and shape of hmat_data, the original hmat_data
+        is reshaped to a long list of 4x4 matrices, converted to a list of
+        int representations, and reshaped back to the original mat_data shape.
+        '''
+
         input = hmat_data.reshape((-1, 4, 4))
         data = np.zeros((input.shape[0], 5), dtype=np.int)
         for i in xrange(input.shape[0]):
@@ -37,6 +59,11 @@ class OhtArray(MatrixGArray):
         return data
 
     def int2hmat(self, int_data):
+        '''
+        Transforms integer representation to 3x3 matrix representation.
+        Original int_data is flattened and later reshaped back to its original
+        shape to handle any size and shape of input.
+        '''
         i = int_data[..., 0].flatten()
         m = int_data[..., 1].flatten()
         u = int_data[..., 2].flatten()
@@ -81,7 +108,11 @@ class OhtArray(MatrixGArray):
 
     def get_base_elements(self):
         '''
-        Generate all base elements of the group (translations not included).
+        Function to generate a list containing elements of group Oh,
+        similar to get_elements() of OArray. However, group Oh also
+        includes the mirrors of these elements.
+
+        These are the base elements in 3x3 matrix notation without translations.
         '''
         g1 = [[1, 0, 0], [0, 0, -1], [0, 1, 0]]  # 90o degree rotation over x
         g2 = [[0, 0, 1], [0, 1, 0], [-1, 0, 0]]  # 90o degree rotation over y
@@ -98,6 +129,9 @@ class OhtArray(MatrixGArray):
 
 
 def rand(minu, maxu, minv, maxv, minw, maxw, size=()):
+    '''
+    Returns an OhtArray of shape size, with randomly chosen elements in int parameterization.
+    '''
     data = np.zeros(size + (5, ), dtype=np.int64)
     data[..., 0] = np.random.randint(0, 24, size)
     data[..., 1] = np.random.randint(0, 2, size)
@@ -107,11 +141,18 @@ def rand(minu, maxu, minv, maxv, minw, maxw, size=()):
     return OhtArray(data=data, p='int')
 
 def identity(p='int'):
+    '''
+    Returns the identity element: a matrix with 1's on the diagonal.
+    '''
     li = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
     e = OhtArray(data=np.array(li, dtype=np.int), p='hmat')
     return e.reparameterize(p)
 
 def meshgrid(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2):
+    '''
+    Creates a meshgrid of all elements of the group, within the given
+    translation parameters.
+    '''
     li = [[i, m, u, v, w] for i in xrange(24) for m in xrange(2) for u in xrange(minu, maxu) for v in xrange(minv, maxv) for
      w in xrange(minw, maxw)]
     return OhtArray(li, p='int')

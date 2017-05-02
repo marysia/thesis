@@ -32,43 +32,28 @@ class Z3Array(GArray):
 
 
 def identity(shape=()):
+    '''
+    Returns the identity element: an array of 3 zeros.
+    '''
     e = Z3Array(np.zeros(shape + (3,), dtype=np.int), 'int')
     return e
 
 
 def rand(minu, maxu, minv, maxv, minw, maxw, size=()):
+    '''
+    Returns an Z3Array of shape size, with randomly chosen elements in int parameterization.
+    '''
     data = np.zeros(size + (3,), dtype=np.int64)
     data[..., 0] = np.random.randint(minu, maxu, size)
     data[..., 1] = np.random.randint(minv, maxv, size)
     data[..., 2] = np.random.randint(minw, maxw, size)
     return Z3Array(data=data, p='int')
 
-
-def u_range(start=-1, stop=2, step=1):
-    m = np.zeros((stop - start, 3), dtype=np.int)
-    m[:, 0] = np.arange(start, stop, step)
-    return Z3Array(m)
-
-
-def v_range(start=-1, stop=2, step=1):
-    m = np.zeros((stop - start, 3), dtype=np.int)
-    m[:, 1] = np.arange(start, stop, step)
-    return Z3Array(m)
-
-def w_range(start=-1, stop=2, step=1):
-    m = np.zeros((stop - start, 3), dtype=np.int)
-    m[:, 2] = np.arange(start, stop, step)
-    return Z3Array(m)
-
-
-
 def meshgrid(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2):
+    '''
+    Creates a meshgrid of all elements of the group, within the given
+    translation parameters.
+    '''
     li = [[u, v, w] for u in xrange(minu, maxu) for v in xrange(minv, maxv) for
      w in xrange(minw, maxw)]
     return Z3Array(li, p='int')
-
-def meshgrid_old(u=u_range(), v=v_range(), w=w_range()):
-    u = Z3Array(u.data[:, None, None, ...], p=u.p)
-    v = Z3Array(v.data[None, :, None, ...], p=v.p)
-    w = Z3Array(w.data[None, None, :, ...], p=w.p)
-    return v * w * u
