@@ -1,8 +1,8 @@
-import groupy.garray.Ot_array as ot
+import groupy.garray.Oht_array as oht
 from groupy.gfunc.gfuncarray import GFuncArray
 
 
-class OtFuncArray(GFuncArray):
+class OhtFuncArray(GFuncArray):
     def __init__(self, v, umin=None, umax=None, vmin=None, vmax=None, wmin=None, wmax=None):
 
         #TODO: error message
@@ -32,7 +32,7 @@ class OtFuncArray(GFuncArray):
         self.wmin = wmin
         self.wmax = wmax + 1
 
-        i2g = ot.meshgrid(
+        i2g = oht.meshgrid(
             minu=self.umin,
             maxu=self.umax,
             minv=self.vmin,
@@ -40,18 +40,18 @@ class OtFuncArray(GFuncArray):
             minw=self.wmin,
             maxw=self.wmax
         )
-
         #TODO: not 2: but -4 or so
         i2g = i2g.reshape(v.shape[2:])
 
-        # i2g = ot.meshgrid(i=ot.i_range(),
-        #                   u=ot.u_range(self.umin, self.umax + 1),
-        #                   v=ot.v_range(self.vmin, self.vmax + 1),
-        #                   w=ot.w_range(self.wmin, self.wmax + 1))
-        super(OtFuncArray, self).__init__(v=v, i2g=i2g)
+        super(OhtFuncArray, self).__init__(v=v, i2g=i2g)
+
 
     def g2i(self, g):
         gint = g.reparameterize('int').data.copy()
+        # flat stabilizer
+        gint[..., 1] += gint[..., 0] * 2
+        gint = gint[..., 1:]
+
         gint[..., 1] -= self.umin
         gint[..., 2] -= self.vmin
         gint[..., 3] -= self.wmin

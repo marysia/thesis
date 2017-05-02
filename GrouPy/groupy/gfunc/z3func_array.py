@@ -1,16 +1,17 @@
-import groupy.garray.Ot_array as ot
+
+import groupy.garray.Z3_array as z3a
 from groupy.gfunc.gfuncarray import GFuncArray
 
 
-class OtFuncArray(GFuncArray):
-    def __init__(self, v, umin=None, umax=None, vmin=None, vmax=None, wmin=None, wmax=None):
+class Z3FuncArray(GFuncArray):
 
-        #TODO: error message
+    def __init__(self, v, umin=None, umax=None, vmin=None, vmax=None):
+
         if umin is None or umax is None or vmin is None or vmax is None:
             if not (umin is None and umax is None and vmin is None and vmax is None):
                 raise ValueError('Either all or none of umin, umax, vmin, vmax must equal None')
 
-            # If (u, v, w) ranges are not given, determine them from the shape of v,
+            # If (u, v) ranges are not given, determine them from the shape of v,
             # assuming the grid is centered.
             nu, nv, nw = v.shape[-3:]
 
@@ -32,7 +33,7 @@ class OtFuncArray(GFuncArray):
         self.wmin = wmin
         self.wmax = wmax + 1
 
-        i2g = ot.meshgrid(
+        i2g = z3a.meshgrid(
             minu=self.umin,
             maxu=self.umax,
             minv=self.vmin,
@@ -41,18 +42,15 @@ class OtFuncArray(GFuncArray):
             maxw=self.wmax
         )
 
-        #TODO: not 2: but -4 or so
-        i2g = i2g.reshape(v.shape[2:])
-
-        # i2g = ot.meshgrid(i=ot.i_range(),
-        #                   u=ot.u_range(self.umin, self.umax + 1),
-        #                   v=ot.v_range(self.vmin, self.vmax + 1),
-        #                   w=ot.w_range(self.wmin, self.wmax + 1))
-        super(OtFuncArray, self).__init__(v=v, i2g=i2g)
+        i2g = i2g.reshape(v.shape[-3:])
+        super(Z3FuncArray, self).__init__(v=v, i2g=i2g)
 
     def g2i(self, g):
+        # TODO: check validity of indices and wrap / clamp if necessary
+        # (or do this in a separate function, so that this function can be more easily tested?)
+
         gint = g.reparameterize('int').data.copy()
-        gint[..., 1] -= self.umin
-        gint[..., 2] -= self.vmin
-        gint[..., 3] -= self.wmin
+        gint[..., 0] -= self.umin
+        gint[..., 1] -= self.vmin
+        gint[..., 2] -= self.wmin
         return gint

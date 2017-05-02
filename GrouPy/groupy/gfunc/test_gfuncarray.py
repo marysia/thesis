@@ -1,11 +1,11 @@
 import numpy as np
 
 def test_ot_func():
-    import groupy.gfunc as gf
+    from groupy.gfunc.otfunc_array import OtFuncArray
     import groupy.garray.O_array as o
 
     v = np.random.randn(2, 6, 24, 5, 5, 5)
-    f = gf.OtFuncArray(v=v)
+    f = OtFuncArray(v=v)
 
     g = o.rand(size=(1,))
     h = o.rand(size=(1,))
@@ -15,16 +15,16 @@ def test_ot_func():
     check_invertible(g, f)
     check_i2g_g2i_invertible(f)
 
-def test_oh_func():
-    import groupy.gfunc as gf
-    #from groupy.gfunc.Ohfunc_array import OhFuncArray
+
+def test_oht_func():
+    from groupy.gfunc.ohtfunc_array import OhtFuncArray
     import groupy.garray.Oh_array as oh
 
-    v = np.random.randn(2, 6, 24, 2)
-    f = gf.OhFuncArray(v=v)
+    v = np.random.randn(2, 6, 48, 5, 5, 5)
+    f = OhtFuncArray(v=v)
 
-    g = oh.rand()
-    h = oh.rand()
+    g = oh.rand(size=(1,))
+    h = oh.rand(size=(1,))
 
     check_associative(g, h, f)
     check_identity(oh, f)
@@ -87,6 +87,20 @@ def test_z2_func():
     check_i2g_g2i_invertible(f)
 
 
+def test_z3_func():
+    from groupy.gfunc.z3func_array import Z3FuncArray
+    import groupy.garray.O_array as o
+
+    v = np.random.randn(2, 6, 5, 5, 5)
+    f = Z3FuncArray(v=v)
+
+    g = o.rand(size=(1,))
+    h = o.rand(size=(1,))
+    check_associative(g, h, f)
+    check_identity(o, f)
+    check_invertible(g, f)
+    check_i2g_g2i_invertible(f)
+
 def check_associative(g, h, f):
     gh = g * h
     hf = h * f
@@ -101,7 +115,14 @@ def check_identity(garray_module, a):
 
 
 def check_invertible(g, f):
-    assert ((g.inv() * (g * f)).v == f.v).all()
+    a = g.inv()
+    b = (g * f)
+    c = a * b
+    assert(c.v == f.v).all()
+
+
+
+  #  assert ((g.inv() * (g * f)).v == f.v).all()
 
 
 def check_i2g_g2i_invertible(f):

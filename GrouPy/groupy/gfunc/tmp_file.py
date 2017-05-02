@@ -1,4 +1,7 @@
 import test_gfuncarray
 
-test_gfuncarray.test_ot_func()
+print 'Starting..'
+
+test_gfuncarray.test_z2_func()
+test_gfuncarray.test_z3_func()
 print 'Done.'
