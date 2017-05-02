@@ -40,19 +40,22 @@ class OhtFuncArray(GFuncArray):
             minw=self.wmin,
             maxw=self.wmax
         )
-        #TODO: not 2: but -4 or so
-        i2g = i2g.reshape(v.shape[2:])
+        i2g = i2g.reshape(v.shape[-4:])
 
         super(OhtFuncArray, self).__init__(v=v, i2g=i2g)
 
 
     def g2i(self, g):
+        '''
+        what
+        '''
         gint = g.reparameterize('int').data.copy()
-        # flat stabilizer
+
+        gint[..., 2] -= self.umin
+        gint[..., 3] -= self.vmin
+        gint[..., 4] -= self.wmin
+
+        # flat stabilizer: instead of (24, 2, ...) use (48, ...)
         gint[..., 1] += gint[..., 0] * 2
         gint = gint[..., 1:]
-
-        gint[..., 1] -= self.umin
-        gint[..., 2] -= self.vmin
-        gint[..., 3] -= self.wmin
         return gint

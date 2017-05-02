@@ -41,13 +41,8 @@ class OtFuncArray(GFuncArray):
             maxw=self.wmax
         )
 
-        #TODO: not 2: but -4 or so
-        i2g = i2g.reshape(v.shape[2:])
+        i2g = i2g.reshape(v.shape[-4:])
 
-        # i2g = ot.meshgrid(i=ot.i_range(),
-        #                   u=ot.u_range(self.umin, self.umax + 1),
-        #                   v=ot.v_range(self.vmin, self.vmax + 1),
-        #                   w=ot.w_range(self.wmin, self.wmax + 1))
         super(OtFuncArray, self).__init__(v=v, i2g=i2g)
 
     def g2i(self, g):
