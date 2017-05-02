@@ -3,6 +3,7 @@ import numpy as np
 import copy
 from groupy.garray.finitegroup import FiniteGroup
 from groupy.garray.matrix_garray import MatrixGArray
+from groupy.garray.Ot_array import OtArray
 
 
 class OArray(MatrixGArray):
@@ -16,28 +17,45 @@ class OArray(MatrixGArray):
         data = np.asarray(data)
         assert data.dtype == np.int
         self._left_actions[OArray] = self.__class__.left_action_hmat
+        self._left_actions[OtArray] = self.__class__.left_action_hmat
         super(OArray, self).__init__(data, p)
         self.elements = self.get_elements()
 
-    def hmat2int(self, mat_data):
+    def hmat2int(self, hmat_data):
+        out = np.zeros(hmat_data.shape[:-2] + (1,), dtype=np.int)
 
-        return (self.elements.index(mat_data.tolist()), )
+        # handle different input shapes
+        if len(hmat_data.shape) == 2:
+            out[..., 0] = self.elements.index(hmat_data.tolist())
+        elif len(hmat_data.shape) == 3:
+            for j in xrange(hmat_data.shape[0]):
+                index = self.elements.index(hmat_data[j].tolist())
+                out[j, 0] = index
+        else:
+            for i in xrange(hmat_data.shape[0]):
+                for j in xrange(hmat_data.shape[1]):
+                    index = self.elements.index(hmat_data[i, j].tolist())
+                    out[i, j, 0] = index
+        return out
+
     def int2hmat(self, int_data):
-        i = int_data[..., 0]
+        index = int_data[..., 0]
         data = np.zeros(int_data.shape[:-1] + (4, 4), dtype=np.int)
-        if i.shape == ():
-            hmat = self.elements[i]
+
+        # handle different input shapes
+        if index.shape == ():
+            hmat = self.elements[index]
             data[..., 0:4, 0:4] = hmat
-        elif i.shape == (1,):
-            hmat = self.elements[i[0]]
-            data[..., 0:4, 0:4] = hmat
+        elif len(index.shape) == 1:
+            for j in xrange(index.shape[0]):
+                hmat = self.elements[index[j]]
+                data[j, 0:4, 0:4] = hmat
         else:
             for j in xrange(int_data.shape[0]):
                 for k in xrange(int_data.shape[1]):
-                    hmat = self.elements[i[j, k]]
+                    hmat = self.elements[index[j, k]]
                     data[j, k, 0:4, 0:4] = hmat
         return data
-        #return np.array(self.elements[int_data], dtype=np.int)
 
 
     def get_elements(self):

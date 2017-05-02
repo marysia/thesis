@@ -21,15 +21,26 @@ class OhtArray(MatrixGArray):
 
     def hmat2int(self, hmat_data):
         out = np.zeros(hmat_data.shape[:-2] + (5,), dtype=np.int)
-        if len(hmat_data.shape) != 4:
-            index, mirror = self.get_int(hmat_data)
+        if len(hmat_data.shape) == 2:
+            mat = hmat_data[0:3, 0:3]
+            index, mirror = self.get_int(mat)
             u, v, w, _ = hmat_data[:, 3]
             out[..., 0] = index
             out[..., 1] = mirror
             out[..., 2] = u
             out[..., 3] = v
             out[..., 4] = w
-            out[..., 5] = 1
+
+        elif len(hmat_data.shape) == 3:
+            for j in xrange(hmat_data.shape[0]):
+                u, v, w, _ = hmat_data[j][:, 3]
+                index, mirror = self.get_int(hmat_data[j][0:3, 0:3])
+                out[j, 0] = index
+                out[j, 1] = mirror
+                out[j, 2] = u
+                out[j, 3] = v
+                out[j, 4] = w
+
         else:
             for i in xrange(hmat_data.shape[0]):
                 for j in xrange(hmat_data.shape[1]):
@@ -40,7 +51,6 @@ class OhtArray(MatrixGArray):
                     out[i, j, 2] = u
                     out[i, j, 3] = v
                     out[i, j, 4] = w
-                    out[i, j, 5] = 1
         return out
 
     def int2hmat(self, int_data):
@@ -49,34 +59,39 @@ class OhtArray(MatrixGArray):
         Some shape-magic if statements to ensure any
         shape can be handled.
         '''
+        # initialize
         i = int_data[..., 0]
         m = int_data[..., 1]
         u = int_data[..., 2]
         v = int_data[..., 3]
         w = int_data[..., 4]
         data = np.zeros(int_data.shape[:-1] + (4, 4), dtype=np.int)
+        # in case of a single case
         if i.shape == ():
             mat = self.get_mat(i, m)
             data[..., 0:3, 0:3] = mat
-            data[..., 3, 0] = u
-            data[..., 3, 1] = v
-            data[..., 3, 2] = w
+            data[..., 0, 3] = u
+            data[..., 1, 3] = v
+            data[..., 2, 3] = w
             data[..., 3, 3] = 1
-        elif i.shape == (1,):
-            mat = self.get_mat(i[0], m[0])
-            data[..., 0:3, 0:3] = mat
-            data[..., 3, 0] = u[0]
-            data[..., 3, 1] = v[0]
-            data[..., 3, 2] = w[0]
-            data[..., 3, 3] = 1
+        # in case of a flattened numpy array
+        elif len(i.shape) == 1:
+            for j in xrange(i.shape[0]):
+                mat = self.get_mat(i[j], m[j])
+                data[j, 0:3, 0:3] = mat
+                data[j, 0, 3] = u[j]
+                data[j, 1, 3] = v[j]
+                data[j, 2, 3] = w[j]
+                data[j, 3, 3] = 1
+        # in other cases
         else:
             for j in xrange(int_data.shape[0]):
                 for k in xrange(int_data.shape[1]):
                     mat = self.get_mat(i[j, k], m[j, k])
                     data[j, k, 0:3, 0:3] = mat
-                    data[j, k, 3, 0] = u[j, k]
-                    data[j, k, 3, 1] = v[j, k]
-                    data[j, k, 3, 2] = w[j, k]
+                    data[j, k, 0, 3] = u[j, k]
+                    data[j, k, 1, 3] = v[j, k]
+                    data[j, k, 2, 3] = w[j, k]
                     data[j, k, 3, 3] = 1
         return data
 
@@ -98,7 +113,7 @@ class OhtArray(MatrixGArray):
         looking up the index in the list of base elements
         '''
         orig_data = copy.deepcopy(hmat_data)
-        m = 0 if orig_data.tolist() in self.elements else 1
+        m = 0 if orig_data.tolist() in self.base_elements else 1
         orig_data = orig_data * ((-1) ** m)
         i = self.base_elements.index(orig_data.tolist())
         return i, m
@@ -106,10 +121,10 @@ class OhtArray(MatrixGArray):
 
     def get_base_elements(self):
         '''
-        Generate all base elements of the group (no translations).
+        Generate all base elements of the group (translations not included).
         '''
-        g1 = [[1, 0, 0], [0, 0, -1], [0, 1, 0], [0, 0, 0]]  # 90o degree rotation over x
-        g2 = [[0, 0, 1], [0, 1, 0], [-1, 0, 0], [0, 0, 0]]  # 90o degree rotation over y
+        g1 = [[1, 0, 0], [0, 0, -1], [0, 1, 0]]  # 90o degree rotation over x
+        g2 = [[0, 0, 1], [0, 1, 0], [-1, 0, 0]]  # 90o degree rotation over y
 
         element_list = [g1, g2]
         current = g1
@@ -136,7 +151,7 @@ def identity(p='int'):
     e = OhtArray(data=np.array(li, dtype=np.int), p='hmat')
     return e.reparameterize(p)
 
-def meshgrid(minu, maxu, minv, maxv, minw, maxw):
+def meshgrid(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2):
     li = [[i, m, u, v, w] for i in xrange(24) for m in xrange(2) for u in xrange(minu, maxu) for v in xrange(minv, maxv) for
      w in xrange(minw, maxw)]
     return OhtArray(li, p='int')

@@ -1,5 +1,4 @@
 import test_gfuncarray
 
-test_gfuncarray.test_p4m_func()
-test_gfuncarray.test_oh_func()
+test_gfuncarray.test_ot_func()
 print 'Done.'

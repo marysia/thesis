@@ -21,10 +21,15 @@ class OhArray(MatrixGArray):
 
     def hmat2int(self, hmat_data):
         out = np.zeros(hmat_data.shape[:-2] + (2,), dtype=np.int)
-        if len(hmat_data.shape) != 4:
+        if len(hmat_data.shape) == 2:
             index, mirror = self.get_int(hmat_data)
             out[..., 0] = index
             out[..., 1] = mirror
+        elif len(hmat_data.shape) == 3:
+            for j in xrange(hmat_data.shape[0]):
+                index, mirror = self.get_int(hmat_data[j])
+                out[j, 0] = index
+                out[j, 1] = mirror
         else:
             for i in xrange(hmat_data.shape[0]):
                 for j in xrange(hmat_data.shape[1]):
@@ -34,6 +39,7 @@ class OhArray(MatrixGArray):
         return out
 
     def get_int(self, hmat_data):
+        assert hmat_data.shape == (4, 4)
         orig_data = copy.deepcopy(hmat_data)
         m = 0 if orig_data.tolist() in self.elements else 1
         orig_data[0:3] = orig_data[0:3] * ((-1) ** m)
@@ -45,28 +51,19 @@ class OhArray(MatrixGArray):
         m = int_data[..., 1]
         out = np.zeros(int_data.shape[:-1] + (4, 4), dtype=np.int)
 
-        # quick fix.
+        # handle different input shapes
         if index.shape == ():
             hmat = self.get_hmat(index, m)
             out[..., 0:4, 0:4] = hmat
-
-            # for k in range(4):
-            #     for l in range(4):
-            #         out[..., k, l] = hmat[k, l]
-        elif index.shape == (1,):
-            hmat = self.get_hmat[index[0], m[0]]
-            out[..., 0:4, 0:4] = hmat
-            # for k in range(4):
-            #     for l in range(4):
-            #         out[..., k, l] = hmat[k, l]
+        elif len(index.shape) == 1:
+            for i in xrange(index.shape[0]):
+                hmat = self.get_hmat(index[i], m[i])
+                out[i, 0:4, 0:4] = hmat
         else:
             for i in xrange(index.shape[0]):
                 for j in xrange(index.shape[1]):
                     hmat = self.get_hmat(index[i,j], m[i, j])
                     out[i, j, 0:4, 0:4] = hmat
-                    # for k in range(4):
-                    #     for l in range(4):
-                    #         out[i, j, k, l] = hmat[k, l]
 
         return out
 
@@ -74,6 +71,7 @@ class OhArray(MatrixGArray):
         element = copy.deepcopy(self.elements[index])
         element = np.array(element, dtype=np.int)
         element[0:3] = element[0:3] * ((-1) ** mirror)
+        element = element.astype(dtype=np.int)
         return element
 
     def get_elements(self):
@@ -110,7 +108,7 @@ g2 = OhArray([[0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0], [0, 0, 0, 1]], p='hmat'
 g3 = OhArray([[-1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], p='hmat') # 90s degree rotation + mirror
 
 def rand(size=()):
-    data = np.zeros(size + (2,), dtype=np.int64)
+    data = np.zeros(size + (2,), dtype=np.int)
     data[..., 0] = np.random.randint(0, 24, size)
     data[..., 1] = np.random.randint(0, 2, size)
     return OhArray(data=data, p='int')

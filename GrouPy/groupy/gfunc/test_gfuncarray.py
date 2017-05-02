@@ -1,5 +1,20 @@
 import numpy as np
 
+def test_ot_func():
+    import groupy.gfunc as gf
+    import groupy.garray.O_array as o
+
+    v = np.random.randn(2, 6, 24, 5, 5, 5)
+    f = gf.OtFuncArray(v=v)
+
+    g = o.rand(size=(1,))
+    h = o.rand(size=(1,))
+
+    check_associative(g, h, f)
+    check_identity(o, f)
+    check_invertible(g, f)
+    check_i2g_g2i_invertible(f)
+
 def test_oh_func():
     import groupy.gfunc as gf
     #from groupy.gfunc.Ohfunc_array import OhFuncArray
