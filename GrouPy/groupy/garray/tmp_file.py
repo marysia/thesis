@@ -6,8 +6,8 @@ print 'Starting'
 # b = a.int2hmat(a.data)
 # a.hmat2int(b)
 
-test_garray.test_o_array()
-test_garray.test_oh_array()
+#test_garray.test_o_array()
+#test_garray.test_oh_array()
 test_garray.test_ot_array()
 test_garray.test_oht_array()
 print 'Done'

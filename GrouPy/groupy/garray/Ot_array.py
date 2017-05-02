@@ -26,7 +26,7 @@ class OtArray(MatrixGArray):
         for i in xrange(input.shape[0]):
             hmat = input[i]
             mat = [elem[0:3] for elem in hmat.tolist()][0:3]
-            index, mirror = self.base_elements.index(mat)
+            index = self.base_elements.index(mat)
             u, v, w, _ = hmat[:, 3]
             data[i, 0] = index
             data[i, 1] = u
