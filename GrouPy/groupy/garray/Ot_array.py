@@ -79,8 +79,39 @@ def rand(minu, maxu, minv, maxv, minw, maxw, size=()):
     data[..., 3] = np.random.randint(minw, maxw, size)
     return OtArray(data=data, p='int')
 
-def meshgrid(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2):
 
+def i_range(start=0, stop=24, step=1):
+    m = np.zeros((stop - start, 4), dtype=np.int)
+    m[:, 0] = np.arange(start, stop, step)
+    return OtArray(m)
+
+
+def u_range(start=-1, stop=2, step=1):
+    m = np.zeros((stop - start, 4), dtype=np.int)
+    m[:, 1] = np.arange(start, stop, step)
+    return OtArray(m)
+
+
+def v_range(start=-1, stop=2, step=1):
+    m = np.zeros((stop - start, 4), dtype=np.int)
+    m[:, 2] = np.arange(start, stop, step)
+    return OtArray(m)
+
+def w_range(start=-1, stop=2, step=1):
+    m = np.zeros((stop - start, 4), dtype=np.int)
+    m[:, 3] = np.arange(start, stop, step)
+    return OtArray(m)
+
+def meshgrid_old(i=i_range(), u=u_range(), v=v_range(), w=w_range()):
+    i = OtArray(i.data[:, None, None, None, ...], p=i.p)
+    u = OtArray(u.data[None, :, None, None, ...], p=u.p)
+    v = OtArray(v.data[None, None, :, None, ...], p=u.p)
+    w = OtArray(w.data[None, None, None, :, ...], p=v.p)
+    #return u * v * m * r
+    return v * w * i * u
+
+
+def meshgrid(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2):
     li = [[i, u, v, w] for i in xrange(24) for u in xrange(minu, maxu) for v in xrange(minv, maxv) for
      w in xrange(minw, maxw)]
     return OtArray(li, p='int')

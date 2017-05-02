@@ -17,6 +17,9 @@ def test_z2_array():
     from groupy.garray import Z2_array
     check_wallpaper_group(Z2_array, Z2_array.Z2Array)
 
+def test_z3_array():
+    from groupy.garray import Z3_array
+    check_space_group(Z3_array, Z3_array.Z3Array)
 
 def test_c4_array():
     from groupy.garray import C4_array

@@ -4,11 +4,12 @@ import copy
 from groupy.garray.finitegroup import FiniteGroup
 from groupy.garray.matrix_garray import MatrixGArray
 from groupy.garray.Ot_array import OtArray
+from groupy.garray.Z3_array import Z3Array
 
 
 class OArray(MatrixGArray):
-    parameterizations = ['int', 'hmat']
-    _g_shapes = {'int': (1,), 'hmat': (4, 4)}
+    parameterizations = ['int', 'mat', 'hmat']
+    _g_shapes = {'int': (1,), 'mat': (3, 3), 'hmat': (4, 4)}
     _left_actions = {}
     _reparameterizations = {}
     _group_name = 'O'
@@ -18,33 +19,37 @@ class OArray(MatrixGArray):
         assert data.dtype == np.int
         self._left_actions[OArray] = self.__class__.left_action_hmat
         self._left_actions[OtArray] = self.__class__.left_action_hmat
+        self._left_actions[Z3Array] = self.__class__.left_action_vec
+
         super(OArray, self).__init__(data, p)
         self.elements = self.get_elements()
 
-    def hmat2int(self, hmat_data):
-        input = hmat_data.reshape((-1, 4, 4))
+    def mat2int(self, hmat_data):
+        input = hmat_data.reshape((-1, 3, 3))
         data = np.zeros((input.shape[0], 1), dtype=np.int)
         for i in xrange(input.shape[0]):
-            hmat = input[i]
-            index = self.elements.index(hmat.tolist())
+            mat = input[i]
+            index = self.elements.index(mat.tolist())
             data[i, 0] = index
         data = data.reshape(hmat_data.shape[:-2] + (1,))
         return data
 
-    def int2hmat(self, int_data):
+    def int2mat(self, int_data):
         i = int_data[..., 0].flatten()
-        data = np.zeros((len(i),) + (4, 4), dtype=np.int)
+        data = np.zeros((len(i),) + (3, 3), dtype=np.int)
 
         for j in xrange(len(i)):
-            hmat = self.elements[i[j]]
-            data[j, 0:4, 0:4] = hmat
+            mat = self.elements[i[j]]
+            data[j, 0:3, 0:3] = mat
 
-        data = data.reshape(int_data.shape[:-1] + (4, 4))
+        data = data.reshape(int_data.shape[:-1] + (3, 3))
         return data
 
+
+
     def get_elements(self):
-        g1 = [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]  # 90o degree rotation over x
-        g2 = [[0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0], [0, 0, 0, 1]]  # 90o degree rotation over y
+        g1 = [[1, 0, 0], [0, 0, -1], [0, 1, 0]]  # 90o degree rotation over x
+        g2 = [[0, 0, 1], [0, 1, 0], [-1, 0, 0]]  # 90o degree rotation over y
         element_list = [g1, g2]
         current = g1
         while len(element_list) < 24:
@@ -69,17 +74,13 @@ class OGroup(FiniteGroup, OArray):
 
 O = OGroup()
 
-# generators & special elements
-g1 = OArray([[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], p='hmat')  # 90o degree rotation over x
-g2 = OArray([[0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0], [0, 0, 0, 1]], p='hmat') # 90o degree rotation over y
-
 def rand(size=()):
     data = np.zeros(size + (1,), dtype=np.int64)
     data[..., 0] = np.random.randint(0, 24, size)
     return OArray(data=data, p='int')
 
 def identity(p='int'):
-    # alternatively: last element of self._elements
-    li = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
-    e = OArray(data=np.array(li, dtype=np.int), p='hmat')
+    # alternatively: last element of self.elements
+    li = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    e = OArray(data=np.array(li, dtype=np.int), p='mat')
     return e.reparameterize(p)
