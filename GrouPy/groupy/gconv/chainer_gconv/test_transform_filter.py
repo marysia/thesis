@@ -7,8 +7,8 @@ from chainer import cuda
 # TODO: check that applying a transformation and its inverse leaves the signal invariant g^-1 (g f) = f
 
 from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices,\
-    make_d4_z2_indices, make_d4_p4m_indices
-from groupy.gconv.chainer_gconv.transform_filter import TransformGFilter
+    make_d4_z2_indices, make_d4_p4m_indices, make_o_z3_indices
+from groupy.gconv.chainer_gconv.transform_filter import TransformGFilter, TransformGFilter3D
 
 
 def test_transform_grad():
@@ -17,6 +17,12 @@ def test_transform_grad():
         check_transform_c4_p4_grad(dtype, toll)
         check_transform_d4_p4m_grad(dtype, toll)
         check_transform_d4_z2_grad(dtype, toll)
+
+
+def check_transform_o_z3_grad(dtype='float64', toll=1e-10):
+    inds = make_o_z3_indices(ksize=5)
+    w = cp.random.randn(3, 2, 1, 5, 5, 5)
+    check_transform_grad(inds, w, TransformGFilter3D, dtype, toll)
 
 
 def check_transform_c4_z2_grad(dtype='float64', toll=1e-10):
@@ -67,3 +73,5 @@ def check_transform_grad(inds, w, transformer, dtype, toll):
 
     print dtype, toll, relerr
     assert relerr < toll
+
+check_transform_o_z3_grad()

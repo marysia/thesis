@@ -27,4 +27,3 @@ def test_index_group_func():
     print error
     assert np.isclose(error, 0.)
 
-test_index_group_func()

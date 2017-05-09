@@ -18,3 +18,5 @@ class P4ConvP4(SplitGConv2D):
 
     def make_transformation_indices(self, ksize):
         return make_c4_p4_indices(ksize=ksize)
+
+P4ConvZ2(in_channels=1, out_channels=2, ksize=3)

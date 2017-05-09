@@ -1,19 +1,22 @@
 import numpy as np
 from chainer import cuda, Variable
 
-def test_first():
-    from groupy.gfunc import OhFuncArray
-    import groupy.garray.Oh_array as oh
-    from groupy.gconv.chainer_gconv.p4_conv import P4ConvZ2
 
-    im = np.random.randn(1, 1, 24, 2).astype('float32')
+def test_ot_net_equivariance():
+    from groupy.gfunc import Z3FuncArray, OtFuncArray
+    import groupy.garray.O_array as o
+    from groupy.gconv.chainer_gconv.ot_conv import OtConvZ3, OtConvOt
 
+    im = np.random.randn(1, 1, 11, 11, 11).astype('float32')
     check_equivariance(
         im=im,
-        layers=[P4ConvZ2(1,2,3)],
-        input_array=OhFuncArray,
-        output_array=OhFuncArray,
-        point_group=oh,
+        layers=[
+            OtConvZ3(in_channels=1, out_channels=2, ksize=3),
+            OtConvOt(in_channels=2, out_channels=3, ksize=3)
+        ],
+        input_array=Z3FuncArray,
+        output_array=OtFuncArray,
+        point_group=o,
     )
 
 def test_p4_net_equivariance():
@@ -132,3 +135,6 @@ def check_equivariance(im, layers, input_array, output_array, point_group):
 
     fmap_data = cuda.to_cpu(fmap.data)
     assert np.allclose(fmap_data, r_fmap1_data, rtol=1e-5, atol=1e-3)
+
+
+test_ot_net_equivariance()
