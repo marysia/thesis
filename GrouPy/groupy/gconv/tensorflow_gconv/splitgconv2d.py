@@ -37,8 +37,9 @@ def gconv2d(input, filter, strides, padding, gconv_indices, gconv_shape_info,
     transformed_filter = transform_filter_2d_nhwc(w=filter, flat_indices=gconv_indices, shape_info=gconv_shape_info)
 
     # Convolve input with transformed filters
-    conv = tf.nn.conv2d(input=input, filter=transformed_filter, strides=strides, padding=padding,
-                        use_cudnn_on_gpu=use_cudnn_on_gpu, data_format=data_format, name=name)
+    conv = tf.nn.conv2d(input=input, filter=transformed_filter, strides=strides, padding=padding)
+    #conv = tf.nn.conv2d(input=input, filter=transformed_filter, strides=strides, padding=padding,
+    #                    use_cudnn_on_gpu=use_cudnn_on_gpu, data_format=data_format, name=name)
 
     return conv
 

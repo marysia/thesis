@@ -41,7 +41,7 @@ class Logger():
             if self.depth == 0: 
                 self.prefix = timestamp.replace(' ', '_') + '_' + fname + '_' 
             elif self.depth == 1: 
-                dir_path = os.path.join(dir_path, fname)
+                dir_path = os.path.join(config.log_dir, fname)
                 self.prefix = timestamp.replace(' ', '_') + '_'
             elif self.depth == 2: 
                 dir_path = os.path.join(config.log_dir, fname, timestamp)

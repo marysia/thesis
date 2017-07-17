@@ -82,8 +82,3 @@ def check_equivariance(im, input, output, input_array, output_array, point_group
 
     assert np.allclose(yx, r_fmap1_data, rtol=1e-5, atol=1e-3)
 
-check_c4_z2_conv_equivariance()
-check_c4_c4_conv_equivariance()
-check_d4_z2_conv_equivariance()
-check_d4_d4_conv_equivariance()
-

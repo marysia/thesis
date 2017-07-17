@@ -8,8 +8,6 @@ from groupy.gfunc.z3func_array import Z3FuncArray
 from groupy.gfunc.otfunc_array import OtFuncArray
 import groupy.garray.O_array as O
 
-
-
 def check_o_z3_conv_equivariance():
     li = [3, 5, 7, 9]
     for ksize in li:
@@ -70,7 +68,3 @@ def check_equivariance(im, input, output, input_array, output_array, point_group
     print 'Size of yx: ', yx.size
 
     assert np.allclose(yx, r_fmap1_data, rtol=1e-5, atol=1e-3)
-
-
-check_o_z3_conv_equivariance()
-check_o_o_conv_equivariance()

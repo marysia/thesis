@@ -11,7 +11,6 @@ def transform_filter_3d_nhwc(w, flat_indices, shape_info, validate_indices=True)
                               validate_indices=validate_indices)              # shape (nto, nti, n, n, n, ni, no)
 
     # Put the axes in the right order, and collapse them to get a standard shape filter bank
-
     transformed_w = tf.transpose(transformed_w, [2, 3, 4, 5, 1, 6, 0])          # shape (n, n, ni, nti, no, nto)
 
     transformed_w = tf.reshape(transformed_w, [n, n, n, ni * nti, no * nto])     # shape (n, n, ni * nti, no * nto)
