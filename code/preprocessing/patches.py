@@ -4,24 +4,26 @@ from basedata import BaseData, Data
 
 
 class DataPatches(BaseData):
-    def __init__(self):
+    def __init__(self, small=True):
         self.name = 'fp-reduction-patches'
+        self.small = small
         BaseData.__init__(self)
 
     def load(self):
         self.datadir = '/home/marysia/data/thesis/patches'
-        extracted = os.path.exists(os.path.join(self.datadir, 'negative_test_patches.npz'))
+        prefix = 'small_' if self.small else ''
+        extracted = os.path.exists(os.path.join(self.datadir, prefix + 'negative_test_patches.npz'))
         if extracted:
-            train_pos = np.load(os.path.join(self.datadir, 'positive_train_patches.npz'))['data']
-            train_neg = np.load(os.path.join(self.datadir, 'negative_train_patches.npz'))['data']
+            train_pos = np.load(os.path.join(self.datadir, prefix + 'positive_train_patches.npz'))['data']
+            train_neg = np.load(os.path.join(self.datadir, prefix + 'negative_train_patches.npz'))['data']
             labels = np.concatenate([np.ones(train_pos.shape[0]), np.zeros(train_neg.shape[0])])
             data = np.concatenate([train_pos, train_neg])
             data = self.preprocess(data)
             data, labels = self.shuffle(data, labels)
             self.train = Data(scope='train', x=data, y=self._one_hot_encoding(labels, self.nb_classes))
 
-            test_pos = np.load(os.path.join(self.datadir, 'positive_test_patches.npz'))['data']
-            test_neg = np.load(os.path.join(self.datadir, 'negative_test_patches.npz'))['data']
+            test_pos = np.load(os.path.join(self.datadir, prefix + 'positive_test_patches.npz'))['data']
+            test_neg = np.load(os.path.join(self.datadir, prefix + 'negative_test_patches.npz'))['data']
             labels = np.concatenate([np.ones(test_pos.shape[0]), np.zeros(test_neg.shape[0])])
             data = np.concatenate([test_pos, test_neg])
             data = self.preprocess(data)
@@ -36,7 +38,8 @@ class DataPatches(BaseData):
             self.datadir, self.name))
 
     def preprocess(self, data):
-        data = data[:, 6:9, 40:80, 40:80]
+        #data = data[:, 3:10, 45:75, 45:75]
+        data = data[:, 3:11, 40:70, 40:70]
 
         if data.dtype == np.uint8:
             data = (data - np.float32(127.5)) * np.float32(1 / 127.5)

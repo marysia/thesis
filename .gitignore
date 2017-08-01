@@ -2,13 +2,10 @@
 .idea/
 .ipynb_checkpoints/
 *.ipynb
-marysia/
-docs/
+*.pyc
+GrouPy/build/
 # gpu0
 logs/
 data/
-code/log/
-code/nohup.out
-code/*.pyc
-code/garray2d
-code/test_file.py
+results/
+

@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from base_layers import batch_normalization, activation, weight_variable
+from base_layers import batch_normalization, activation, weight_variable, bias_variable
 from groupy.gconv.tensorflow_gconv.splitgconv2d import gconv2d, gconv2d_util
 from groupy.gconv.tensorflow_gconv.splitgconv3d import gconv3d, gconv3d_util
 
@@ -32,12 +32,13 @@ def gconv_wrapper2d(x, in_group, out_group, ksize=3, out_channels=16):
 
     # define weight variable based on w_shape
     w = weight_variable(w_shape)
-
     # peform the convolution operation
     gconv = gconv2d(input=x, filter=w, strides=[1, 1, 1, 1],
                     padding='SAME', gconv_indices=indices,
                     gconv_shape_info=shape_info)
-    return gconv
+
+    b = bias_variable([gconv.get_shape[-1]])
+    return gconv + b
 
 def gconv_wrapper3d(x, in_group, out_group, ksize=3, out_channels=16):
     mapping = {'O': int(out_channels / np.sqrt(24))}
@@ -76,16 +77,16 @@ def act_bn_gconv(x, in_group, out_group, ksize=3, out_channels=16):
     gconv = gconv_wrapper2d(bn, in_group, out_group, ksize, out_channels)
     return gconv
 
-def gconv3d_bn_act(x, in_group, out_group, ksize=3, out_channels=16):
+def gconv3d_bn_act(x, in_group, out_group, ksize=3, nb_channels_out=16):
     """ 3d group convolution - batch normalization - activation function """
-    gconv = gconv_wrapper3d(x, in_group, out_group, ksize, out_channels)
+    gconv = gconv_wrapper3d(x, in_group, out_group, ksize, nb_channels_out)
     bn = batch_normalization(gconv)
     act = activation(bn)
     return act
 
-def bn_act_gconv3d(x, in_group, out_group, ksize=3, out_channels=16):
+def bn_act_gconv3d(x, in_group, out_group, ksize=3, nb_channels_out=16):
     """ batch normalization - activation function - 3d group convolution """
     bn = batch_normalization(x)
     act = activation(bn)
-    gconv = gconv_wrapper3d(act, in_group, out_group, ksize, out_channels)
+    gconv = gconv_wrapper3d(act, in_group, out_group, ksize, nb_channels_out)
     return gconv

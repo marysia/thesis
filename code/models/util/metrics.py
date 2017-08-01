@@ -6,14 +6,14 @@ def get_predictions(sess, logits, x, test_set_x, test_set_y):
         print np.argmax(result), np.argmax(test_set_y[i])
 
 
-def confusion_matrix(sess, logits, x, test_set_x, test_set_y, training):
+def confusion_matrix(sess, logits, x, test_set_x, test_set_y):
     '''
     Returns a confusion matrix with the actual labels on the row
     axis and the found prediction on the columns.
     '''
     conf_matrix = np.zeros(shape=[test_set_y.shape[1], test_set_y.shape[1]])
 
-    results = sess.run(logits, feed_dict={x: test_set_x, training: False})
+    results = sess.run(logits, feed_dict={x: test_set_x})
     for i, result in enumerate(results):
         prediction = np.argmax(result)
         actual = np.argmax(test_set_y[i])

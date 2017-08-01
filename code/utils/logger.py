@@ -6,7 +6,7 @@ import shutil
 import config
 
 class Logger():
-    def __init__(self, args, time=False, depth=2, revision=False): 
+    def __init__(self, logdir, time=False, depth=2, revision=False):
         '''
         Initialisiation of logger class.
         * args: list of arguments (sys.argv) used to run the file from cmdline
@@ -16,14 +16,18 @@ class Logger():
         Calls for function to create directory based on time stamp, create the log file
         and copy the running file to directory. 
         '''
-        self.args = args
+        self.logdir = logdir
         self.time = time
         self.depth = depth
         self.revision = revision
         self.prefix = '' # can be altered in self.create_directory()
-        self.create_directory()
-        self.initialise_logfile()
-        self.backup_file()
+
+        self.log_path = os.path.join(self.logdir, 'log.log')
+        with open(self.log_path, 'w') as f:
+            f.write('----- LOG -----')
+        #self.create_directory()
+        #self.initialise_logfile()
+        #self.backup_file()
 
     
     # --- class initialisation functions --- # 
@@ -96,6 +100,8 @@ class Logger():
         * time: extra parameter to ensure time is written along with the
                 message, even if self.time is false.
         '''
+        # print to console as well.
+        print(text)
         with open(self.log_path, 'a') as f: 
             f.write('\n' + code + str(text))
             if time or self.time: 
@@ -128,6 +134,4 @@ class Logger():
                 string += '\t' + str(param)
         else: 
             string += ' no parameters.'
-        return string 
-        
-print config.log_dir
+        return string

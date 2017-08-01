@@ -7,11 +7,12 @@ import sys
 import time
 
 class BaseModel:
-    def __init__(self, model_name, data, ender, x_val=None, y_val=None,
+    def __init__(self, model_name, data, ender, log, x_val=None, y_val=None,
                  epochs=5, batch_size=128, learning_rate=1e-4, verbose=True):
         self.model_name = model_name
         self.verbose = verbose
         self.ender = ender
+        self.log = log
 
         self.training = None
         self.optimizer = None
@@ -47,9 +48,9 @@ class BaseModel:
         self.correct_prediction = tf.equal(tf.argmax(self.model_logits, 1), tf.argmax(self.y, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
         tf.summary.scalar('accuracy', self.accuracy)
-        print('Model: Initizalization done...')
+        self.log.info('Model: Initizalization done...')
 
-    def train(self, mode='epochs', mode_param=None):
+    def train(self, mode='epochs', mode_param=None, save_step=None):
         ''' Trains the model.
         Builds the model, initializes the global variables, and executes the train step
         for as long as the mode specifies.
@@ -61,17 +62,17 @@ class BaseModel:
             largest difference from mean of the last ten results is bigger than 0.01)
 
         '''
+        # initialize start time and set self.training to true for dropout.
         start_time = time.time()
-
         self.training = True
+
+        # check for modes.
         if mode not in ['epochs', 'converge', 'time']:
-            print('Mode not recognised. Please use epochs, converge or time.')
+            self.log.info('Mode not recognised. Please use epochs, converge or time.')
             raise Exception
         if mode == 'converge' and self.data.val.scope == 'val-empty':
-            print('To use the converge mode, a validation set must be provided.')
+            self.log.info('To use the converge mode, a validation set must be provided.')
             raise Exception
-        if mode == 'time' and mode_param is None:
-            mode_param = 5
 
         # initialize variables
         init = tf.global_variables_initializer()
@@ -94,10 +95,17 @@ class BaseModel:
 
                     # print if necessary
                     if self.verbose:
-                        print('\nEpoch %d of %d: train accuracy: %g, validation accuracy: %g' % (i, self.epochs, result_train, result_val))
+                        self.log.info('\nEpoch %d of %d: train accuracy: %g, validation accuracy: %g' % (i, self.epochs, result_train, result_val))
+
+                    # save to log if necessary
+                    if i % save_step == 0:
+                        self.training = False
+                        accuracy = self.get_accuracy(self.data.test.x, self.data.test.y)
+                        self.log.result('Model: %s, step %s, test accuracy: %g' % (self.model_name, i, accuracy))
+                        self.training = True
 
                 if self.ender.terminate:
-                    print('Program was terminated after %d epochs. Exiting gracefully.' % i )
+                    self.log.info('Program was terminated after %d epochs. Exiting gracefully.' % i )
             if mode == 'converge':
                 max_difference = mode_param if mode_param is not None else 0.01
                 # initialize variables
@@ -115,29 +123,39 @@ class BaseModel:
 
                     # print if necessary
                     if self.verbose:
-                        print('\nIteration %d: train accuracy: %g, validation accuracy: %g, max deviation: %.2f') \
+                        self.log.info('\nIteration %d: train accuracy: %g, validation accuracy: %g, max deviation: %.2f') \
                              % (i, result_train, result_val, np.max(np.abs(val_results[-10:]-np.mean(val_results[-10:]))))
 
             if mode == 'time':
+                # default: 5 minutes.
+                mode_param = mode_param if mode_param is not None else 5
                 base_time = time.time()
                 end_time = base_time + (mode_param * 60)
                 i = 0
-                while time.time() < end_time:
+                while time.time() < end_time and not self.ender.terminate:
                     prefix = '\rIteration %d: ' % (i + 1)
                     result_train, result_val = self._train_step(prefix)
                     if self.verbose:
-                        print('\nEpoch %d of %d: train accuracy: %g, validation accuracy: %g' % (i, self.epochs, result_train, result_val))
-
+                        self.log.info('\nEpoch %d of %d: train accuracy: %g, validation accuracy: %g' % (i, self.epochs, result_train, result_val))
                     i += 1
+
+                    if ((time.time() - base_time) / 60) % save_step == 0:
+                        self.training = False
+                        accuracy = self.get_accuracy(self.data.test.x, self.data.test.y)
+                        self.log.result('Model: %s, step %s, test accuracy: %g' % (self.model_name, i, accuracy))
+                        self.training = True
 
 
                 if self.ender.terminate:
                     exiting_time = (time.time() - base_time) / 60
-                    print('Program was terminated after %d minutes. Exiting gracefully.' % exiting_time )
+                    self.log.info('Program was terminated after %d minutes (%d iterations). Exiting gracefully.' % (exiting_time, i))
+                else:
+                    self.log.info('Performed %d iterations in %d minutes.' % (i, mode_param))
             if i > 0:
                 self.evaluate(sess)
             elapsed_time = (time.time() - start_time) / 60
-            print('Training took approximately %d minutes.' % elapsed_time)
+            self.log.info('Training took approximately %d minutes.' % elapsed_time)
+
     def _train_step(self, prefix):
         for step in range(self.steps):
             batch = self.data.train.get_next_batch(step, self.batch_size)
@@ -154,18 +172,22 @@ class BaseModel:
         return result_train, result_val
 
     def get_accuracy(self, x, y):
+        print('REACHED ACCURACY PHASE! ' * 10 )
         self.training = False
         try:
             feed_dict = {self.x: x, self.y: y}
             test_accuracy = self.accuracy.eval(feed_dict)
         except:
-            batch = x.shape[0] / 10
+            print('Reached the except.')
+            batch = x.shape[0] / 20
+            batch = 1000
             accuracy = 0
             #for i in xrange(x.shape[0] / batch):
-            for i in xrange(10):
+            for i in xrange(int(x.shape[0] / batch)):
                 feed_dict = {self.x: x[i*batch:(i+1)*batch], self.y: y[i*batch:(i+1)*batch]}
+                print(x[i*batch:(i+1)*batch].shape)
                 accuracy += self.accuracy.eval(feed_dict)
-            test_accuracy = accuracy / float(x.shape[0]/batch)
+            test_accuracy = accuracy / int(x.shape[0]/batch)
         self.training = True
         return test_accuracy
     def evaluate(self, sess):
@@ -182,6 +204,8 @@ class BaseModel:
             #util.metrics.classes(conf_matrix)
 
         accuracy = self.get_accuracy(self.data.test.x, self.data.test.y)
-        print('Model: %s, test accuracy: %g' % (self.model_name, accuracy))
-        with open('/home/marysia/results.txt', 'a') as f:
-            f.write('Model: %s, test accuracy: %g' % (self.model_name, accuracy))
+        conf_matrix = util.metrics.confusion_matrix(sess, self.model_logits, self.x, self.data.test.x, self.data.test.y)
+        self.log.result('Model: %s, test accuracy: %g' % (self.model_name, accuracy))
+        self.log.result('Model: %s, confusion matrix: ' % (self.model_name))
+        self.log.result(conf_matrix[0])
+        self.log.result(conf_matrix[1])

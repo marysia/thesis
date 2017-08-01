@@ -107,6 +107,11 @@ def dense(tensor, channels):
     tensor = tf.matmul(tensor, W) + b
     return tensor
 
+def flatten(tensor):
+    shape = np.prod(np.array(tensor.get_shape().as_list()[1:]))
+    tensor = tf.reshape(tensor, [-1, shape])
+    return tensor
+
 def readout(tensor, shape):
     '''
     Readout layer.
@@ -125,6 +130,9 @@ def weight_variable(shape):
 def bias_variable(shape):
   initial = tf.constant(0.1, shape=shape, name='bias')
   return tf.Variable(initial)
+
+def maxpool3d(tensor, strides=[1, 1, 2, 2, 1]):
+    return tf.nn.max_pool3d(tensor, ksize=[1, 1, 1, 1, 1], strides=strides, padding='SAME')
 
 def _weights_distribution(shape, name):
     '''
