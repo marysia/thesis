@@ -37,8 +37,8 @@ def gconv_wrapper2d(x, in_group, out_group, ksize=3, out_channels=16):
                     padding='SAME', gconv_indices=indices,
                     gconv_shape_info=shape_info)
 
-    b = bias_variable([gconv.get_shape[-1]])
-    return gconv + b
+    #b = bias_variable([gconv.get_shape[-1]])
+    return gconv #+ b
 
 def gconv_wrapper3d(x, in_group, out_group, ksize=3, out_channels=16):
     mapping = {'O': int(out_channels / np.sqrt(24))}

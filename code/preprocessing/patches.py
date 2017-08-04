@@ -4,9 +4,10 @@ from basedata import BaseData, Data
 
 
 class DataPatches(BaseData):
-    def __init__(self, small=True):
+    def __init__(self, small=True, shape=(8, 30, 30)):
         self.name = 'fp-reduction-patches'
         self.small = small
+        self.shape = shape
         BaseData.__init__(self)
 
     def load(self):
@@ -37,10 +38,32 @@ class DataPatches(BaseData):
             'read_in_zipped_pickles_script.py with python3 to create .npz files.' % (
             self.datadir, self.name))
 
+    def _data_reshape(self, data):
+        data_offset = [int(size/2) for size in data.shape[1:]]
+        data_diff = [int(size/2) for size in self.shape]
+        data_diff_min = data_diff
+        data_diff_max = []
+        for i, elem in enumerate(data_diff):
+            if self.shape[i] % 2 == 0:
+                data_diff_max.append(elem)
+            else:
+                data_diff_max.append(elem+1)
+        data = data[:, (data_offset[0] - data_diff_min[0]):(data_offset[0] + data_diff_max[0]),
+                    (data_offset[1] - data_diff_min[1]):(data_offset[1] + data_diff_max[1]),
+                    (data_offset[2] - data_diff_min[2]):(data_offset[2] + data_diff_max[2])]
+
+        if data.shape[1] == 1:
+            data = data.reshape(data.shape[0], data.shape[2], data.shape[3])
+
+        print('Data shape: ', data.shape)
+        print('Data desired shape: ', self.shape)
+        return data
+
+
     def preprocess(self, data):
         #data = data[:, 3:10, 45:75, 45:75]
-        data = data[:, 3:11, 40:70, 40:70]
-
+        #data = data[:, 3:11, 40:70, 40:70]
+        data = self._data_reshape(data)
         if data.dtype == np.uint8:
             data = (data - np.float32(127.5)) * np.float32(1 / 127.5)
 
@@ -65,7 +88,10 @@ class DataPatches(BaseData):
         else:
             print('Unsupported datatype for preprocessing.')
         s = data.shape
-        data = data.reshape((s[0], s[1], s[2], s[3], 1))
+        if len(data.shape) == 4:
+            data = data.reshape((s[0], s[1], s[2], s[3], 1))
+        else:
+            data = data.reshape((s[0], s[1], s[2], 1))
         return data
 
     def _set_classes(self):

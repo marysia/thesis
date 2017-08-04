@@ -6,7 +6,7 @@ import shutil
 import config
 
 class Logger():
-    def __init__(self, logdir, time=False, depth=2, revision=False):
+    def __init__(self, logdir, logname='log', time=False, depth=2, revision=False):
         '''
         Initialisiation of logger class.
         * args: list of arguments (sys.argv) used to run the file from cmdline
@@ -22,7 +22,7 @@ class Logger():
         self.revision = revision
         self.prefix = '' # can be altered in self.create_directory()
 
-        self.log_path = os.path.join(self.logdir, 'log.log')
+        self.log_path = os.path.join(self.logdir, logname + '.log')
         with open(self.log_path, 'w') as f:
             f.write('----- LOG -----')
         #self.create_directory()
@@ -111,8 +111,9 @@ class Logger():
         ''' Writes result to log file. ''' 
         self.write_to_file(text, '[RESULT] \t', time)
     def info(self, text, time=False): 
-        ''' Writes result to log file. ''' 
-        self.write_to_file(text, '[INFO] \t \t', time)
+        ''' Writes result to log file. '''
+        self.write_to_file(text, '\t \t \t', time)
+        #self.write_to_file(text, '[INFO] \t \t', time)
     def error(self, text, time=False): 
         ''' Writes result to log file. ''' 
         self.write_to_file(text, '[ERROR] \t', time)

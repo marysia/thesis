@@ -10,27 +10,22 @@ class Z3CNN(BaseModel):
         print(self.x)
         tensor = layer.conv3d_bn_act(self.x, nb_channels_out=16)
         tensor = base_layer.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
-        print(tensor)
+
         tensor = layer.conv3d_bn_act(tensor, nb_channels_out=16)
         tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
-        print(tensor)
         # l3
         tensor = layer.conv3d_bn_act(tensor, nb_channels_out=32)
         tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
-        print(tensor)
 
         # l4
         tensor = layer.conv3d_bn_act(tensor, nb_channels_out=32)
         tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
-        print(tensor)
         # l5
         tensor = layer.conv3d_bn_act(tensor, nb_channels_out=64)
         tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
-        print(tensor)
         # l6
         tensor = layer.conv3d_bn_act(tensor, nb_channels_out=64)
         #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
-        print(tensor)
         # # top
         # tensor = base_layer.convolution3d(tensor, filter_shape=[4, 4, 4], nb_channels_out=10)
 
@@ -48,27 +43,23 @@ class Z3CNN(BaseModel):
 class GCNN(BaseModel):
     def build_graph(self):
         group = 'O'
-        nb_channels_out = 10
+        nb_channels_out = 35
         # l1 and l2
-        print(self.x)
         tensor = gconv.gconv3d_bn_act(self.x, in_group='Z3', out_group=group, nb_channels_out=nb_channels_out)
-        tensor = base_layer.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
-        print(tensor)
+        #tensor = base_layer.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
 
         tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
         tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
-        print(tensor)
 
         tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
-        tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
-        print(tensor)
+        #tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
 
         tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
         #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
 
         tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
         #tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
-        print(tensor)
+
         #tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
 
         # tensor = base_layer.dense(tensor, 256)
@@ -77,9 +68,7 @@ class GCNN(BaseModel):
 
 
         tensor = base_layer.flatten(tensor)
-        print(tensor)
         final = base_layer.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
-        print(tensor)
 
         self.model_logits = final
 
