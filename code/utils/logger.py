@@ -6,7 +6,7 @@ import shutil
 import config
 
 class Logger():
-    def __init__(self, logdir, logfolder, logname='log', time=False, depth=2, revision=False):
+    def __init__(self, args, logdir, logfolder, logname='log', time=False, depth=2, revision=False):
         '''
         Initialisiation of logger class.
         * args: list of arguments (sys.argv) used to run the file from cmdline
@@ -30,6 +30,7 @@ class Logger():
 
         with open(self.log_path, 'w') as f:
             f.write('----- LOG -----')
+            f.write(str(args))
         #self.create_directory()
         #self.initialise_logfile()
         #self.backup_file()
@@ -164,11 +165,11 @@ class Logger():
         timestamp = datetime.datetime.now().strftime(" (%Y-%m-%d %H:%M:%S) ")
         return timestamp
         
-    def format_params(self): 
+    def format_params(self, args):
         ''' Returns parameter settings in appropriate format.'''
-        string = self.get_time() + 'Started ' + self.args[0] + ' with'
-        if len(self.args) > 2: 
-            for param in self.args[1:]:
+        string = self.get_time() + 'Started ' + args[0] + ' with'
+        if len(args) > 2:
+            for param in args[1:]:
                 string += '\t' + str(param)
         else: 
             string += ' no parameters.'

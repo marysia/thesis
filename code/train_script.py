@@ -56,21 +56,21 @@ def train(data, log, models, args):
     log.info('Executed all steps in script.\n')
 
 def mnist(args):
-    log = Logger(logdir, logfolder='mnist', logname=args.log)
+    log = Logger(args, logdir, logfolder='mnist', logname=args.log)
     log.info('Executing mnist script with the following models: %s' % str(models2d.keys()))
     data = DataMNIST()
     train(data, log, models2d, args)
     log.finalize(ender.terminate)
 
 def patches_2d(args):
-    log = Logger(logdir, logfolder='patches2d', logname=args.log)
+    log = Logger(args, logdir, logfolder='patches2d', logname=args.log)
     log.info('Executing patches 2d script with the following models: %s' % str(models2d.keys()))
     data = DataPatches(small=args.smalldata, shape=(1, 30, 30))
     train(data, log, models2d, args)
     log.finalize(ender.terminate)
 
 def patches_3d(args):
-    log = Logger(logdir, logfolder='patches3d', logname=args.log)
+    log = Logger(args, logdir, logfolder='patches3d', logname=args.log)
     log.info('Executing patches 3d script with the following models: %s' % str(models3d.keys()))
     data = DataPatches(small=args.smalldata, shape=(8, 30, 30))
     train(data, log, models3d, args)
