@@ -205,7 +205,18 @@ class BaseModel:
         return test_accuracy
 
     def evaluate(self, sess):
-        self.training = False
+        self.log.result('Base accuracy: %g ' % self.get_accuracy(self.data.test.x, self.data.test.y))
+
+        results = util.metrics.get_predictions(sess, self, self.data.test.x)
+        self.log.result('Accuracy: %.2f' % util.metrics.accuracy(results, self.data.test.y))
+
+        confusion_matrix = util.metrics.confusion_matrix(results, self.data.test.y)
+        a, p, r = util.metrics.get_metrics(confusion_matrix)
+        self.log.result('Acc: %.2f, Prec: %.2f, Recall: %.2f' % (a, p, r))
+        self.log.result(util.helpers.pretty_print_confusion_matrix(confusion_matrix))
+
+    def evaluate2(self, sess):
+        #self.training = False
         if self.verbose:
             pass
             # print('Test accuracy: %g' % self.accuracy.eval(feed_dict={self.x: self.data.test.x, self.y: self.data.test.y}))
@@ -217,9 +228,20 @@ class BaseModel:
             # conf_matrix = util.metrics.confusion_matrix(sess, self.model_logits, self.x, self.data.test.x, self.data.test.y)
             # util.metrics.classes(conf_matrix)
 
-        accuracy = self.get_accuracy(self.data.test.x, self.data.test.y)
+        accuracy1 = self.get_accuracy(self.data.test.x, self.data.test.y)
+        accuracy2 = util.metrics.accuracy(self, self.data.test.x, self.data.test.y)
+        accuracy3 = util.metrics.accuracy_manual(sess, self, self.data.test.x, self.data.test.y)
         #conf_matrix = util.metrics.confusion_matrix(sess, self.model_logits, self.x, self.data.test.x, self.data.test.y)
-        self.log.result('Model: %s, test accuracy: %g' % (self.model_name, accuracy))
-        self.log.result('Model: %s, confusion matrix: ' % (self.model_name))
+        self.log.result('Get accuracy: %g ' % accuracy1)
+        self.log.result('Metrics: %g' % accuracy2)
+        self.log.result('Manual accuracy: %f' % accuracy3)
+
+        #self.log.results('Confusion matrix: ' + conf_matrix)
+
+
+
+        #conf_matrix = util.metrics.confusion_matrix(sess, self.model_logits, self.x, self.data.test.x, self.data.test.y)
+        #self.log.result('Model: %s, test accuracy: %g' % (self.model_name, accuracy))
+        #self.log.result('Model: %s, confusion matrix: ' % (self.model_name))
         #self.log.result(conf_matrix[0])
         #self.log.result(conf_matrix[1])

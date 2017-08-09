@@ -9,23 +9,23 @@ class Z2CNN(BaseModel):
     def build_graph(self):
         # l1 and l2
         tensor = layer.conv2d_bn_act(self.x, nb_channels_out=20)
-        tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
         tensor = layer.conv2d_bn_act(tensor, nb_channels_out=20)
 
         # max pooling
         tensor = tf.nn.max_pool(tensor, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
         # l3
         tensor = layer.conv2d_bn_act(tensor, nb_channels_out=20)
-        tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
         # l4
         tensor = layer.conv2d_bn_act(tensor, nb_channels_out=20)
-        tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
         # l5
         tensor = layer.conv2d_bn_act(tensor, nb_channels_out=20)
-        tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
         # l6
         tensor = layer.conv2d_bn_act(tensor, nb_channels_out=20)
-        tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
 
         # top
         tensor = base_layer.convolution2d(tensor, filter_shape=[4, 4], nb_channels_out=10)

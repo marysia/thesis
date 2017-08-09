@@ -28,3 +28,9 @@ def progress(prefix, step, steps):
     progress_str = '[%s%s] %d%%' % ('='*completed, ' '*(100-completed), completed)
     sys.stdout.write(prefix + progress_str)
     sys.stdout.flush()
+
+def pretty_print_confusion_matrix(confusion_matrix):
+    str = 'Confusion matrix: \n'
+    str += '\t TN: %d \t FP: %d \n' % (confusion_matrix[0][0], confusion_matrix[0][1])
+    str += '\t FN: %d \t TP: %d ' % (confusion_matrix[1][0], confusion_matrix[1][1])
+    return str
