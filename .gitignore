@@ -1,11 +1,19 @@
-# laptop:
-.idea/
-.ipynb_checkpoints/
-*.ipynb
+# general
+gconv_experiments/
+GrouPy/build
+.git
 *.pyc
-GrouPy/build/
-# gpu0
+
+# laptop
+.DS_Store
+.git
+.idea
+literature/
+marysia/
+venv-thesis/
+writings/
+
+# Azure VM 
 logs/
 data/
 results/
-

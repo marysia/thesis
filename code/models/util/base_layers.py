@@ -48,6 +48,8 @@ def convolution2d(tensor, filter_shape, nb_channels_out):
         strides = [1, 1, 1, 1]
         nb_channels_in = int(tensor.get_shape()[-1])
         W = weight_variable(filter_shape+[nb_channels_in, nb_channels_out])
+
+        W = _weights_distribution(filter_shape+[nb_channels_in, nb_channels_out], "weight_distribution", schema = "he")
         b = bias_variable([nb_channels_out])
         tensor = tf.nn.conv2d(input=tensor, filter=W, strides=strides, padding="SAME") + b
     return tensor
@@ -60,6 +62,7 @@ def convolution3d(tensor, filter_shape, nb_channels_out):
         strides = [1, 1, 1, 1, 1]
         nb_channels_in = int(tensor.get_shape()[-1])
         W = weight_variable(filter_shape+[nb_channels_in, nb_channels_out])
+        #W = _weights_distribution(filter_shape+[nb_channels_in, nb_channels_out], "weight_distribution", schema = "he")
         b = bias_variable([nb_channels_out])
         tensor = tf.nn.conv3d(input=tensor, filter=W, strides=strides, padding="SAME") + b
     return tensor
@@ -134,11 +137,19 @@ def bias_variable(shape):
 def maxpool3d(tensor, strides=[1, 1, 2, 2, 1]):
     return tf.nn.max_pool3d(tensor, ksize=[1, 1, 1, 1, 1], strides=strides, padding='SAME')
 
-def _weights_distribution(shape, name):
+def _weights_distribution(shape, name, schema = "he"):
     '''
     Returns truncated normal variable for weights.
     '''
-    return tf.Variable(initial_value=tf.truncated_normal(shape=shape), name=name)
+    initialization_schemas = {
+            "xavier": lambda n: 1. / n,
+            "he": lambda n: 2. / n
+    }
+
+    fan_in = reduce(lambda x, y: x * y, shape[:-1], 1)
+    std = initialization_schemas[schema](fan_in)
+
+    return tf.Variable(initial_value=tf.truncated_normal(shape=shape, stddev=std), name=name)
 
 def _weights_constant(shape, value, name, trainable = True):
     '''

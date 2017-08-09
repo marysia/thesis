@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import util.metrics
 from util.helpers import total_parameters, progress
+from util.augmentation import rotate_transform_batch
 
 import sys
 import time
@@ -9,13 +10,15 @@ import time
 
 class BaseModel:
     def __init__(self, model_name, data, ender, log, x_val=None, y_val=None,
-                 epochs=5, batch_size=128, learning_rate=1e-4, verbose=True):
+                 epochs=5, batch_size=128, learning_rate=0.001, verbose=True):
         self.model_name = model_name
         self.verbose = verbose
         self.ender = ender
         self.log = log
 
-        self.training = None
+        self.transformations = ['rotation']
+
+        self.training = True
         self.optimizer = None
         self.learning_rate = learning_rate
 
@@ -168,6 +171,10 @@ class BaseModel:
     def _train_step(self, prefix):
         for step in range(self.steps):
             batch = self.data.train.get_next_batch(step, self.batch_size)
+
+            if 'rotation' in self.transformations:
+                batch.x = rotate_transform_batch(batch.x, rotation = 2 * np.pi)
+
             self.optimizer.run(feed_dict={self.x: batch.x, self.y: batch.y})
 
             if self.verbose:

@@ -46,13 +46,13 @@ class GCNN(BaseModel):
         nb_channels_out = 35
         # l1 and l2
         tensor = gconv.gconv3d_bn_act(self.x, in_group='Z3', out_group=group, nb_channels_out=nb_channels_out)
-        #tensor = base_layer.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
+        tensor = base_layer.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
 
         tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
         tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
 
         tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
-        #tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
+        tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
 
         tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
         #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
@@ -74,13 +74,13 @@ class GCNN(BaseModel):
 
 class Resnet(BaseModel):
     def build_graph(self):
-        nb_channels_out = 16
+        nb_channels_out = 25
         blocks = 3
         tensor = layer.conv3d_bn_act(self.x, nb_channels_out=nb_channels_out)
 
         for i in xrange(blocks):
             tensor = self.residual_block(tensor, nb_channels_out)
-
+            tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
         tensor = base_layer.dense(tensor, 256)
         tensor = base_layer.activation(tensor, key='relu')
         final = base_layer.readout(tensor, [256, self.data.nb_classes])

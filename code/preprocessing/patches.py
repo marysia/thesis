@@ -21,6 +21,11 @@ class DataPatches(BaseData):
             data = np.concatenate([train_pos, train_neg])
             data = self.preprocess(data)
             data, labels = self.shuffle(data, labels)
+
+            # train_mean = np.mean(data, dtype=data.dtype)
+            # data -= train_mean
+            # train_std = np.std(data, dtype=data.dtype)
+            # data /= train_std
             self.train = Data(scope='train', x=data, y=self._one_hot_encoding(labels, self.nb_classes))
 
             test_pos = np.load(os.path.join(self.datadir, prefix + 'positive_test_patches.npz'))['data']
@@ -29,6 +34,9 @@ class DataPatches(BaseData):
             data = np.concatenate([test_pos, test_neg])
             data = self.preprocess(data)
             data, labels = self.shuffle(data, labels)
+
+            # data -= train_mean
+            # data /= train_std
             self.test = Data(scope='test', x=data, y=self._one_hot_encoding(labels, self.nb_classes))
 
             self.val = Data(scope='val-empty', x=np.array([]), y=np.array([]))
@@ -75,7 +83,8 @@ class DataPatches(BaseData):
             lower = 0
             a[a > upper] = upper
             a = a * (255. / (upper - lower))
-            a = a.astype(np.uint8)
+            a = a * (1. / 255.)
+            a = a.astype(np.float64)
             data = a
 
         # elif data.dtype == np.int16:

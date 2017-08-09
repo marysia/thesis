@@ -112,7 +112,7 @@ class Logger():
         self.write_to_file(text, '[RESULT] \t', time)
     def info(self, text, time=False): 
         ''' Writes result to log file. '''
-        self.write_to_file(text, '\t \t \t', time)
+        self.write_to_file(text, '\t ', time)
         #self.write_to_file(text, '[INFO] \t \t', time)
     def error(self, text, time=False): 
         ''' Writes result to log file. ''' 

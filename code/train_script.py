@@ -23,9 +23,9 @@ models2d = {
 }
 
 models3d = {
-#     'Z3CNN': Z3CNN,
-     'GCNN': GCNN
-#    'Resnet': Resnet,
+     'Z3CNN': Z3CNN,
+#     'GCNN': GCNN
+#     'Resnet': Resnet,
 #    'GResnet': GResnet
 }
 
@@ -49,7 +49,7 @@ def train(data, log, models, args):
             log.info('Model: Number of parameters is... ' + str(model_params))
 
             # train
-            #graph.train(mode=args.mode, mode_param=args.mode_param, save_step=args.save_step)
+            graph.train(mode=args.mode, mode_param=args.mode_param, save_step=args.save_step)
         else:
             log.info('Program was terminated. Model %s will not be trained and/or evaluated.' % name)
     log.info('Executed all steps in script.\n')

@@ -53,7 +53,7 @@ class P4CNN(BaseModel):
         tensor = gconv.gconv_bn_act(tensor, in_group=group, out_group=group, out_channels=20)
         tensor = gconv.gconv_bn_act(tensor, in_group=group, out_group=group, out_channels=20)
 
-        #tensor = gconv.gconv_wrapper(tensor, in_group=group, out_group=group, out_channels=10)
+        tensor = gconv.gconv_wrapper2d(tensor, in_group=group, out_group=group, ksize=4, in_channels=20, out_channels=10)
 
         tensor = base_layer.dense(tensor, 256)
         tensor = base_layer.activation(tensor, key='relu')
@@ -82,8 +82,7 @@ class P4CNNDropout(BaseModel):
         tensor = gconv.gconv_bn_act(tensor, in_group=group, out_group=group, out_channels=20)
         tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
 
-
-        #tensor = gconv.gconv_wrapper(tensor, in_group=group, out_group=group, ksize=4, out_channels=10)
+        tensor = gconv.gconv_wrapper2d(tensor, in_group=group, out_group=group, ksize=4, in_channels=20, out_channels=10)
 
         tensor = base_layer.dense(tensor, 256)
         tensor = base_layer.activation(tensor, key='relu')
