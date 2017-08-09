@@ -18,8 +18,8 @@ models2d = {
 #    'Conv1': ConvolutionalModel1,
 #    'Gconv1': GConvModel1,
      'Z2CNN': Z2CNN,
-     'P4CNN': P4CNN,
-     'P4CNNDropout': P4CNNDropout
+#     'P4CNN': P4CNN,
+#     'P4CNNDropout': P4CNNDropout
 }
 
 models3d = {
@@ -31,6 +31,7 @@ models3d = {
 
 # global program ender
 ender = ProgramEnder()
+logdir = '/home/marysia/thesis/logs/'
 
 def train(data, log, models, args):
     data_metrics(data, log)
@@ -55,22 +56,25 @@ def train(data, log, models, args):
     log.info('Executed all steps in script.\n')
 
 def mnist(args):
-    log = Logger('/home/marysia/thesis/logs/', logname='mnist_'+args.log)
+    log = Logger(logdir, logfolder='mnist', logname=args.log)
     log.info('Executing mnist script with the following models: %s' % str(models2d.keys()))
     data = DataMNIST()
     train(data, log, models2d, args)
+    log.finalize(ender.terminate)
 
 def patches_2d(args):
-    log = Logger('/home/marysia/thesis/logs/', logname='patches2d_'+args.log)
+    log = Logger(logdir, logfolder='patches2d', logname=args.log)
     log.info('Executing patches 2d script with the following models: %s' % str(models2d.keys()))
     data = DataPatches(small=args.smalldata, shape=(1, 30, 30))
     train(data, log, models2d, args)
+    log.finalize(ender.terminate)
 
 def patches_3d(args):
-    log = Logger('/home/marysia/thesis/logs/', logname='patches3d_'+args.log)
+    log = Logger(logdir, logfolder='patches3d', logname=args.log)
     log.info('Executing patches 3d script with the following models: %s' % str(models3d.keys()))
     data = DataPatches(small=args.smalldata, shape=(8, 30, 30))
     train(data, log, models3d, args)
+    log.finalize(ender.terminate)
 
 if __name__ == "__main__":
     argument_function_mapping = dict(zip(["mnist", "patches2d", "patches3d"], [mnist, patches_2d, patches_3d]))

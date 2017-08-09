@@ -6,7 +6,7 @@ import shutil
 import config
 
 class Logger():
-    def __init__(self, logdir, logname='log', time=False, depth=2, revision=False):
+    def __init__(self, logdir, logfolder, logname='log', time=False, depth=2, revision=False):
         '''
         Initialisiation of logger class.
         * args: list of arguments (sys.argv) used to run the file from cmdline
@@ -17,12 +17,17 @@ class Logger():
         and copy the running file to directory. 
         '''
         self.logdir = logdir
+        self.logfolder = logfolder
+        self.logname = logname
         self.time = time
         self.depth = depth
         self.revision = revision
         self.prefix = '' # can be altered in self.create_directory()
 
-        self.log_path = os.path.join(self.logdir, logname + '.log')
+        # define log paths
+        self.log_path = self.current_log_name()
+        self.latest_logpath = os.path.join(self.logdir, 'latest.log')
+
         with open(self.log_path, 'w') as f:
             f.write('----- LOG -----')
         #self.create_directory()
@@ -119,6 +124,38 @@ class Logger():
         self.write_to_file(text, '[ERROR] \t', time)
         
     # --- helper functions --- #
+    def finalize(self, broken):
+        shutil.copy(self.log_path, self.final_log_name(self.logfolder, self.logname, broken))
+        shutil.copy(self.log_path, self.latest_logpath)
+        os.remove(self.log_path)
+
+    def current_log_name(self):
+        if not os.path.exists(os.path.join(self.logdir, 'current.log')):
+            return os.path.join(self.logdir, 'current.log')
+
+        for i in xrange(10):
+            name = 'current_%d.log' % (i + 2)
+            filepath = os.path.join(self.logdir, name)
+            if not os.path.exists(filepath):
+                return filepath
+
+        raise Exception('Too many current files running, error.')
+
+
+    def final_log_name(self, logfolder, logname, broken):
+        log_folder = os.path.join(self.logdir, logfolder)
+        list_of_logs = glob.glob(log_folder + '/*')
+
+        if broken:
+            broken_logs = [elem for elem in list_of_logs if 'broken' in elem]
+            name = 'broken_%d_%s.log' % (len(broken_logs)+1, logname)
+        else:
+            healthy_logs = [elem for elem in list_of_logs if not 'broken' in elem]
+            name = '%d_%s.log' % (len(healthy_logs)+1, logname)
+
+        filepath = os.path.join(log_folder, name)
+        return filepath
+
     def copy(self):
         shutil.copy(self.log_path, os.path.join(config.log_dir, 'latest.log'))
 
