@@ -64,6 +64,7 @@ class BaseModel:
             - converge: runs through the entire training set in batches of self.batch_size for as long as the
             there is still a relatively large difference between results on the validation set (defined as:
             largest difference from mean of the last ten results is bigger than 0.01)
+            - time: runs through the entire training set in batches of batch size for n minutes.
 
         '''
         # initialize start time and set self.training to true for dropout.
@@ -88,87 +89,106 @@ class BaseModel:
 
             if mode == 'epochs':
                 self.epochs = mode_param if mode_param is not None else self.epochs
-                # run through entire training self.epochs times.
-                i = 0
-                while not self.ender.terminate and i < self.epochs:
-                    i += 1
-                    # for epoch in range(self.epochs):
-                    # perform training step
-                    prefix = '\rEpoch %d of %d: ' % (i, self.epochs)
-                    result_train, result_val = self._train_step(prefix)
+                i = self.train_epochs(save_step)
 
-                    # print if necessary
-                    #if self.verbose:
-                    #    self.log.info('\nEpoch %d of %d: train accuracy: %g, validation accuracy: %g' % (
-                    #    i, self.epochs, result_train, result_val))
+            elif mode == 'time':
+                i = self.train_time(mode_param, save_step)
 
-                    # save to log if necessary
-                    if i % save_step == 0:
-                        self.training = False
-                        accuracy = self.get_accuracy(self.data.test.x, self.data.test.y)
-                        self.log.info('Model: %s, step %s, test accuracy: %g' % (self.model_name, i, accuracy))
-                        self.training = True
+            elif mode == 'converge':
+                i = self.train_converge()
 
-                if self.ender.terminate:
-                    self.log.info('Program was terminated after %d epochs. Exiting gracefully.' % i)
-
-
-            if mode == 'converge':
-                max_difference = mode_param if mode_param is not None else 0.01
-                # initialize variables
-                i = 0
-                val_results = []
-                # stop if the highest difference from mean (of last ten results on val set)  is smaller than 0.01
-                while i < 10 or np.max(np.abs(val_results[-10:] - np.mean(val_results[-10:]))) > max_difference:
-                    # perform training step
-                    prefix = '\rIteration %d: ' % (i + 1)
-                    result_train, result_val = self._train_step(prefix)
-
-                    # update variables
-                    val_results.append(result_val)
-                    i += 1
-
-                    # print if necessary
-                    if self.verbose:
-                        self.log.info(
-                            '\nIteration %d: train accuracy: %g, validation accuracy: %g, max deviation: %.2f') \
-                        % (i, result_train, result_val, np.max(np.abs(val_results[-10:] - np.mean(val_results[-10:]))))
-
-            if mode == 'time':
-                # default: 5 minutes.
-                mode_param = mode_param if mode_param is not None else 5
-                base_time = time.time()
-                last_save = base_time
-                end_time = base_time + (mode_param * 60)
-                i = 0
-                while time.time() < end_time and not self.ender.terminate:
-                    prefix = '\rIteration %d: ' % (i + 1)
-                    result_train, result_val = self._train_step(prefix)
-                    #if self.verbose:
-                    #    self.log.info('\nEpoch %d of %d: train accuracy: %g, validation accuracy: %g' % (
-                    #    i, self.epochs, result_train, result_val))
-                    i += 1
-
-                    if ((time.time() - last_save) / 60) > save_step:
-                        last_save = time.time()
-                        self.training = False
-                        accuracy = self.get_accuracy(self.data.test.x, self.data.test.y)
-                        self.log.result('Model: %s, step %s, test accuracy: %g' % (self.model_name, i, accuracy))
-                        self.training = True
-
-                if self.ender.terminate:
-                    exiting_time = (time.time() - base_time) / 60
-                    self.log.info('Program was terminated after %d minutes (%d iterations). Exiting gracefully.' % (
-                    exiting_time, i))
-                else:
-                    self.log.info('Performed %d iterations in %d minutes.' % (i, mode_param))
+            else:
+                pass
 
             if i > 0:
                 self.evaluate(sess)
             elapsed_time = (time.time() - start_time) / 60
             self.log.info('Training took approximately %d minutes.' % elapsed_time)
 
+    # --- train modes --- #
+    def train_epochs(self, save_step):
+        '''
+        As long as no termination signal has been send, loop through the dataset self.epochs times
+        and perform a train step. Every save_step epochs, calculate accuracy and log.
+        '''
+        i = 0
+        while not self.ender.terminate and i < self.epochs:
+            i += 1
+            prefix = '\rEpoch %d of %d: ' % (i, self.epochs)
+            self._train_step(prefix)
+
+            if i % save_step == 0:
+                accuracy = util.metrics.get_accuracy(self, self.data.test.x, self.data.test.y)
+                if self.verbose:
+                    print(' ')
+                self.log.info('Model: %s, step %s, test accuracy: %g' % (self.model_name, i, accuracy))
+
+        if self.ender.terminate:
+            self.log.info('Program was terminated after %d epochs. Exiting gracefully.' % i)
+        return i
+
+    def train_time(self, mode_param, save_step):
+        '''
+        Train for mode_param minutes, and save every save_step minutes.
+        '''
+        # initialize
+        mode_param = mode_param if mode_param is not None else 5
+        i = 0
+
+        # set begin times
+        base_time = time.time()   # start time
+        last_save = base_time   # initialize last save to starting time
+        end_time = base_time + (mode_param * 60)   # time training should end
+
+        # while not passed training end time and no termination signal
+        while time.time() < end_time and not self.ender.terminate:
+            i += 1
+            prefix = '\rIteration %d: ' % (i)
+
+            self._train_step(prefix)
+
+            # if time passed in minutes since last save moment is bigger than save step: save.
+            if ((time.time() - last_save) / 60) > save_step:
+                last_save = time.time()   # set last save to current time
+                accuracy = util.metrics.get_accuracy(self, self.data.test.x, self.data.test.y)
+                self.log.result('Model: %s, step %s, test accuracy: %g' % (self.model_name, i, accuracy))
+
+        if self.ender.terminate:
+            exiting_time = (time.time() - base_time) / 60
+            self.log.info('Program was terminated after %d minutes (%d iterations). Exiting gracefully.' % (
+                exiting_time, i))
+        else:
+            self.log.info('Performed %d iterations in %d minutes.' % (i, mode_param))
+        retu
+
+    def train_converge(self, mode_param):
+        '''
+        Currently unused.
+        '''
+        max_difference = mode_param if mode_param is not None else 0.01
+        # initialize variables
+        i = 0
+        val_results = []
+        # stop if the highest difference from mean (of last ten results on val set)  is smaller than 0.01
+        while i < 10 or np.max(np.abs(val_results[-10:] - np.mean(val_results[-10:]))) > max_difference:
+            # perform training step
+            prefix = '\rIteration %d: ' % (i + 1)
+            result_train, result_val = self._train_step(prefix)
+
+            # update variables
+            val_results.append(result_val)
+            i += 1
+
+            # print if necessary
+            if self.verbose:
+                self.log.info(
+                    '\nIteration %d: train accuracy: %g, validation accuracy: %g, max deviation: %.2f') \
+                % (i, result_train, result_val, np.max(np.abs(val_results[-10:] - np.mean(val_results[-10:]))))
+
+        return i
+
     def _train_step(self, prefix):
+        ''' Training step. '''
         for step in range(self.steps):
             batch = self.data.train.get_next_batch(step, self.batch_size)
 
@@ -179,69 +199,14 @@ class BaseModel:
 
             if self.verbose:
                 progress(prefix, step, self.steps)
-        # return 0, 0
-        result_train, result_val = (0, 0)
-        #if self.verbose:
-        #    result_train = self.get_accuracy(self.data.train.x, self.data.train.y)
-        #    result_val = self.get_accuracy(self.data.val.x,
-        #                                   self.data.val.y) if not 'empty' in self.data.val.scope else 0
-
-        return result_train, result_val
-
-    def get_accuracy(self, x, y):
-        self.training = False
-        try:
-            feed_dict = {self.x: x, self.y: y}
-            test_accuracy = self.accuracy.eval(feed_dict)
-        except:
-            batch = 200
-            accuracy = 0
-            # for i in xrange(x.shape[0] / batch):
-            for i in xrange(int(x.shape[0] / batch)):
-                feed_dict = {self.x: x[i * batch:(i + 1) * batch], self.y: y[i * batch:(i + 1) * batch]}
-                accuracy += self.accuracy.eval(feed_dict)
-            test_accuracy = accuracy / int(x.shape[0] / batch)
-        self.training = True
-        return test_accuracy
 
     def evaluate(self, sess):
-        self.log.result('Base accuracy: %g ' % self.get_accuracy(self.data.test.x, self.data.test.y))
+        ''' Get evaluation metrics through util.metrics and log.'''
 
         results = util.metrics.get_predictions(sess, self, self.data.test.x)
-        self.log.result('Accuracy: %.2f' % util.metrics.accuracy(results, self.data.test.y))
-
         confusion_matrix = util.metrics.confusion_matrix(results, self.data.test.y)
-        a, p, r = util.metrics.get_metrics(confusion_matrix)
-        self.log.result('Acc: %.2f, Prec: %.2f, Recall: %.2f' % (a, p, r))
+        a, p, s = util.metrics.get_metrics(confusion_matrix)
+        
+        self.log.result('Acc: %.2f, Prec: %.2f, Recall: %.2f' % (a, p, s))
         self.log.result(util.helpers.pretty_print_confusion_matrix(confusion_matrix))
 
-    def evaluate2(self, sess):
-        #self.training = False
-        if self.verbose:
-            pass
-            # print('Test accuracy: %g' % self.accuracy.eval(feed_dict={self.x: self.data.test.x, self.y: self.data.test.y}))
-            # print util.metrics.accuracy(sess, self.model_logits, self.x, self.data.test.x, self.data.test.y, self.training)
-            # conf_matrix = util.metrics.confusion_matrix(sess, self.model_logits, self.x, self.data.test.x, self.data.test.y)
-            # print conf_matrix
-            # print util.metrics.classes(conf_matrix)
-            # print('Done.')
-            # conf_matrix = util.metrics.confusion_matrix(sess, self.model_logits, self.x, self.data.test.x, self.data.test.y)
-            # util.metrics.classes(conf_matrix)
-
-        accuracy1 = self.get_accuracy(self.data.test.x, self.data.test.y)
-        accuracy2 = util.metrics.accuracy(self, self.data.test.x, self.data.test.y)
-        accuracy3 = util.metrics.accuracy_manual(sess, self, self.data.test.x, self.data.test.y)
-        #conf_matrix = util.metrics.confusion_matrix(sess, self.model_logits, self.x, self.data.test.x, self.data.test.y)
-        self.log.result('Get accuracy: %g ' % accuracy1)
-        self.log.result('Metrics: %g' % accuracy2)
-        self.log.result('Manual accuracy: %f' % accuracy3)
-
-        #self.log.results('Confusion matrix: ' + conf_matrix)
-
-
-
-        #conf_matrix = util.metrics.confusion_matrix(sess, self.model_logits, self.x, self.data.test.x, self.data.test.y)
-        #self.log.result('Model: %s, test accuracy: %g' % (self.model_name, accuracy))
-        #self.log.result('Model: %s, confusion matrix: ' % (self.model_name))
-        #self.log.result(conf_matrix[0])
-        #self.log.result(conf_matrix[1])

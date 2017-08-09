@@ -30,7 +30,7 @@ class Logger():
         self.latest_logpath = os.path.join(self.logdir, 'latest.log')
 
         with open(self.log_path, 'w') as f:
-            f.write('----- LOG -----')
+            f.write('----- LOG -----\n')
             f.write(str(args))
 
     # --- writing functions --- #            

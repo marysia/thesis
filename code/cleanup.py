@@ -29,7 +29,7 @@ def cleanup_all():
                 os.remove(logfile)
 
             # rename kept log files
-            for i, (_, logfile) in enumerate(logfiles[keep_limit:]):
+            for i, (_, logfile) in enumerate(logfiles[keep_limit + 1:]):
                 folder_structure = logfile.split('/')
                 fname_split = folder_structure[-1].split('_')
                 fname_split[0] = str(i + 1)
