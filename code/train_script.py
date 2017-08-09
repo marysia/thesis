@@ -86,6 +86,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     print(args)
-    print(argument_function_mapping)
 
     argument_function_mapping[args.data](args)
