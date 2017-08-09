@@ -18,7 +18,7 @@ models2d = {
 #    'Conv1': ConvolutionalModel1,
 #    'Gconv1': GConvModel1,
      'Z2CNN': Z2CNN,
-#     'P4CNN': P4CNN,
+     'P4CNN': P4CNN,
 #     'P4CNNDropout': P4CNNDropout
 }
 
