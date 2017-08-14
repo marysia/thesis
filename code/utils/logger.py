@@ -4,7 +4,8 @@ import glob
 import datetime
 import shutil
 import config
-
+import random
+import string
 
 class Logger():
     def __init__(self, args, logdir, logfolder, logname='log', time=False, depth=2, revision=False):
@@ -24,6 +25,8 @@ class Logger():
         self.depth = depth
         self.revision = revision
         self.prefix = ''  # can be altered in self.create_directory()
+
+        self.runid = ''.join(random.choice(string.ascii_lowercase) for _ in range(6))
 
         # define log paths
         self.log_path = self.current_log_name()
@@ -102,10 +105,10 @@ class Logger():
 
         if broken:
             broken_logs = [elem for elem in list_of_logs if 'broken' in elem]
-            name = 'broken_%d_%s.log' % (len(broken_logs) + 1, logname)
+            name = 'broken_%d_%s_%s.log' % (len(broken_logs) + 1, self.runid, logname)
         else:
             healthy_logs = [elem for elem in list_of_logs if not 'broken' in elem]
-            name = '%d_%s.log' % (len(healthy_logs) + 1, logname)
+            name = '%d_%s_%s.log' % (len(healthy_logs) + 1, self.runid, logname)
 
         filepath = os.path.join(log_folder, name)
         return filepath

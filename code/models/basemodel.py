@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import util.metrics
 from util.helpers import total_parameters, progress
-from util.augmentation import rotate_transform_batch
+from util.augmentation import rotate_transform_batch2d, rotate_transform_batch3d
 
 import sys
 import time
@@ -10,13 +10,14 @@ import time
 
 class BaseModel:
     def __init__(self, model_name, data, ender, log, x_val=None, y_val=None,
-                 epochs=5, batch_size=128, learning_rate=0.001, verbose=True):
+                 epochs=5, batch_size=128, learning_rate=0.001, augmentation="", submission=False, verbose=True):
         self.model_name = model_name
+        self.submission = submission
         self.verbose = verbose
         self.ender = ender
         self.log = log
 
-        self.transformations = ['rotation']
+        self.transformations = augmentation
 
         self.training = True
         self.optimizer = None
@@ -28,7 +29,9 @@ class BaseModel:
 
         self.epochs = epochs
         self.batch_size = batch_size
-        self.steps = self.data.train.x.shape[0] / self.batch_size
+        steps = self.data.train.x.shape[0] / self.batch_size
+        self.steps = steps * 2 if not self.data.balanced else steps
+        #self.steps = steps * self.data.train.fraction if not self.data.balanced else steps
 
     def build_graph(self):
         ''' To be implemented in the subclass. Sets self.model_logits.'''
@@ -89,10 +92,10 @@ class BaseModel:
 
             if mode == 'epochs':
                 self.epochs = mode_param if mode_param is not None else self.epochs
-                i = self.train_epochs(save_step)
+                i = self.train_epochs(sess, save_step)
 
             elif mode == 'time':
-                i = self.train_time(mode_param, save_step)
+                i = self.train_time(sess, mode_param, save_step)
 
             elif mode == 'converge':
                 i = self.train_converge()
@@ -106,7 +109,7 @@ class BaseModel:
             self.log.info('Training took approximately %d minutes.' % elapsed_time)
 
     # --- train modes --- #
-    def train_epochs(self, save_step):
+    def train_epochs(self, sess, save_step):
         '''
         As long as no termination signal has been send, loop through the dataset self.epochs times
         and perform a train step. Every save_step epochs, calculate accuracy and log.
@@ -118,16 +121,16 @@ class BaseModel:
             self._train_step(prefix)
 
             if i % save_step == 0:
-                accuracy = util.metrics.get_accuracy(self, self.data.test.x, self.data.test.y)
                 if self.verbose:
                     print(' ')
-                self.log.info('Model: %s, step %s, test accuracy: %g' % (self.model_name, i, accuracy))
+                prefix = 'Model: %s, step %s' % (self.model_name, i)
+                self.progress_metrics(sess, prefix)
 
         if self.ender.terminate:
             self.log.info('Program was terminated after %d epochs. Exiting gracefully.' % i)
         return i
 
-    def train_time(self, mode_param, save_step):
+    def train_time(self, sess, mode_param, save_step):
         '''
         Train for mode_param minutes, and save every save_step minutes.
         '''
@@ -149,9 +152,11 @@ class BaseModel:
 
             # if time passed in minutes since last save moment is bigger than save step: save.
             if ((time.time() - last_save) / 60) > save_step:
+                if self.verbose:
+                    print(' ')
                 last_save = time.time()   # set last save to current time
-                accuracy = util.metrics.get_accuracy(self, self.data.test.x, self.data.test.y)
-                self.log.result('Model: %s, step %s, test accuracy: %g' % (self.model_name, i, accuracy))
+                prefix = 'Model: %s, step %s' % (self.model_name, i)
+                self.progress_metrics(sess, prefix)
 
         if self.ender.terminate:
             exiting_time = (time.time() - base_time) / 60
@@ -159,7 +164,7 @@ class BaseModel:
                 exiting_time, i))
         else:
             self.log.info('Performed %d iterations in %d minutes.' % (i, mode_param))
-        retu
+        return i
 
     def train_converge(self, mode_param):
         '''
@@ -192,21 +197,36 @@ class BaseModel:
         for step in range(self.steps):
             batch = self.data.train.get_next_batch(step, self.batch_size)
 
-            if 'rotation' in self.transformations:
-                batch.x = rotate_transform_batch(batch.x, rotation = 2 * np.pi)
+            if self.transformations == "rotation2d":
+                x = rotate_transform_batch2d(batch.x, rotation = 2 * np.pi)
+            elif self.transformations == "rotation3d":
+                x = rotate_transform_batch3d(batch.x)
+            else:
+                x = batch.x
 
-            self.optimizer.run(feed_dict={self.x: batch.x, self.y: batch.y})
+
+            self.optimizer.run(feed_dict={self.x: x, self.y: batch.y})
 
             if self.verbose:
                 progress(prefix, step, self.steps)
+
+    def progress_metrics(self, sess, prefix):
+        results = util.metrics.get_predictions(sess, self, self.data.test.x)
+        confusion_matrix = util.metrics.confusion_matrix(results, self.data.test.y)
+        a, p, s, fp_rate = util.metrics.get_metrics(confusion_matrix)
+
+        self.log.result('%s, accuracy: %.2f, sensitivity: %.2f, fp_rate: %.2f' % (prefix, a, s, fp_rate))
 
     def evaluate(self, sess):
         ''' Get evaluation metrics through util.metrics and log.'''
 
         results = util.metrics.get_predictions(sess, self, self.data.test.x)
         confusion_matrix = util.metrics.confusion_matrix(results, self.data.test.y)
-        a, p, s = util.metrics.get_metrics(confusion_matrix)
+        a, p, s, fp_rate = util.metrics.get_metrics(confusion_matrix)
         
-        self.log.result('Acc: %.2f, Prec: %.2f, Recall: %.2f' % (a, p, s))
+        self.log.result('Acc: %.2f, Prec: %.2f, Sensitivity: %.2f, FP-rate: %.2f' % (a, p, s, fp_rate))
         self.log.result(util.helpers.pretty_print_confusion_matrix(confusion_matrix))
+
+        if self.submission:
+            util.helpers.create_submission(self.model_name, self.log,  self.data, results)
 

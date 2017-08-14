@@ -1,26 +1,29 @@
 import os
 import numpy as np
-from basedata import BaseData, Data
+from basedata import BaseData, Data, UnbalancedData
 
 
 class DataPatches(BaseData):
-    def __init__(self, small=True, shape=(8, 30, 30)):
+    def __init__(self, small=True, shape=(8, 30, 30), balanced=True):
         self.name = 'fp-reduction-patches'
         self.small = small
         self.shape = shape
+        self.balanced = balanced
         BaseData.__init__(self)
 
     def load(self):
         self.datadir = '/home/marysia/data/thesis/patches'
         prefix = 'small_' if self.small else ''
         extracted = os.path.exists(os.path.join(self.datadir, prefix + 'negative_test_patches.npz'))
-        if extracted:
+        if extracted and self.balanced:
             train_pos = np.load(os.path.join(self.datadir, prefix + 'positive_train_patches.npz'))['data']
             train_neg = np.load(os.path.join(self.datadir, prefix + 'negative_train_patches.npz'))['data']
             labels = np.concatenate([np.ones(train_pos.shape[0]), np.zeros(train_neg.shape[0])])
             data = np.concatenate([train_pos, train_neg])
             data = self.preprocess(data)
-            data, labels = self.shuffle(data, labels)
+
+            data, labels, p = self.shuffle(data, labels)
+            self.idx_train = p
 
             # train_mean = np.mean(data, dtype=data.dtype)
             # data -= train_mean
@@ -33,13 +36,38 @@ class DataPatches(BaseData):
             labels = np.concatenate([np.ones(test_pos.shape[0]), np.zeros(test_neg.shape[0])])
             data = np.concatenate([test_pos, test_neg])
             data = self.preprocess(data)
-            data, labels = self.shuffle(data, labels)
+            data, labels, p = self.shuffle(data, labels)
+            self.idx_test = p + max(self.idx_train) + 1  # offset: maximum value of idx train + 1
 
             # data -= train_mean
             # data /= train_std
             self.test = Data(scope='test', x=data, y=self._one_hot_encoding(labels, self.nb_classes))
 
             self.val = Data(scope='val-empty', x=np.array([]), y=np.array([]))
+
+
+
+        elif extracted and not self.balanced:
+            train_pos = np.load(os.path.join(self.datadir, prefix + 'positive_train_patches.npz'))['data']
+            train_neg = np.load(os.path.join(self.datadir, prefix + 'negative_all_train_patches.npz'))['data']
+
+            train_pos = self.preprocess(train_pos)
+            train_neg = self.preprocess(train_neg)
+            y_pos = self._one_hot_encoding(np.ones(train_pos.shape[0]), self.nb_classes)
+            y_neg = self._one_hot_encoding(np.zeros(train_neg.shape[0]), self.nb_classes)
+            self.train = UnbalancedData(scope='train-pos', x_pos=train_pos, y_pos=y_pos, x_neg=train_neg, y_neg=y_neg)
+
+
+            test_pos = np.load(os.path.join(self.datadir, prefix + 'positive_test_patches.npz'))['data']
+            test_neg = np.load(os.path.join(self.datadir, prefix + 'negative_all_test_patches.npz'))['data']
+            labels = np.concatenate([np.ones(test_pos.shape[0]), np.zeros(test_neg.shape[0])])
+            data = np.concatenate([test_pos, test_neg])
+            data = self.preprocess(data)
+            data, labels, p = self.shuffle(data, labels)
+            self.test = Data(scope='test', x=data, y=self._one_hot_encoding(labels, self.nb_classes))
+
+            self.val = Data(scope='val-empty', x=np.array([]), y=np.array([]))
+
         else:
             print(
             '%s does not seem to contain the .npz file required for loading the %s data. Please execute '
@@ -62,9 +90,6 @@ class DataPatches(BaseData):
 
         if data.shape[1] == 1:
             data = data.reshape(data.shape[0], data.shape[2], data.shape[3])
-
-        print('Data shape: ', data.shape)
-        print('Data desired shape: ', self.shape)
         return data
 
 

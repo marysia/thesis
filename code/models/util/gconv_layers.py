@@ -53,12 +53,11 @@ def gconv_wrapper2d(x, in_group, out_group, ksize=3, in_channels=None, out_chann
     b = bias_variable([gconv.get_shape()[-1]])
     return gconv + b
 
-def gconv_wrapper3d(x, in_group, out_group, ksize=3, in_channels=16, out_channels=16):
-    mapping = {'O': int(out_channels / np.sqrt(24))}
+def gconv_wrapper3d(x, in_group, out_group, ksize=3, in_channels=None, out_channels=16):
+    
+    in_channels = in_channels if in_channels is not None else out_channels
+    in_c, out_c = _channels(x, in_group, out_group, in_channels, out_channels)
 
-    in_c, out_c = (1, mapping[out_group]) if in_group == 'Z3' else (mapping[out_group], mapping[out_group])
-    #out_c = 1
-    #in_c = 1
     indices, shape_info, w_shape = gconv3d_util(
         h_input=in_group, h_output=out_group,
         in_channels=in_c, out_channels=out_c, ksize=ksize
@@ -91,16 +90,16 @@ def act_bn_gconv(x, in_group, out_group, ksize=3, in_channels=None, out_channels
     gconv = gconv_wrapper2d(bn, in_group, out_group, ksize, in_channels, out_channels)
     return gconv
 
-def gconv3d_bn_act(x, in_group, out_group, ksize=3, in_channels=None, nb_channels_out=16):
+def gconv3d_bn_act(x, in_group, out_group, ksize=3, in_channels=None, out_channels=16):
     """ 3d group convolution - batch normalization - activation function """
-    gconv = gconv_wrapper3d(x, in_group, out_group, ksize, in_channels, nb_channels_out)
+    gconv = gconv_wrapper3d(x, in_group, out_group, ksize, in_channels, out_channels)
     bn = batch_normalization(gconv)
     act = activation(bn)
     return act
 
-def bn_act_gconv3d(x, in_group, out_group, ksize=3, in_channels=None, nb_channels_out=16):
+def bn_act_gconv3d(x, in_group, out_group, ksize=3, in_channels=None, out_channels=16):
     """ batch normalization - activation function - 3d group convolution """
     bn = batch_normalization(x)
     act = activation(bn)
-    gconv = gconv_wrapper3d(act, in_group, out_group, ksize, in_channels, nb_channels_out)
+    gconv = gconv_wrapper3d(act, in_group, out_group, ksize, in_channels, out_channels)
     return gconv

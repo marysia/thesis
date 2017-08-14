@@ -115,6 +115,19 @@ def flatten(tensor):
     tensor = tf.reshape(tensor, [-1, shape])
     return tensor
 
+def dim_reshape(tensor, z=None):
+    shape = [int(dim) for dim in list(tensor.get_shape())[1:]]
+    # 2d --> 3d
+    if len(shape) == 3:
+        y, x, c = shape
+        reshape = (-1, z, y, x, c)
+        return tf.reshape(tensor, reshape)
+    # 3d --> 2d
+    if len(shape) == 4:
+        z, y, x, c = shape
+        reshape = (-1, y, x, c)
+        return tf.reshape(tensor, reshape), z, c
+
 def readout(tensor, shape):
     '''
     Readout layer.
@@ -133,6 +146,9 @@ def weight_variable(shape):
 def bias_variable(shape):
   initial = tf.constant(0.1, shape=shape, name='bias')
   return tf.Variable(initial)
+
+def maxpool2d(tensor, strides=[1, 2, 2, 1]):
+    return tf.nn.max_pool(tensor, ksize=[1, 1, 1, 1], strides=strides, padding='SAME')
 
 def maxpool3d(tensor, strides=[1, 1, 2, 2, 1]):
     return tf.nn.max_pool3d(tensor, ksize=[1, 1, 1, 1, 1], strides=strides, padding='SAME')

@@ -11,6 +11,38 @@ from preprocessing.zippedpickles import load
 patch_folder = '/home/marysia/data/thesis/nlst-patches-1.3-3.5-annotated/'
 patches = glob.glob(patch_folder + '*.pkl.zip')
 
+
+def extract_samples(label):
+    print('Extracting %s samples from %d patches.' % (label, len(patches)))
+    # initialize lists
+    train = []
+    test = []
+
+    # loop through all patch-?.pkl.zips and extract positive samples
+    for i, patch_path in enumerate(patches[0:15]):
+        try:
+            print('%d/%d: %s' % (i+1, len(patches), patch_path))
+            # loading only loads the keys, therefore takes little time
+            unzipped = load(patch_path)
+
+            # load the positive training and test samples
+            pos_train = unzipped['train-%s-inputs' % label]
+            pos_test = unzipped['test-%s-inputs' % label]
+
+            # append positive training and test samples to list
+            train.append(pos_train)
+            test.append(pos_test)
+        except:
+            print('Failed to add %s. Skipping.' % patch_path)
+
+    # concatenate all samples (assuming same size)
+    train = np.concatenate(train)
+    test = np.concatenate(test)
+
+    # save
+    np.savez('/home/marysia/data/thesis/patches/%s_all_train_patches.npz' % label, data=train)
+    np.savez('/home/marysia/data/thesis/patches/%s_all_test_patches.npz' % label, data=test)
+
 def extract_positive_samples():
     """
     Extracts all available positive train and test samples from the zipped pickle files. Returns the amount of
@@ -91,6 +123,12 @@ def extract_negative_samples(scope, samples):
     np.savez('/home/marysia/data/thesis/patches/negative_'+scope+'_patches.npz', data=data)
 
 # execute all steps
-train_samples, test_samples = extract_positive_samples()
-extract_negative_samples('train', train_samples)
-extract_negative_samples('test', test_samples)
+def balanced():
+    train_samples, test_samples = extract_positive_samples()
+    extract_negative_samples('train', train_samples)
+    extract_negative_samples('test', test_samples)
+
+def all():
+    extract_samples('negative')
+
+all()

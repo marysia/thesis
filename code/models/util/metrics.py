@@ -47,8 +47,10 @@ def get_metrics(conf):
 
     accuracy = (tp + tn) / float(sum(sum(conf)))
     precision = (tp) / float(tp + fp)
-    sensitivity = (tp) / float(tn + tp)
-    return accuracy, precision, sensitivity
+    sensitivity = (tp) / float(fn + tp)
+    fp_rate = (fp) / float(tp)
+
+    return accuracy, precision, sensitivity, fp_rate
 
 
 def classes(conf_matrix):

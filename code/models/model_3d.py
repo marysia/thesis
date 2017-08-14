@@ -1,117 +1,147 @@
 from basemodel import BaseModel
+import tensorflow as tf
 import util.layers as layer
-import util.base_layers as base_layer
+import util.base_layers as base
 import util.gconv_layers as gconv
 
-class Z3CNN(BaseModel):
+class CNN(BaseModel):
     def build_graph(self):
-        nb_channels_out = 20
-        # l1 and l2
-        print(self.x)
-        tensor = layer.conv3d_bn_act(self.x, nb_channels_out=16)
-        tensor = base_layer.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
+        self.filters = [16, 16, 32, 32, 64, 64]
 
-        tensor = layer.conv3d_bn_act(tensor, nb_channels_out=16)
-        tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
-        # l3
-        tensor = layer.conv3d_bn_act(tensor, nb_channels_out=32)
-        tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
+        tensor = self.conv_bn_act(self.x, 0)
+        tensor = base.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
 
-        # l4
-        tensor = layer.conv3d_bn_act(tensor, nb_channels_out=32)
-        tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
-        # l5
-        tensor = layer.conv3d_bn_act(tensor, nb_channels_out=64)
-        tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
-        # l6
-        tensor = layer.conv3d_bn_act(tensor, nb_channels_out=64)
-        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
-        # # top
-        # tensor = base_layer.convolution3d(tensor, filter_shape=[4, 4, 4], nb_channels_out=10)
+        tensor = self.conv_bn_act(tensor, 1)
+        tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
 
-        #tensor = base_layer.dense(tensor, 256)
-        #tensor = base_layer.activation(tensor, key='relu')
+        tensor = self.conv_bn_act(tensor, 2)
+        tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
 
-        tensor = base_layer.flatten(tensor)
-        print(tensor)
-        final = base_layer.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
-        print(final)
-        #final = base_layer.readout(tensor, [256, self.data.nb_classes])
+        tensor = self.conv_bn_act(tensor, 3)
+        tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
 
+
+        tensor = self.conv_bn_act(tensor, 4)
+        tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
+
+        tensor = self.conv_bn_act(tensor, 5)
+
+        tensor = base.flatten(tensor)
+        final = base.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
         self.model_logits = final
 
-class GCNN(BaseModel):
+    def conv_bn_act(self, tensor, i):
+        raise NotImplementedError
+
+
+class Z3CNN(CNN):
+    def conv_bn_act(self, tensor, i):
+        return layer.conv3d_bn_act(tensor, nb_channels_out=self.filters[i])
+
+class GCNN(CNN):
+    def conv_bn_act(self, tensor, i):
+        in_group = 'Z3' if i == 0 else 'O'
+        out_group = 'O'
+        in_channels = self.filters[i-1] if i != 0 else None
+        return gconv.gconv3d_bn_act(tensor, in_group=in_group, out_group=out_group,
+                                    in_channels=in_channels, out_channels=self.filters[i])
+
+
+class MultiDim(BaseModel):
     def build_graph(self):
-        group = 'O'
-        nb_channels_out = 35
-        # l1 and l2
-        tensor = gconv.gconv3d_bn_act(self.x, in_group='Z3', out_group=group, nb_channels_out=nb_channels_out)
-        tensor = base_layer.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
+        self.filters = [16, 32, 64]
+        tensor = self.conv3d_bn_act(self.x, 0)
+        tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
 
-        tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
-        tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        tensor = self.block_2d(tensor)
 
-        tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
-        tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
+        tensor = self.conv3d_bn_act(tensor, 1)
+        tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
 
-        tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
-        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        tensor = self.block_2d(tensor)
 
-        tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
-        #tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
+        tensor = self.conv3d_bn_act(tensor, 2)
 
-        #tensor = gconv.gconv3d_bn_act(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
-
-        # tensor = base_layer.dense(tensor, 256)
-        # tensor = base_layer.activation(tensor, key='relu')
-        # final = base_layer.readout(tensor, [256, self.data.nb_classes])
-
-
-        tensor = base_layer.flatten(tensor)
-        final = base_layer.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
-
+        tensor = base.flatten(tensor)
+        final = base.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
         self.model_logits = final
+
+
+    def block_2d(self, tensor):
+        tensor, z, c = base.dim_reshape(tensor)
+        tensor = self.conv2d_bn_act(tensor, out_channels=c)
+        tensor = self.conv2d_bn_act(tensor, out_channels=c)
+        tensor = base.dim_reshape(tensor, z)
+        return tensor
+
+    def conv3d_bn_act(self, tensor, i):
+        raise NotImplementedError
+    def conv2d_bn_act(self, tensor, out_channels):
+        raise NotImplementedError
+
+class Z3MultiDim(MultiDim):
+    def conv3d_bn_act(self, tensor, i):
+        return layer.conv3d_bn_act(tensor, [3, 3, 3], nb_channels_out=self.filters[i])
+    def conv2d_bn_act(self, tensor, out_channels):
+        return layer.conv2d_bn_act(tensor, nb_channels_out=out_channels)
+
+class GMultiDim(MultiDim):
+    def conv3d_bn_act(self, tensor, i):
+        in_group = 'Z3' if i == 0 else 'O'
+        out_group = 'O'
+        in_channels = self.filters[i-1] if i != 0 else None
+        return gconv.gconv3d_bn_act(tensor, in_group=in_group, out_group=out_group,
+                                    in_channels=in_channels, out_channels=self.filters[i])
+    #
+    # def conv2d_bn_act(self, tensor, out_channels):
+    #     return gconv.gconv_bn_act(tensor, in_group='C4', out_group='C4', out_channels=out_channels)
+    def conv2d_bn_act(self, tensor, out_channels):
+       return layer.conv2d_bn_act(tensor, nb_channels_out=out_channels)
 
 class Resnet(BaseModel):
     def build_graph(self):
-        nb_channels_out = 25
-        blocks = 3
-        tensor = layer.conv3d_bn_act(self.x, nb_channels_out=nb_channels_out)
+        #self.filters = [16, 32, 64, 128]
 
-        for i in xrange(blocks):
-            tensor = self.residual_block(tensor, nb_channels_out)
-            tensor = base_layer.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
-        tensor = base_layer.dense(tensor, 256)
-        tensor = base_layer.activation(tensor, key='relu')
-        final = base_layer.readout(tensor, [256, self.data.nb_classes])
+        self.filters = [16, 16, 32, 32]
 
+        blocks = len(self.filters) - 1
+
+        # channels = 16
+        tensor = self.conv_bn_act(self.x, None, self.filters[0], first=True)
+        tensor = self.residual_block(tensor, self.filters[0])
+
+        # channels = 32, 64
+        for i in xrange(1, blocks):
+            in_channels = self.filters[i - 1]
+            out_channels = self.filters[i]
+
+            tensor = self.conv_bn_act(tensor, in_channels, out_channels)
+            tensor = self.residual_block(tensor, out_channels)
+            tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
+
+        # channels = 128
+        tensor = self.conv_bn_act(tensor, self.filters[-2], self.filters[-1])
+
+        tensor = base.flatten(tensor)
+        final = base.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
         self.model_logits = final
 
+    def residual_block(self, input_tensor, out_channels):
+        tensor = self.conv_bn_act(input_tensor, out_channels, out_channels)
+        tensor = self.conv_bn_act(tensor, out_channels, out_channels)
+        tensor = base.merge(input_tensor, tensor, method='add')
 
-    def residual_block(self, input_tensor, nb_channels_out):
-        tensor = layer.bn_act_conv3d(input_tensor, nb_channels_out=nb_channels_out)
-        tensor = layer.bn_act_conv3d(tensor, nb_channels_out=nb_channels_out)
-        tensor = base_layer.merge(input_tensor, tensor, method='add')
         return tensor
 
-class GResnet(BaseModel):
-    def build_graph(self):
-        nb_channels_out = 16
-        blocks = 3
-        group = 'O'
-        tensor = gconv.gconv3d_bn_act(self.x, in_group='Z3', out_group=group, nb_channels_out=nb_channels_out)
+    def conv_bn_act(self, tensor, in_channels, out_channels, first=False):
+        raise NotImplementedError
 
-        for i in xrange(blocks):
-            tensor = self.residual_block(tensor, group, nb_channels_out)
+class Z3Resnet(Resnet):
+    def conv_bn_act(self, tensor, in_channels, out_channels, first=False):
+        return layer.conv3d_bn_act(tensor, nb_channels_out=out_channels)
 
-        tensor = base_layer.dense(tensor, 256)
-        tensor = base_layer.activation(tensor, key='relu')
-        final = base_layer.readout(tensor, [256, self.data.nb_classes])
-
-        self.model_logits = final
-
-    def residual_block(self, input_tensor, group, nb_channels_out):
-        tensor = gconv.bn_act_gconv3d(input_tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
-        tensor = gconv.bn_act_gconv3d(tensor, in_group=group, out_group=group, nb_channels_out=nb_channels_out)
-        tensor = base_layer.merge(input_tensor, tensor, method='add')
-        return tensor
+class GResnet(Resnet):
+    def conv_bn_act(self, tensor, in_channels, out_channels, first=False):
+        in_group = 'Z3' if first else 'O'
+        return gconv.gconv3d_bn_act(tensor, in_group=in_group, out_group='O',
+                                    in_channels=in_channels, out_channels=out_channels)
