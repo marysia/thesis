@@ -22,10 +22,30 @@ def rotate_transform_batch2d(x, rotation=None):
     return x_out
 
 
+def rotate_transform_batch3d_positives_only(x, y):
+    axis = np.random.randint(0, 1)
+    rotations = np.random.randint(0, 4)
+    axis = 0
+
+    idx = [i for i, elem in enumerate(y) if elem.argmax() == 1]
+    x_out = np.empty_like(x)
+
+    for i in xrange(x.shape[0]):
+        if i not in idx:
+            x_out[i] = x[i]
+        else:
+            im = x[i, :, :, :]
+            for r in xrange(rotations):
+                im = rotate_3d(im, axis)
+            x_out[i, :, :, :] = im
+    return x_out
+
+
 
 def rotate_transform_batch3d(x):
     axis = np.random.randint(0, 1)
     rotations = np.random.randint(0, 4)
+    axis = 0
 
     x_out = np.empty_like(x)
 

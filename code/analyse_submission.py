@@ -13,13 +13,17 @@ results_folder = '/home/marysia/thesis/results'
 def accuracy(df):
     ''' Return accuracy: (tp + tn) / (tp + tn + fp + fn)'''
     correct_predictions = df[df.predicted_class == df.actual_class]
-    return len(correct_predictions) / float(len(df)) if len(df) > 0 else 0
+    if len(df) == 0:
+        return 0
+    return len(correct_predictions) / float(len(df))
 
-def sensitivity(df):
+def sensitivity(df, total_nodules):
     ''' Return sensitivity: tp / (tp + tn)'''
     tp = df[(df.predicted_class == 1) & (df.actual_class == 1)]
     fn = df[(df.predicted_class == 0) & (df.actual_class == 1)]
-    return len(tp) / float(len(tp) + len(fn)) if (len(tp)) > 0 or len(fn) > 0 else 0
+    if len(tp) == 0 or total_nodules == 0:
+        return 0
+    return len(tp) / float(total_nodules)
 
 def tp_fp_ratio(df):
     tp = len(df[(df.predicted_class == 1) & (df.actual_class == 1)])
@@ -41,15 +45,17 @@ def analyse_file(fname):
     id, modelname = splitted[0], splitted[1]
 
     df = pd.read_csv(fname)
+    total_nodules = len(df[df.actual_class == 1])
+
     thresholds = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     acc = []
     sens = []
     fp_ratio = []
-    print('\n--- Results of %s (%d cases) --- ' % (modelname, len(df)))
+    print('\n--- Results of %s %s (%d cases) --- ' % (modelname, id, len(df)))
     for threshold in thresholds:
         sub_df = df[df.probability >= threshold]
         acc.append(accuracy(sub_df))
-        sens.append(sensitivity(sub_df))
+        sens.append(sensitivity(sub_df, total_nodules))
         fp_ratio.append(tp_fp_ratio(sub_df))
         print('(%d) \t thr: %.1f \t sens: %.2f \t acc: %.2f \t fp-ratio: %.2f ' % (len(sub_df), threshold, sens[-1], acc[-1], fp_ratio[-1]))
 
@@ -60,12 +66,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default="")
     args = parser.parse_args()
-    fpath = os.path.join(results_folder, args.model + '-submission.csv')
+    fpath = os.path.join(results_folder, 'submissions', args.model + '-submission.csv')
 
     if os.path.exists(fpath):
         print('Analysing %s model submission file.' % args.model)
         analyse_file(fpath)
     else:
         print('Analysing all submission files.')
-        for fname in glob.glob(os.path.join(results_folder, '*-submission.csv')):
+        for fname in glob.glob(os.path.join(results_folder, 'submissions', '*-submission.csv')):
             analyse_file(fname)

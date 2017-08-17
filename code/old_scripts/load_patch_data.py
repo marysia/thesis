@@ -1,9 +1,9 @@
 import os
 import numpy as np
-from preprocessing.generic import data_metrics
-from preprocessing.visualize import array_to_mp4, array_to_png_folder
-from preprocessing.patches import DataPatches
-from preprocessing.mnist import DataMNIST
+from code.preprocessing.generic import data_metrics
+from code.preprocessing.visualize import array_to_mp4, array_to_png_folder
+from code.preprocessing.patches import DataPatches
+from code.preprocessing.mnist import DataMNIST
 
 data = DataMNIST()
 data_metrics(data)

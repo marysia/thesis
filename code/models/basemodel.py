@@ -10,7 +10,7 @@ import time
 
 class BaseModel:
     def __init__(self, model_name, data, ender, log, x_val=None, y_val=None,
-                 epochs=5, batch_size=128, learning_rate=0.001, augmentation="", submission=False, verbose=True):
+                 epochs=5, batch_size=64, learning_rate=0.001, augmentation="", submission=False, verbose=True):
         self.model_name = model_name
         self.submission = submission
         self.verbose = verbose
@@ -30,8 +30,7 @@ class BaseModel:
         self.epochs = epochs
         self.batch_size = batch_size
         steps = self.data.train.x.shape[0] / self.batch_size
-        self.steps = steps * 2 if not self.data.balanced else steps
-        #self.steps = steps * self.data.train.fraction if not self.data.balanced else steps
+        self.steps = steps * 2 if not self.data.train.balanced else steps
 
     def build_graph(self):
         ''' To be implemented in the subclass. Sets self.model_logits.'''
@@ -57,7 +56,7 @@ class BaseModel:
         tf.summary.scalar('accuracy', self.accuracy)
         self.log.info('Model: Initizalization done...')
 
-    def train(self, mode='epochs', mode_param=None, save_step=5):
+    def train(self, args):
         ''' Trains the model.
         Builds the model, initializes the global variables, and executes the train step
         for as long as the mode specifies.
@@ -70,15 +69,15 @@ class BaseModel:
             - time: runs through the entire training set in batches of batch size for n minutes.
 
         '''
-        # initialize start time and set self.training to true for dropout.
+        # initialize start time and set self.training to true for dropout
         start_time = time.time()
         self.training = True
 
         # check for modes.
-        if mode not in ['epochs', 'converge', 'time']:
+        if args.mode not in ['epochs', 'converge', 'time']:
             self.log.info('Mode not recognised. Please use epochs, converge or time.')
             raise Exception
-        if mode == 'converge' and self.data.val.scope == 'val-empty':
+        if args.mode == 'converge' and self.data.val.scope == 'val-empty':
             self.log.info('To use the converge mode, a validation set must be provided.')
             raise Exception
 
@@ -90,14 +89,17 @@ class BaseModel:
             # initialize variables
             sess.run(init)
 
-            if mode == 'epochs':
-                self.epochs = mode_param if mode_param is not None else self.epochs
-                i = self.train_epochs(sess, save_step)
+            # saver
+            saver = tf.train.Saver()
 
-            elif mode == 'time':
-                i = self.train_time(sess, mode_param, save_step)
+            if args.mode == 'epochs':
+                self.epochs = args.mode_param if args.mode_param is not None else self.epochs
+                i = self.train_epochs(sess, args.reinforce, args.save_step)
 
-            elif mode == 'converge':
+            elif args.mode == 'time':
+                i = self.train_time(sess, args.mode_param, args.reinforce, args.save_step)
+
+            elif args.mode == 'converge':
                 i = self.train_converge()
 
             else:
@@ -108,8 +110,12 @@ class BaseModel:
             elapsed_time = (time.time() - start_time) / 60
             self.log.info('Training took approximately %d minutes.' % elapsed_time)
 
+            if args.save_model:
+                model_path = '/home/marysia/thesis/results/models/%s_%s/model' % (self.model_name, self.log.runid)
+                saver.save(sess, model_path)
+
     # --- train modes --- #
-    def train_epochs(self, sess, save_step):
+    def train_epochs(self, sess, reinforce, save_step):
         '''
         As long as no termination signal has been send, loop through the dataset self.epochs times
         and perform a train step. Every save_step epochs, calculate accuracy and log.
@@ -126,11 +132,15 @@ class BaseModel:
                 prefix = 'Model: %s, step %s' % (self.model_name, i)
                 self.progress_metrics(sess, prefix)
 
+                if reinforce:
+                    self._reinforce(sess)
+
+
         if self.ender.terminate:
             self.log.info('Program was terminated after %d epochs. Exiting gracefully.' % i)
         return i
 
-    def train_time(self, sess, mode_param, save_step):
+    def train_time(self, sess, mode_param, reinforce, save_step):
         '''
         Train for mode_param minutes, and save every save_step minutes.
         '''
@@ -157,6 +167,9 @@ class BaseModel:
                 last_save = time.time()   # set last save to current time
                 prefix = 'Model: %s, step %s' % (self.model_name, i)
                 self.progress_metrics(sess, prefix)
+
+            if reinforce and (i % save_step) == 0:
+                self._reinforce(sess)
 
         if self.ender.terminate:
             exiting_time = (time.time() - base_time) / 60
@@ -191,6 +204,28 @@ class BaseModel:
                 % (i, result_train, result_val, np.max(np.abs(val_results[-10:] - np.mean(val_results[-10:]))))
 
         return i
+
+
+    def _reinforce(self, sess):
+        # get results for training set
+        results = util.metrics.get_predictions(sess, self, self.data.train.x)
+        # get indices of all results that aren't correct
+        idx = [i for i, pred in enumerate(results) if np.argmax(pred) != np.argmax(self.data.train.y[i])]
+
+        # shuffle
+        p = np.random.permutation(len(idx))
+        idx = np.array(idx)[p]
+
+        # divide in batches
+        nr_batches = int(len(idx) / self.batch_size)
+        self.log.info('Reinforcing incorrect training samples: %d batches.' % nr_batches)
+        for i in range(nr_batches):
+            start = i * self.batch_size
+            end = (i+1) * self.batch_size
+            batch_x = self.data.train.x[start:end]
+            batch_y = self.data.train.y[start:end]
+
+            self.optimizer.run(feed_dict={self.x: batch_x, self.y: batch_y})
 
     def _train_step(self, prefix):
         ''' Training step. '''

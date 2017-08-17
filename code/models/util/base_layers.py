@@ -140,11 +140,11 @@ def readout(tensor, shape):
     return tensor
 
 def weight_variable(shape):
-  initial = tf.truncated_normal(shape, stddev=0.1, name='weight')
+  initial = tf.truncated_normal(shape, stddev=0.05, name='weight')
   return tf.Variable(initial)
 
 def bias_variable(shape):
-  initial = tf.constant(0.1, shape=shape, name='bias')
+  initial = tf.constant(0.05, shape=shape, name='bias')
   return tf.Variable(initial)
 
 def maxpool2d(tensor, strides=[1, 2, 2, 1]):

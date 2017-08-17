@@ -6,42 +6,84 @@
 import glob
 import numpy as np
 from preprocessing.zippedpickles import load
+import os
 
-# collect paths to all patch-?.pkl.zip files.
-patch_folder = '/home/marysia/data/thesis/nlst-patches-1.3-3.5-annotated/'
-patches = glob.glob(patch_folder + '*.pkl.zip')
+def extract_lidc_samples(label, folder, patch_folder):
+    # TODO: subset only contains train samples, no test samples
+    patches = glob.glob(patch_folder + '*.pkl.zip')
+
+    print('Extracting %s samples from %d patches.' % (label, len(patches)))
+    # initialize lists
+    train_scans = []
+    train_metadata = []
+    train_data = []
+
+    test_scans = []
+    test_metadata = []
+    test_data = []
+
+    # loop through all patch-?.pkl.zips and extract positive samples
+    for i, patch_path in enumerate(patches[0:5]):
+        try:
+            print('%d/%d: %s' % (i+1, len(patches), patch_path))
+            # loading only loads the keys, therefore takes little time
+            unzipped = load(patch_path)
+
+            # train:
+            train_scans += unzipped['train-%s-scans' % label]
+            train_metadata += unzipped['train-%s-metadata' % label]
+            train_data.append(unzipped['train-%s-inputs' % label])
+
+            print(train_data[-1].shape)
+            # test:
+            test_scans += unzipped['test-%s-scans' % label]
+            test_metadata += unzipped['test-%s-metadata' % label]
+            test_data.append(unzipped['test-%s-inputs' % label])
 
 
-def extract_samples(label):
+        except:
+            print('Failed to add %s. Skipping.' % patch_path)
+
+    # concatenate all samples (assuming same size)
+    train_data = np.concatenate(train_data)
+    test_data = np.concatenate(test_data)
+    print(test_data.shape)
+    # save
+    np.savez('/home/marysia/data/thesis/%s/%s_train_patches.npz' % (folder, label), data=train_data, meta=train_metadata, scans=train_scans)
+    #np.savez('/home/marysia/data/thesis/%s/%s_test_patches.npz' % (folder, label), data=test_data, meta=test_metadata, scans=test_scans)
+
+def extract_samples(label, folder, patch_folder):
+    patches = glob.glob(patch_folder + '*.pkl.zip')
+
     print('Extracting %s samples from %d patches.' % (label, len(patches)))
     # initialize lists
     train = []
     test = []
 
     # loop through all patch-?.pkl.zips and extract positive samples
-    for i, patch_path in enumerate(patches[0:15]):
+    for i, patch_path in enumerate(patches[0:2]):
         try:
             print('%d/%d: %s' % (i+1, len(patches), patch_path))
             # loading only loads the keys, therefore takes little time
             unzipped = load(patch_path)
-
+            print(unzipped.keys)
             # load the positive training and test samples
-            pos_train = unzipped['train-%s-inputs' % label]
+            #pos_train = unzipped['train-%s-inputs' % label]
             pos_test = unzipped['test-%s-inputs' % label]
 
             # append positive training and test samples to list
-            train.append(pos_train)
+            #train.append(pos_train)
             test.append(pos_test)
         except:
             print('Failed to add %s. Skipping.' % patch_path)
 
     # concatenate all samples (assuming same size)
-    train = np.concatenate(train)
+    #train = np.concatenate(train)
     test = np.concatenate(test)
 
     # save
-    np.savez('/home/marysia/data/thesis/patches/%s_all_train_patches.npz' % label, data=train)
-    np.savez('/home/marysia/data/thesis/patches/%s_all_test_patches.npz' % label, data=test)
+    #np.savez('/home/marysia/data/thesis/%s/%s_all_train_patches.npz' % (folder, label), data=train)
+    #np.savez('/home/marysia/data/thesis/%s/%s_all_test_patches.npz' % (folder, label), data=test)
 
 def extract_positive_samples():
     """
@@ -125,10 +167,17 @@ def extract_negative_samples(scope, samples):
 # execute all steps
 def balanced():
     train_samples, test_samples = extract_positive_samples()
-    extract_negative_samples('train', train_samples)
-    extract_negative_samples('test', test_samples)
+    #extract_negative_samples('train', train_samples)
+    #extract_negative_samples('test', test_samples)
 
 def all():
-    extract_samples('negative')
+    patch_folder = '/home/marysia/data/thesis/nlst-patches-1.3-3.5-annotated/'
+    extract_samples('negative', 'patches', patch_folder)
+    extract_samples('positive', 'patches')
 
-all()
+def lidc():
+    patch_folder = '/home/marysia/data/thesis/lidc/lidc-fp-reduction-subset-0/'
+    extract_lidc_samples('negative', 'lidc-patches', patch_folder)
+    extract_lidc_samples('positive', 'lidc-patches', patch_folder)
+
+lidc()

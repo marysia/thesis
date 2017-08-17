@@ -19,18 +19,17 @@ models2d = {
     #    'Conv1': ConvolutionalModel1,
     #    'Gconv1': GConvModel1,
     'Z2CNN': Z2CNN,
-    'P4CNN': P4CNN,
+#    'P4CNN': P4CNN,
     #     'P4CNNDropout': P4CNNDropout
 }
 
 models3d = {
-#    'Z3CNN': Z3CNN,
+    'Z3CNN': Z3CNN,
 #    'GCNN': GCNN,
 #    'Z3MultiDim': Z3MultiDim,
 #    'GMultiDim': GMultiDim
-#    'MultiDim': MultiDim
-    'Z3Resnet': Z3Resnet,
-    'GResnet': GResnet
+#    'Z3Resnet': Z3Resnet,
+#    'GResnet': GResnet
 }
 
 # global program ender
@@ -51,7 +50,7 @@ def log_time(log, args, models):
 
 def train(data, log, models, args, augmentation):
     log_time(log, args, models)
-    #data_metrics(data, log)
+    data_metrics(data, log)
     tot_params = 0
 
     # train and evaluate each model
@@ -68,7 +67,9 @@ def train(data, log, models, args, augmentation):
             log.info('Model: Number of parameters is... ' + str(model_params))
 
             # train
-            graph.train(mode=args.mode, mode_param=args.mode_param, save_step=args.save_step)
+            graph.train(args)
+            #graph.train(mode=args.mode, mode_param=args.mode_param, save_step=args.save_step, reinforce=args.reinforce,
+            #            save_model=args.save_model)
         else:
             log.info('Program was terminated. Model %s will not be trained and/or evaluated.' % name)
     log.info('Executed all steps in script.\n')
@@ -89,7 +90,7 @@ def patches_2d(args):
     augmentation = "rotation2d" if args.augment else ""
     log = Logger(args, logdir, logfolder='patches2d', logname=args.log)
     log.info('Executing patches 2d script with the following models: %s' % str(models2d.keys()))
-    data = DataPatches(small=args.smalldata, shape=(1, 15, 15), balanced=True)
+    data = DataPatches(small=args.smalldata, shape=(1, 15, 15), train_balanced=True, test_balanced=False)
     train(data, log, models2d, args, augmentation)
     log.finalize(ender.terminate)
 
@@ -99,7 +100,7 @@ def patches_3d(args):
     augmentation = "rotation3d" if args.augment else ""
     log = Logger(args, logdir, logfolder='patches3d', logname=args.log)
     log.info('Executing patches 3d script with the following models: %s' % str(models3d.keys()))
-    data = DataPatches(small=args.smalldata, shape=(8, 60, 60), balanced=False)
+    data = DataPatches(small=args.smalldata, shape=(8, 30, 30), train_balanced=True, test_balanced=False)
     train(data, log, models3d, args, augmentation)
     log.finalize(ender.terminate)
 
@@ -117,6 +118,8 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--augment", action="store_true")
     parser.add_argument("--submission", action="store_true")
+    parser.add_argument("--reinforce", action="store_true")
+    parser.add_argument("--save_model", action="store_true")
 
     args = parser.parse_args()
     print(args)

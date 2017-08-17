@@ -37,6 +37,7 @@ class Data:
         self.scope = scope
         self.x = x
         self.y = y
+        self.balanced = True
 
     def get_images(self):
         return self.x
@@ -66,6 +67,7 @@ class UnbalancedData:
         self.y_neg = y_neg
 
         self.fraction = 10
+        self.balanced = False
 
     def get_next_batch(self, i, batch_size):
         fraction = batch_size / 2
