@@ -4,61 +4,55 @@ import util.metrics
 from util.helpers import total_parameters, progress
 from util.augmentation import rotate_transform_batch2d, rotate_transform_batch3d
 
-import sys
+import os
 import time
 
 
 class BaseModel:
-    def __init__(self, model_name, data, ender, log, x_val=None, y_val=None,
-                 epochs=5, batch_size=64, learning_rate=0.001, augmentation="", submission=False, verbose=True):
-        self.model_name = model_name
-        self.submission = submission
-        self.verbose = verbose
-        self.ender = ender
-        self.log = log
-
-        self.transformations = augmentation
-
-        self.training = True
-        self.optimizer = None
-        self.learning_rate = learning_rate
-
-        self.model_logits = None
-
+    def __init__(self, name, data):
+        self.model_name = name
         self.data = data
 
-        self.epochs = epochs
-        self.batch_size = batch_size
-        steps = self.data.train.samples / self.batch_size
-        self.steps = steps * 2 if not self.data.train.balanced else steps
+        with tf.name_scope('Placeholders'):
+            self.x = tf.placeholder(tf.float32, shape=[None] + list(self.data.train.x.shape[1:]))
+            self.y = tf.placeholder(tf.float32, shape=[None, self.data.nb_classes])
+
+        self.model_logits = self.build_graph()
 
     def build_graph(self):
         ''' To be implemented in the subclass. Sets self.model_logits.'''
         raise NotImplementedError
 
-    def build_model(self):
-        '''
-        Builds the model by setting placeholders, building the graph (see subclass),
-        and defining cross entropy, optimizer (adam), correct prediction and accuracy calculation.
-        '''
-        with tf.name_scope('Placeholders'):
-            self.x = tf.placeholder(tf.float32, shape=[None] + list(self.data.train.x.shape[1:]))
-            self.y = tf.placeholder(tf.float32, shape=[None, self.data.nb_classes])
+    def get_graph(self):
+        return self.model_logits
 
-        self.build_graph()
+    def set_variables(self, args, augmentation, ender, log):
+        self.results = None
+        self.ender = ender
+        self.log = log
+
+        self.submission = args.submission
+        self.verbose = args.verbose
+
+        self.transformations = augmentation
+
+        self.training = True
+        self.learning_rate = 0.001
+        self.batch_size = 128
+        self.epochs = 5
+
+        self.batch_size = self.batch_size
+        steps = self.data.train.samples / self.batch_size
+        self.steps = steps * 2 if not self.data.train.balanced else steps
 
         self.cross_entropy = tf.reduce_mean(
             tf.nn.softmax_cross_entropy_with_logits(labels=self.y, logits=self.model_logits))
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cross_entropy)
 
-        self.correct_prediction = tf.equal(tf.argmax(self.model_logits, 1), tf.argmax(self.y, 1))
-        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
-        tf.summary.scalar('accuracy', self.accuracy)
-        self.log.info('Model: Initizalization done...')
 
-    def train(self, args):
+    def train(self, args, augmentation, ender, log):
         ''' Trains the model.
-        Builds the model, initializes the global variables, and executes the train step
+        Executes the train step
         for as long as the mode specifies.
 
         Modes:
@@ -69,17 +63,9 @@ class BaseModel:
             - time: runs through the entire training set in batches of batch size for n minutes.
 
         '''
-        # initialize start time and set self.training to true for dropout
+        self.set_variables(args, augmentation, ender, log)
         start_time = time.time()
-        self.training = True
 
-        # check for modes.
-        if args.mode not in ['epochs', 'converge', 'time']:
-            self.log.info('Mode not recognised. Please use epochs, converge or time.')
-            raise Exception
-        if args.mode == 'converge' and self.data.val.scope == 'val-empty':
-            self.log.info('To use the converge mode, a validation set must be provided.')
-            raise Exception
 
         # initialize variables
         init = tf.global_variables_initializer()
@@ -111,8 +97,16 @@ class BaseModel:
             self.log.info('Training took approximately %d minutes.' % elapsed_time)
 
             if args.save_model:
-                model_path = '/home/marysia/thesis/results/models/%s_%s/model' % (self.model_name, self.log.runid)
+                base_path =  '/home/marysia/thesis/results/models/%s_%s/model'
+                if args.ensemble:
+                    model_path = os.path.join(base_path, 'ensemble-%s/model' % self.log.runid)
+                else:
+                    model_path = os.path.join(base_path, '%s_%s/model' % (self.model_name, self.log.runid))
                 saver.save(sess, model_path)
+
+    def load_model(self, modelpath):
+        # TODO: to be implemented
+        pass
 
     # --- train modes --- #
     def train_epochs(self, sess, reinforce, save_step):
@@ -264,4 +258,4 @@ class BaseModel:
 
         if self.submission:
             util.helpers.create_submission(self.model_name, self.log,  self.data.test, results)
-
+        self.results = results

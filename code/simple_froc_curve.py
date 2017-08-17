@@ -1,4 +1,5 @@
 import os
+import glob
 import pandas as pd
 import matplotlib as mpl
 mpl.use('Agg')
@@ -68,6 +69,6 @@ def get_values(fname):
     values.sort()
 
     create_graph(values, id, modelname)
-
-fname = os.path.join(results_folder, 'submissions', 'scbhbd-Z3CNN-submission.csv')
-get_values(fname)
+fnames = glob.glob(os.path.join(results_folder, 'submissions', '*-submission.csv'))
+for fname in fnames:
+    get_values(fname)

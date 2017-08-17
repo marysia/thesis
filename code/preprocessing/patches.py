@@ -4,14 +4,19 @@ from basedata import BaseData, Data
 
 
 class DataPatches(BaseData):
-    def __init__(self, small=True, shape=(8, 30, 30), train_balanced=True, test_balanced=False,
-                 train='nlst-balanced', val='nlst-unbalanced', test='lidc-localization'):
+    def __init__(self, args):
         self.name = 'fp-reduction-patches'
-        self.shape = shape
+        self.shape = args.shape
 
-        self.train_dataset = train
-        self.val_dataset = val
-        self.test_dataset = test
+        # quick hack for 2d patches data
+        if '2d' in args.data:
+            shape = list(args.shape)
+            shape[0] = 1
+            self.shape = tuple(shape)
+
+        self.train_dataset = args.train
+        self.val_dataset = args.val
+        self.test_dataset = args.test
 
         BaseData.__init__(self)
 

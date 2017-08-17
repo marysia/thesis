@@ -55,11 +55,13 @@ def create_submission(modelname, log, data, results):
 
         li.append([id, pred_class, prob_class, act_class])
 
-    probs = [elem[2] for elem in li]
-    probs = probs[1:]
-    log.info('Probabilities. range: %.2f-%.2f, mean: %.2f (~%.2f)' % (np.min(probs), np.max(probs),
-                                                                       np.mean(probs), np.std(probs)))
-
     with open(submission_fname, 'wb') as f:
         writer = csv.writer(f)
         writer.writerows(li)
+
+    if log is not None:
+        probs = [elem[2] for elem in li]
+        probs = probs[1:]
+
+        log.info('Probabilities. range: %.2f-%.2f, mean: %.2f (~%.2f)' % (np.min(probs), np.max(probs),
+                                                                          np.mean(probs), np.std(probs)))

@@ -28,7 +28,7 @@ class CNN(BaseModel):
 
         tensor = base.flatten(tensor)
         final = base.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
-        self.model_logits = final
+        return final
 
     def conv_bn_act(self, tensor, i):
         raise NotImplementedError
