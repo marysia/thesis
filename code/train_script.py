@@ -90,7 +90,7 @@ def patches_2d(args):
     augmentation = "rotation2d" if args.augment else ""
     log = Logger(args, logdir, logfolder='patches2d', logname=args.log)
     log.info('Executing patches 2d script with the following models: %s' % str(models2d.keys()))
-    data = DataPatches(small=args.smalldata, shape=(1, 15, 15), train_balanced=True, test_balanced=False)
+    data = DataPatches(shape=(1, 15, 15))
     train(data, log, models2d, args, augmentation)
     log.finalize(ender.terminate)
 
@@ -100,7 +100,7 @@ def patches_3d(args):
     augmentation = "rotation3d" if args.augment else ""
     log = Logger(args, logdir, logfolder='patches3d', logname=args.log)
     log.info('Executing patches 3d script with the following models: %s' % str(models3d.keys()))
-    data = DataPatches(small=args.smalldata, shape=(8, 30, 30), train_balanced=True, test_balanced=False)
+    data = DataPatches(shape=(8, 30, 30))
     train(data, log, models3d, args, augmentation)
     log.finalize(ender.terminate)
 
@@ -114,7 +114,6 @@ if __name__ == "__main__":
     parser.add_argument("--mode", nargs="?", type=str, default="epochs", choices=["epochs", "time", "converge"])
     parser.add_argument("--mode_param", nargs="?", type=int, default=5)
     parser.add_argument("--save_step", nargs="?", type=int, default=1)
-    parser.add_argument("--smalldata", action="store_true")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--augment", action="store_true")
     parser.add_argument("--submission", action="store_true")

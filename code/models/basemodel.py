@@ -29,7 +29,7 @@ class BaseModel:
 
         self.epochs = epochs
         self.batch_size = batch_size
-        steps = self.data.train.x.shape[0] / self.batch_size
+        steps = self.data.train.samples / self.batch_size
         self.steps = steps * 2 if not self.data.train.balanced else steps
 
     def build_graph(self):
@@ -230,30 +230,30 @@ class BaseModel:
     def _train_step(self, prefix):
         ''' Training step. '''
         for step in range(self.steps):
-            batch = self.data.train.get_next_batch(step, self.batch_size)
+            batch_x, batch_y = self.data.train.get_next_batch(step, self.batch_size)
 
             if self.transformations == "rotation2d":
-                x = rotate_transform_batch2d(batch.x, rotation = 2 * np.pi)
+                batch_x = rotate_transform_batch2d(batch_x, rotation = 2 * np.pi)
             elif self.transformations == "rotation3d":
-                x = rotate_transform_batch3d(batch.x)
-            else:
-                x = batch.x
+                batch_x = rotate_transform_batch3d(batch_x)
 
-
-            self.optimizer.run(feed_dict={self.x: x, self.y: batch.y})
+            self.optimizer.run(feed_dict={self.x: batch_x, self.y: batch_y})
 
             if self.verbose:
                 progress(prefix, step, self.steps)
 
     def progress_metrics(self, sess, prefix):
-        results = util.metrics.get_predictions(sess, self, self.data.test.x)
-        confusion_matrix = util.metrics.confusion_matrix(results, self.data.test.y)
+        ''' Log progress during training, preferably on validation set but otherwise test set.'''
+        x, y = (self.data.val.x, self.data.val.y) if not 'empty' in self.data.val.scope else (self.data.test.x, self.data.test.y)
+
+        results = util.metrics.get_predictions(sess, self, x)
+        confusion_matrix = util.metrics.confusion_matrix(results, y)
         a, p, s, fp_rate = util.metrics.get_metrics(confusion_matrix)
 
         self.log.result('%s, accuracy: %.2f, sensitivity: %.2f, fp_rate: %.2f' % (prefix, a, s, fp_rate))
 
     def evaluate(self, sess):
-        ''' Get evaluation metrics through util.metrics and log.'''
+        ''' Get evaluation metrics through util.metrics and log at the end of the training run.'''
 
         results = util.metrics.get_predictions(sess, self, self.data.test.x)
         confusion_matrix = util.metrics.confusion_matrix(results, self.data.test.y)
@@ -263,5 +263,5 @@ class BaseModel:
         self.log.result(util.helpers.pretty_print_confusion_matrix(confusion_matrix))
 
         if self.submission:
-            util.helpers.create_submission(self.model_name, self.log,  self.data, results)
+            util.helpers.create_submission(self.model_name, self.log,  self.data.test, results)
 

@@ -8,6 +8,38 @@ import numpy as np
 from preprocessing.zippedpickles import load
 import os
 
+def extract_lidc_localization_samples(patch_folder):
+    print(patch_folder)
+    patches = glob.glob(patch_folder + '*.pkl.zip')
+
+    print('Extracting samples from %d patches.' % (len(patches)))
+
+    for label in ['positive', 'negative']:
+        scans = []
+        metadata = []
+        data = []
+        for i, patch_path in enumerate(patches):
+            try:
+                print('%d/%d: %s' % (i+1, len(patches), patch_path))
+                # loading only loads the keys, therefore takes little time
+                unzipped = load(patch_path)
+
+                # train:
+                scans += unzipped['train-scans']
+                if label == 'positive':
+                    metadata += unzipped['train-%s-metadata' % label]
+
+                a = unzipped['train-%s-inputs' % label]
+                print('train', label, a.shape)
+                data.append(unzipped['train-%s-inputs' % label])
+
+            except:
+                print('Failed to add %s. Skipping.' % patch_path)
+        data = np.concatenate(data)
+        fname = '/home/marysia/data/thesis/patches/lidc-localization-patches/%s_patches.npz' % label
+        np.savez(fname, data=data, meta=metadata, scans=scans)
+
+
 def extract_lidc_samples(label, folder, patch_folder):
     # TODO: subset only contains train samples, no test samples
     patches = glob.glob(patch_folder + '*.pkl.zip')
@@ -180,4 +212,7 @@ def lidc():
     extract_lidc_samples('negative', 'lidc-patches', patch_folder)
     extract_lidc_samples('positive', 'lidc-patches', patch_folder)
 
-lidc()
+def lidc_localization():
+    patch_folder = '/home/marysia/data/thesis/zipped_pickles/lidc-localization-model/'
+    extract_lidc_localization_samples(patch_folder)
+lidc_localization()

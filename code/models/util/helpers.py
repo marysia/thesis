@@ -48,10 +48,10 @@ def create_submission(modelname, log, data, results):
     differences = [abs(r[0]-r[1]) for r in results]
     max_diff, min_diff = max(differences), min(differences)
     for i, result in enumerate(results):
-        id = data.id_test[i]
+        id = data.id[i]
         pred_class = np.argmax(result)
         prob_class = (differences[i] - min_diff) / (max_diff - min_diff)
-        act_class = np.argmax(data.test.y[i])
+        act_class = np.argmax(data.y[i])
 
         li.append([id, pred_class, prob_class, act_class])
 

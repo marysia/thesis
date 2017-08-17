@@ -1,65 +1,66 @@
 import os
 import numpy as np
-from basedata import BaseData, Data, UnbalancedData
+from basedata import BaseData, Data
 
 
 class DataPatches(BaseData):
-    def __init__(self, small=True, shape=(8, 30, 30), train_balanced=True, test_balanced=False):
+    def __init__(self, small=True, shape=(8, 30, 30), train_balanced=True, test_balanced=False,
+                 train='nlst-balanced', val='nlst-unbalanced', test='lidc-localization'):
         self.name = 'fp-reduction-patches'
-        self.small = small
         self.shape = shape
-        self.train_balanced = train_balanced
-        self.test_balanced = test_balanced
+
+        self.train_dataset = train
+        self.val_dataset = val
+        self.test_dataset = test
+
         BaseData.__init__(self)
 
     def load(self):
-        self.datadir = '/home/marysia/data/thesis/patches'
-        prefix = 'small_' if self.small else ''
-        self.val = Data(scope='val-empty', x=np.array([]), y=np.array([]))
+        self.train = self.get_dataset(self.train_dataset, 'train')
+        self.val = self.get_dataset(self.val_dataset, 'val')
+        self.test = self.get_dataset(self.test_dataset, 'test')
 
-        # set train set
-        if self.train_balanced:
-            train_pos = np.load(os.path.join(self.datadir, prefix + 'positive_train_patches.npz'))['data']
-            train_neg = np.load(os.path.join(self.datadir, prefix + 'negative_train_patches.npz'))['data']
-            labels = np.concatenate([np.ones(train_pos.shape[0]), np.zeros(train_neg.shape[0])])
-            data = np.concatenate([train_pos, train_neg])
-            data = self.preprocess(data)
+    def get_dataset(self, dataset, scope):
+        if dataset == None:
+            return Data(scope='%s-empty' % scope, x=np.array([]), y=np.array([]), id=np.array([]), balanced=None)
 
-            data, labels, p = self.shuffle(data, labels)
-            self.id_train = p
-            self.train = Data(scope='train', x=data, y=self._one_hot_encoding(labels, self.nb_classes))
-        else:
-            train_pos = np.load(os.path.join(self.datadir, prefix + 'positive_train_patches.npz'))['data']
-            train_neg = np.load(os.path.join(self.datadir, prefix + 'negative_all_train_patches.npz'))['data']
+        if dataset == 'nlst-balanced':
+            return self.nlst(scope, True)
 
-            train_pos = self.preprocess(train_pos)
-            train_neg = self.preprocess(train_neg)
-            y_pos = self._one_hot_encoding(np.ones(train_pos.shape[0]), self.nb_classes)
-            y_neg = self._one_hot_encoding(np.zeros(train_neg.shape[0]), self.nb_classes)
-            self.train = UnbalancedData(scope='train-pos', x_pos=train_pos, y_pos=y_pos, x_neg=train_neg, y_neg=y_neg)
+        if dataset == 'nlst-unbalanced':
+            return self.nlst(scope, False)
 
-        # set test set
-        if self.test_balanced:
-            test_pos = np.load(os.path.join(self.datadir, prefix + 'positive_test_patches.npz'))['data']
-            test_neg = np.load(os.path.join(self.datadir, prefix + 'negative_test_patches.npz'))['data']
-            labels = np.concatenate([np.ones(test_pos.shape[0]), np.zeros(test_neg.shape[0])])
-            data = np.concatenate([test_pos, test_neg])
-            data = self.preprocess(data)
-            data, labels, p = self.shuffle(data, labels)
-            self.id_test = p  # offset: maximum value of idx train + 1
+        if dataset == 'lidc-localization':
+            return self.lidc_localization(scope, False)
 
-            self.test = Data(scope='test', x=data, y=self._one_hot_encoding(labels, self.nb_classes))
-        else:
-            test_pos = np.load(os.path.join(self.datadir, prefix + 'all_positive_test_patches.npz'))['data']
-            test_neg = np.load(os.path.join(self.datadir, prefix + 'all_negative_all_test_patches.npz'))['data']
-            labels = np.concatenate([np.ones(test_pos.shape[0]), np.zeros(test_neg.shape[0])])
-            data = np.concatenate([test_pos, test_neg])
-            data = self.preprocess(data)
-            data, labels, p = self.shuffle(data, labels)
-            self.id_test = p
-            self.test = Data(scope='test', x=data, y=self._one_hot_encoding(labels, self.nb_classes))
+    def nlst(self, scope, balanced):
+        f_scope = 'train' if scope == 'train' else 'test'
+
+        datadir = '/home/marysia/data/thesis/patches/nlst-patches/'
+        prefix = 'all_' if not balanced else ''
+
+        pos = np.load(os.path.join(datadir, 'positive_%s_patches.npz' % (f_scope)))['data']
+        neg = np.load(os.path.join(datadir, '%snegative_%s_patches.npz' % (prefix, f_scope)))['data']
+        labels = np.concatenate([np.ones(pos.shape[0]), np.zeros(neg.shape[0])])
+        data = np.concatenate([pos, neg])
+        data = self.preprocess(data)
+
+        data, labels, p = self.shuffle(data, labels)
+        return Data(scope=scope, x=data, y=self._one_hot_encoding(labels, self.nb_classes), id=p, balanced=balanced)
+
+    def lidc_localization(self, scope, balanced):
+        datadir = '/home/marysia/data/thesis/patches/lidc-localization-patches/'
+
+        pos = np.load(os.path.join(datadir, 'positive_patches.npz'))['data']
+        neg = np.load(os.path.join(datadir, 'negative_patches.npz'))['data']
 
 
+        labels = np.concatenate([np.ones(pos.shape[0]), np.zeros(neg.shape[0])])
+        data = np.concatenate([pos, neg])
+        data = self.preprocess(data)
+
+        data, labels, p = self.shuffle(data, labels)
+        return Data(scope=scope, x=data, y=self._one_hot_encoding(labels, self.nb_classes), id=p, balanced=balanced)
 
     def _data_reshape(self, data):
         data_offset = [int(size/2) for size in data.shape[1:]]
@@ -81,8 +82,6 @@ class DataPatches(BaseData):
 
 
     def preprocess(self, data):
-        #data = data[:, 3:10, 45:75, 45:75]
-        #data = data[:, 3:11, 40:70, 40:70]
         data = self._data_reshape(data)
         if data.dtype == np.uint8:
             data = (data - np.float32(127.5)) * np.float32(1 / 127.5)

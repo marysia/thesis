@@ -2,6 +2,7 @@ import numpy as np
 
 def data_metrics(data, log):
     log.info('Metrics for %s dataset.' % data.name)
+    log.info('Datasets used: \ntrain: %s \t val: %s \t test: %s' % (data.train_dataset, data.val_dataset, data.test_dataset))
     data_types = [data.train, data.val, data.test]
     data_types = [dtype for dtype in data_types if 'empty' not in dtype.scope]
     for data_type in data_types:
