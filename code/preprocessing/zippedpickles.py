@@ -1,6 +1,6 @@
 import pickle
-import zipfile
 import sys
+import zipfile
 
 
 class ZippedPickles:
@@ -62,6 +62,7 @@ if sys.version_info >= (3, 6):
 else:
     import tempfile
     import os
+
 
     def _write(file_name, append, values):
         mode = 'a' if append else 'w'

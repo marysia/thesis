@@ -8,26 +8,28 @@ Purpose of this script:
 
     NOTE: fp rate is false positives per scan!
 """
-import tensorflow as tf
-from preprocessing.lidc import LIDCTestPatches
-from preprocessing.patches import DataPatches
 import argparse
-import models.util.helpers
 import glob
 import os
+
 import numpy as np
-from models.model_3d import Z3CNN, GCNN, Z3Resnet, GResnet, Z3MultiDim, GMultiDim
+import tensorflow as tf
+
+import models.util.helpers
+from models.model_3d import Z3CNN
+from preprocessing.patches import DataPatches
 
 models_dict = {
     'Z3CNN': Z3CNN
 }
+
 
 def return_results(modelpath, data):
     checkpoint_file = tf.train.latest_checkpoint(modelpath)
     graph = tf.Graph()
 
     with graph.as_default():
-        session_conf = tf.ConfigProto( log_device_placement=False)
+        session_conf = tf.ConfigProto(log_device_placement=False)
         sess = tf.Session(config=session_conf)
         with sess.as_default():
             saver = tf.train.import_meta_graph("{}.meta".format(checkpoint_file))
@@ -44,9 +46,10 @@ def return_results(modelpath, data):
             probabilities = get_probabilities(results)
             return results, probabilities
 
+
 def get_probabilities(result):
     result = np.array(result)
-    differences = [abs(r[0]-r[1]) for r in result]
+    differences = [abs(r[0] - r[1]) for r in result]
     max_diff, min_diff = max(differences), min(differences)
     probabilities = [0] * len(differences)
     for i, r in enumerate(result):
@@ -57,6 +60,7 @@ def get_probabilities(result):
             probabilities[i] = 1 - prob
     return probabilities
 
+
 def get_graph(modelpath, data):
     print('Retrieving graph.')
     graph_name = modelpath.split('/')[-1].split('_')[0]
@@ -64,6 +68,7 @@ def get_graph(modelpath, data):
     model = models_dict[graph_name](model_name='tmp', data=data, log=None, ender=None)
     model.build_model()
     return model
+
 
 def load_dataset(args):
     return DataPatches(args)
@@ -80,6 +85,7 @@ def evaluate_ensemble(ensemble_folder, data):
         probs.append(p)
 
     print('Reach!')
+
 
 if __name__ == "__main__":
     print('Start')

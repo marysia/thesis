@@ -1,11 +1,10 @@
-import random
-import os
-import glob
 import datetime
-import shutil
-import config
+import glob
+import os
 import random
+import shutil
 import string
+
 
 class Logger():
     def __init__(self, args, logdir, logfolder, logname='log', time=False, depth=2, revision=False):
@@ -69,8 +68,9 @@ class Logger():
     def finalize(self, broken):
         ''' Copies current running file to logdir/datafolder/logname.log and logdir/latest.log
         and removes logdir/current.log'''
-        shutil.copy(self.log_path, self.final_log_name(self.logfolder, self.logname, broken))
-        shutil.copy(self.log_path, self.latest_logpath)
+        if not 'pycharm' in self.logname:
+            shutil.copy(self.log_path, self.final_log_name(self.logfolder, self.logname, broken))
+            shutil.copy(self.log_path, self.latest_logpath)
         os.remove(self.log_path)
 
     def get_time(self):

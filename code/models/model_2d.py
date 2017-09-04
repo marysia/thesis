@@ -1,41 +1,42 @@
-from basemodel import BaseModel
-import util.layers as layer
+import tensorflow as tf
+
 import util.base_layers as base_layer
 import util.gconv_layers as gconv
+import util.layers as layer
+from basemodel import BaseModel
 
-import tensorflow as tf
 
 class Z2CNN(BaseModel):
     def build_graph(self):
         # l1 and l2
         tensor = layer.conv2d_bn_act(self.x, nb_channels_out=20)
-        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        # tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
         tensor = layer.conv2d_bn_act(tensor, nb_channels_out=20)
 
         # max pooling
         tensor = tf.nn.max_pool(tensor, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
         # l3
         tensor = layer.conv2d_bn_act(tensor, nb_channels_out=20)
-        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        # tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
         # l4
         tensor = layer.conv2d_bn_act(tensor, nb_channels_out=20)
-        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        # tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
         # l5
         tensor = layer.conv2d_bn_act(tensor, nb_channels_out=20)
-        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        # tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
         # l6
         tensor = layer.conv2d_bn_act(tensor, nb_channels_out=20)
-        #tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
+        # tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
 
         # top
         tensor = base_layer.convolution2d(tensor, filter_shape=[4, 4], nb_channels_out=10)
-
 
         tensor = base_layer.dense(tensor, 512)
         tensor = base_layer.activation(tensor, key='relu')
         final = base_layer.readout(tensor, [512, self.data.nb_classes])
 
         self.model_logits = final
+
 
 class P4CNN(BaseModel):
     def build_graph(self):
@@ -53,13 +54,15 @@ class P4CNN(BaseModel):
         tensor = gconv.gconv_bn_act(tensor, in_group=group, out_group=group, out_channels=20)
         tensor = gconv.gconv_bn_act(tensor, in_group=group, out_group=group, out_channels=20)
 
-        tensor = gconv.gconv_wrapper2d(tensor, in_group=group, out_group=group, ksize=4, in_channels=20, out_channels=10)
+        tensor = gconv.gconv_wrapper2d(tensor, in_group=group, out_group=group, ksize=4, in_channels=20,
+                                       out_channels=10)
 
         tensor = base_layer.dense(tensor, 256)
         tensor = base_layer.activation(tensor, key='relu')
         final = base_layer.readout(tensor, [256, self.data.nb_classes])
 
         self.model_logits = final
+
 
 class P4CNNDropout(BaseModel):
     def build_graph(self):
@@ -82,7 +85,8 @@ class P4CNNDropout(BaseModel):
         tensor = gconv.gconv_bn_act(tensor, in_group=group, out_group=group, out_channels=20)
         tensor = base_layer.dropout(tensor, keep_prob=.7, training=self.training)
 
-        tensor = gconv.gconv_wrapper2d(tensor, in_group=group, out_group=group, ksize=4, in_channels=20, out_channels=10)
+        tensor = gconv.gconv_wrapper2d(tensor, in_group=group, out_group=group, ksize=4, in_channels=20,
+                                       out_channels=10)
 
         tensor = base_layer.dense(tensor, 256)
         tensor = base_layer.activation(tensor, key='relu')
@@ -90,8 +94,8 @@ class P4CNNDropout(BaseModel):
 
         self.model_logits = final
 
-class ConvolutionalModel1(BaseModel):
 
+class ConvolutionalModel1(BaseModel):
     def build_graph(self):
         # # layers
         tensor = layer.conv2d_bn_act(self.x, nb_channels_out=16)
@@ -112,8 +116,8 @@ class ConvolutionalModel1(BaseModel):
 
         self.model_logits = final
 
-class Resnet(BaseModel):
 
+class Resnet(BaseModel):
     def build_graph(self):
         blocks = 3
 
@@ -166,7 +170,7 @@ class GResnet(BaseModel):
 class GConvModel1(BaseModel):
     def build_graph(self):
         group = 'C4'
-        #group = 'D4'
+        # group = 'D4'
         tensor = gconv.gconv_bn_act(self.x, in_group='Z2', out_group=group)
         tensor = gconv.gconv_bn_act(tensor, in_group=group, out_group=group)
         tensor = gconv.gconv_bn_act(tensor, in_group=group, out_group=group)

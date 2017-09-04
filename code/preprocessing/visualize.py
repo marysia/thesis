@@ -1,5 +1,7 @@
 import os
+
 import cv2
+
 
 def array_to_mp4(array, filename, video_folder):
     """
@@ -24,6 +26,7 @@ def array_to_mp4(array, filename, video_folder):
         video.release()
     else:
         print('An error occurred. Invalid codec?')
+
 
 def array_to_png_folder(array, folder_name):
     """

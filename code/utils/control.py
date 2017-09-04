@@ -1,10 +1,10 @@
-import os
-import sys
 import getopt
-import psutil
-import subprocess
+import os
 import signal
-import time
+import subprocess
+import sys
+
+import psutil
 
 
 class ProgramEnder:
@@ -85,6 +85,7 @@ def start(script, verbose, params):
         print(cmd)
         subprocess.Popen(cmd, shell=True)
 
+
 # send a terminating signal (sigint or sigkill) to the provided script
 def end(script, force):
     '''
@@ -124,7 +125,7 @@ def main(argv):
     for opt, arg in opts:
         if opt == '-h':
             print(
-            'python control.py \n \t * -h for help \n \t * -r for running processes \n \t * -s <script> for starting (add -v print text to commandline) \n \t * -e <script> for ending (add -f to force)')
+                'python control.py \n \t * -h for help \n \t * -r for running processes \n \t * -s <script> for starting (add -v print text to commandline) \n \t * -e <script> for ending (add -f to force)')
             sys.exit()
         elif opt == '-r':
             running()

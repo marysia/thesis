@@ -1,11 +1,12 @@
-import tensorflow as tf
-import numpy as np
-import util.metrics
-from util.helpers import total_parameters, progress
-from util.augmentation import rotate_transform_batch2d, rotate_transform_batch3d
-
 import os
 import time
+
+import numpy as np
+import tensorflow as tf
+
+import util.metrics
+from util.augmentation import apply_augmentation
+from util.helpers import progress
 
 
 class BaseModel:
@@ -37,18 +38,24 @@ class BaseModel:
         self.transformations = augmentation
 
         self.training = True
-        self.learning_rate = 0.001
+
         self.batch_size = 128
         self.epochs = 5
+        self.learning_rate = 0.0001
+        self.lr_decay = 1.0
 
-        self.batch_size = self.batch_size
+        self.model_weight = 0
+
         steps = self.data.train.samples / self.batch_size
         self.steps = steps * 2 if not self.data.train.balanced else steps
 
+        self.softmax = tf.nn.softmax(self.model_logits)
         self.cross_entropy = tf.reduce_mean(
             tf.nn.softmax_cross_entropy_with_logits(labels=self.y, logits=self.model_logits))
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cross_entropy)
 
+        # self.cross_entropy = tf.losses.softmax_cross_entropy(self.y, self.model_logits)
+
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cross_entropy)
 
     def train(self, args, augmentation, ender, log):
         ''' Trains the model.
@@ -65,7 +72,6 @@ class BaseModel:
         '''
         self.set_variables(args, augmentation, ender, log)
         start_time = time.time()
-
 
         # initialize variables
         init = tf.global_variables_initializer()
@@ -97,7 +103,7 @@ class BaseModel:
             self.log.info('Training took approximately %d minutes.' % elapsed_time)
 
             if args.save_model:
-                base_path =  '/home/marysia/thesis/results/models/%s_%s/model'
+                base_path = '/home/marysia/thesis/results/models/%s_%s/model'
                 if args.ensemble:
                     model_path = os.path.join(base_path, 'ensemble-%s/model' % self.log.runid)
                 else:
@@ -118,7 +124,7 @@ class BaseModel:
         while not self.ender.terminate and i < self.epochs:
             i += 1
             prefix = '\rEpoch %d of %d: ' % (i, self.epochs)
-            self._train_step(prefix)
+            self._train_step(prefix, i)
 
             if i % save_step == 0:
                 if self.verbose:
@@ -128,7 +134,6 @@ class BaseModel:
 
                 if reinforce:
                     self._reinforce(sess)
-
 
         if self.ender.terminate:
             self.log.info('Program was terminated after %d epochs. Exiting gracefully.' % i)
@@ -143,22 +148,22 @@ class BaseModel:
         i = 0
 
         # set begin times
-        base_time = time.time()   # start time
-        last_save = base_time   # initialize last save to starting time
-        end_time = base_time + (mode_param * 60)   # time training should end
+        base_time = time.time()  # start time
+        last_save = base_time  # initialize last save to starting time
+        end_time = base_time + (mode_param * 60)  # time training should end
 
         # while not passed training end time and no termination signal
         while time.time() < end_time and not self.ender.terminate:
             i += 1
             prefix = '\rIteration %d: ' % (i)
 
-            self._train_step(prefix)
+            self._train_step(prefix, i)
 
             # if time passed in minutes since last save moment is bigger than save step: save.
             if ((time.time() - last_save) / 60) > save_step:
                 if self.verbose:
                     print(' ')
-                last_save = time.time()   # set last save to current time
+                last_save = time.time()  # set last save to current time
                 prefix = 'Model: %s, step %s' % (self.model_name, i)
                 self.progress_metrics(sess, prefix)
 
@@ -199,10 +204,9 @@ class BaseModel:
 
         return i
 
-
     def _reinforce(self, sess):
         # get results for training set
-        results = util.metrics.get_predictions(sess, self, self.data.train.x)
+        results = util.metrics.run_session_to_get_predictions(sess, self, self.data.train.x)
         # get indices of all results that aren't correct
         idx = [i for i, pred in enumerate(results) if np.argmax(pred) != np.argmax(self.data.train.y[i])]
 
@@ -215,47 +219,48 @@ class BaseModel:
         self.log.info('Reinforcing incorrect training samples: %d batches.' % nr_batches)
         for i in range(nr_batches):
             start = i * self.batch_size
-            end = (i+1) * self.batch_size
+            end = (i + 1) * self.batch_size
             batch_x = self.data.train.x[start:end]
             batch_y = self.data.train.y[start:end]
 
             self.optimizer.run(feed_dict={self.x: batch_x, self.y: batch_y})
 
-    def _train_step(self, prefix):
+    def _train_step(self, prefix, epoch):
         ''' Training step. '''
         for step in range(self.steps):
             batch_x, batch_y = self.data.train.get_next_batch(step, self.batch_size)
 
-            if self.transformations == "rotation2d":
-                batch_x = rotate_transform_batch2d(batch_x, rotation = 2 * np.pi)
-            elif self.transformations == "rotation3d":
-                batch_x = rotate_transform_batch3d(batch_x)
+            batch_x = apply_augmentation(batch_x, self.transformations)
 
             self.optimizer.run(feed_dict={self.x: batch_x, self.y: batch_y})
 
+            self.learning_rate = self.learning_rate * self.lr_decay
             if self.verbose:
                 progress(prefix, step, self.steps)
 
     def progress_metrics(self, sess, prefix):
         ''' Log progress during training, preferably on validation set but otherwise test set.'''
-        x, y = (self.data.val.x, self.data.val.y) if not 'empty' in self.data.val.scope else (self.data.test.x, self.data.test.y)
+        x, y = (self.data.val.x, self.data.val.y) if not 'empty' in self.data.val.scope else (
+            self.data.test.x, self.data.test.y)
 
-        results = util.metrics.get_predictions(sess, self, x)
+        results = util.metrics.run_session_to_get_predictions(sess, self, x)
         confusion_matrix = util.metrics.confusion_matrix(results, y)
         a, p, s, fp_rate = util.metrics.get_metrics(confusion_matrix)
 
+        self.model_weight = a
         self.log.result('%s, accuracy: %.2f, sensitivity: %.2f, fp_rate: %.2f' % (prefix, a, s, fp_rate))
 
     def evaluate(self, sess):
         ''' Get evaluation metrics through util.metrics and log at the end of the training run.'''
+        self.progress_metrics(sess, 'Validation set results: ')
 
-        results = util.metrics.get_predictions(sess, self, self.data.test.x)
+        results = util.metrics.run_session_to_get_predictions(sess, self, self.data.test.x)
         confusion_matrix = util.metrics.confusion_matrix(results, self.data.test.y)
         a, p, s, fp_rate = util.metrics.get_metrics(confusion_matrix)
-        
+
         self.log.result('Acc: %.2f, Prec: %.2f, Sensitivity: %.2f, FP-rate: %.2f' % (a, p, s, fp_rate))
         self.log.result(util.helpers.pretty_print_confusion_matrix(confusion_matrix))
 
         if self.submission:
-            util.helpers.create_submission(self.model_name, self.log,  self.data.test, results)
+            util.helpers.create_submission(self.model_name, self.log, self.data.test, results)
         self.results = results

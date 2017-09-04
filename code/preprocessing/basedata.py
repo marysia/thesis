@@ -1,9 +1,10 @@
-import os
 import random
+
 import numpy as np
 
+
 class BaseData:
-    def __init__(self, datadir = '/home/marysia/thesis/data'):
+    def __init__(self, datadir='/home/marysia/thesis/data'):
         self.datadir = datadir
         self._set_classes()
         self.load()
@@ -52,7 +53,7 @@ class Data:
 
     def get_sample(self):
         i = random.randint(0, self.x.shape[0])
-        return Data(self.scope+'-sample', self.x[i], self.y[i])
+        return Data(self.scope + '-sample', self.x[i], self.y[i])
 
     def get_next_batch(self, i, batch_size):
         if self.balanced:
@@ -61,8 +62,8 @@ class Data:
             return self.get_unbalanced_batch(i, batch_size)
 
     def get_balanced_batch(self, i, batch_size):
-        start = i*batch_size
-        end = (i+1)*batch_size
+        start = i * batch_size
+        end = (i + 1) * batch_size
 
         return self.x[start:end], self.y[start:end]
 
@@ -88,7 +89,6 @@ class Data:
         self.pos_idx = [i for i, elem in enumerate(self.y) if np.argmax(elem) == 1]
         self.neg_idx = [i for i, elem in enumerate(self.y) if np.argmax(elem) == 0]
         self.fraction = 5
-
 
     def shape(self):
         return self.x.shape, self.y.shape

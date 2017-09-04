@@ -4,9 +4,11 @@
 # Note: preferably run this script from command line with sudo, as a permission denied error otherwise occurs for the
 # /home/marysia/data folder on Azure.
 import glob
+
 import numpy as np
-from preprocessing.zippedpickles import load
-import os
+
+from code.preprocessing.zippedpickles import load
+
 
 def extract_lidc_localization_samples(patch_folder):
     print(patch_folder)
@@ -20,7 +22,7 @@ def extract_lidc_localization_samples(patch_folder):
         data = []
         for i, patch_path in enumerate(patches):
             try:
-                print('%d/%d: %s' % (i+1, len(patches), patch_path))
+                print('%d/%d: %s' % (i + 1, len(patches), patch_path))
                 # loading only loads the keys, therefore takes little time
                 unzipped = load(patch_path)
 
@@ -57,7 +59,7 @@ def extract_lidc_samples(label, folder, patch_folder):
     # loop through all patch-?.pkl.zips and extract positive samples
     for i, patch_path in enumerate(patches[0:5]):
         try:
-            print('%d/%d: %s' % (i+1, len(patches), patch_path))
+            print('%d/%d: %s' % (i + 1, len(patches), patch_path))
             # loading only loads the keys, therefore takes little time
             unzipped = load(patch_path)
 
@@ -81,8 +83,10 @@ def extract_lidc_samples(label, folder, patch_folder):
     test_data = np.concatenate(test_data)
     print(test_data.shape)
     # save
-    np.savez('/home/marysia/data/thesis/%s/%s_train_patches.npz' % (folder, label), data=train_data, meta=train_metadata, scans=train_scans)
-    #np.savez('/home/marysia/data/thesis/%s/%s_test_patches.npz' % (folder, label), data=test_data, meta=test_metadata, scans=test_scans)
+    np.savez('/home/marysia/data/thesis/%s/%s_train_patches.npz' % (folder, label), data=train_data,
+             meta=train_metadata, scans=train_scans)
+    # np.savez('/home/marysia/data/thesis/%s/%s_test_patches.npz' % (folder, label), data=test_data, meta=test_metadata, scans=test_scans)
+
 
 def extract_samples(label, folder, patch_folder):
     patches = glob.glob(patch_folder + '*.pkl.zip')
@@ -95,27 +99,28 @@ def extract_samples(label, folder, patch_folder):
     # loop through all patch-?.pkl.zips and extract positive samples
     for i, patch_path in enumerate(patches[0:2]):
         try:
-            print('%d/%d: %s' % (i+1, len(patches), patch_path))
+            print('%d/%d: %s' % (i + 1, len(patches), patch_path))
             # loading only loads the keys, therefore takes little time
             unzipped = load(patch_path)
             print(unzipped.keys)
             # load the positive training and test samples
-            #pos_train = unzipped['train-%s-inputs' % label]
+            # pos_train = unzipped['train-%s-inputs' % label]
             pos_test = unzipped['test-%s-inputs' % label]
 
             # append positive training and test samples to list
-            #train.append(pos_train)
+            # train.append(pos_train)
             test.append(pos_test)
         except:
             print('Failed to add %s. Skipping.' % patch_path)
 
     # concatenate all samples (assuming same size)
-    #train = np.concatenate(train)
+    # train = np.concatenate(train)
     test = np.concatenate(test)
 
     # save
-    #np.savez('/home/marysia/data/thesis/%s/%s_all_train_patches.npz' % (folder, label), data=train)
-    #np.savez('/home/marysia/data/thesis/%s/%s_all_test_patches.npz' % (folder, label), data=test)
+    # np.savez('/home/marysia/data/thesis/%s/%s_all_train_patches.npz' % (folder, label), data=train)
+    # np.savez('/home/marysia/data/thesis/%s/%s_all_test_patches.npz' % (folder, label), data=test)
+
 
 def extract_positive_samples():
     """
@@ -155,6 +160,7 @@ def extract_positive_samples():
 
     return train.shape[0], test.shape[0]
 
+
 def extract_negative_samples(scope, samples):
     """
     Extracts a given number (samples) of negative samples from the zipped pickles, for the given scope (train or test).
@@ -178,7 +184,7 @@ def extract_negative_samples(scope, samples):
     while not limit and i < len(patches):
         # unzip and load negative inputs
         unzipped = load(patches[i])
-        neg_inputs = unzipped[scope+'-negative-inputs']
+        neg_inputs = unzipped[scope + '-negative-inputs']
         i += 1
 
         # add carelessly when adding will not exceed the sample limit
@@ -194,25 +200,31 @@ def extract_negative_samples(scope, samples):
 
     # save
     data = np.concatenate(li)
-    np.savez('/home/marysia/data/thesis/patches/negative_'+scope+'_patches.npz', data=data)
+    np.savez('/home/marysia/data/thesis/patches/negative_' + scope + '_patches.npz', data=data)
+
 
 # execute all steps
 def balanced():
     train_samples, test_samples = extract_positive_samples()
-    #extract_negative_samples('train', train_samples)
-    #extract_negative_samples('test', test_samples)
+    # extract_negative_samples('train', train_samples)
+    # extract_negative_samples('test', test_samples)
+
 
 def all():
     patch_folder = '/home/marysia/data/thesis/nlst-patches-1.3-3.5-annotated/'
     extract_samples('negative', 'patches', patch_folder)
     extract_samples('positive', 'patches')
 
+
 def lidc():
     patch_folder = '/home/marysia/data/thesis/lidc/lidc-fp-reduction-subset-0/'
     extract_lidc_samples('negative', 'lidc-patches', patch_folder)
     extract_lidc_samples('positive', 'lidc-patches', patch_folder)
 
+
 def lidc_localization():
     patch_folder = '/home/marysia/data/thesis/zipped_pickles/lidc-localization-model/'
     extract_lidc_localization_samples(patch_folder)
+
+
 lidc_localization()

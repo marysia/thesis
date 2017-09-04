@@ -1,4 +1,5 @@
 import matplotlib as mpl
+
 mpl.use('Agg')
 
 import glob
@@ -7,8 +8,8 @@ import argparse
 import pandas as pd
 import pylab as plt
 
-
 results_folder = '/home/marysia/thesis/results'
+
 
 def accuracy(df):
     ''' Return accuracy: (tp + tn) / (tp + tn + fp + fn)'''
@@ -16,6 +17,7 @@ def accuracy(df):
     if len(df) == 0:
         return 0
     return len(correct_predictions) / float(len(df))
+
 
 def sensitivity(df, total_nodules):
     ''' Return sensitivity: tp / (tp + tn)'''
@@ -25,10 +27,12 @@ def sensitivity(df, total_nodules):
         return 0
     return len(tp) / float(total_nodules)
 
+
 def tp_fp_ratio(df):
     tp = len(df[(df.predicted_class == 1) & (df.actual_class == 1)])
     fp = len(df[(df.predicted_class == 1) & (df.actual_class == 0)])
-    return fp/float(tp) if fp > 0 else 0
+    return fp / float(tp) if fp > 0 else 0
+
 
 def create_plot(modelname, id, t, a, s, fp):
     plt.plot(t, a, label='accuracy')
@@ -38,6 +42,7 @@ def create_plot(modelname, id, t, a, s, fp):
     plt.yticks([.0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.0])
     plt.legend(loc='best')
     plt.savefig(os.path.join(results_folder, 'plots', '%s-%s.png' % (id, modelname)))
+
 
 def analyse_file(fname):
     # determine model name and log identifier based on filename
@@ -57,9 +62,11 @@ def analyse_file(fname):
         acc.append(accuracy(sub_df))
         sens.append(sensitivity(sub_df, total_nodules))
         fp_ratio.append(tp_fp_ratio(sub_df))
-        print('(%d) \t thr: %.1f \t sens: %.2f \t acc: %.2f \t fp-ratio: %.2f ' % (len(sub_df), threshold, sens[-1], acc[-1], fp_ratio[-1]))
+        print('(%d) \t thr: %.1f \t sens: %.2f \t acc: %.2f \t fp-ratio: %.2f ' % (
+            len(sub_df), threshold, sens[-1], acc[-1], fp_ratio[-1]))
 
     create_plot(modelname, id, thresholds, acc, sens, fp_ratio)
+
 
 if __name__ == '__main__':
 

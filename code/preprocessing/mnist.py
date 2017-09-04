@@ -1,6 +1,9 @@
 import os
+
 import numpy as np
+
 from basedata import BaseData, Data
+
 
 class DataMNIST(BaseData):
     def __init__(self, shape=(28, 28)):
@@ -8,7 +11,7 @@ class DataMNIST(BaseData):
         self.name = 'MNIST-rot'
         self.shape = shape
         BaseData.__init__(self)
-        #super(DataMNIST, self).__init__()
+        # super(DataMNIST, self).__init__()
 
     def load(self):
         extracted = os.path.exists(os.path.join(self.datadir, 'mnist-rot', 'mnist_rot_train.npz'))

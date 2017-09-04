@@ -1,8 +1,9 @@
-import tensorflow as tf
 import numpy as np
-from base_layers import batch_normalization, activation, weight_variable, bias_variable, _weights_distribution
 from groupy.gconv.tensorflow_gconv.splitgconv2d import gconv2d, gconv2d_util
 from groupy.gconv.tensorflow_gconv.splitgconv3d import gconv3d, gconv3d_util
+
+from base_layers import batch_normalization, activation, weight_variable, bias_variable
+
 
 def _channels(x, in_group, out_group, in_channels, out_channels):
     mapping = {'Z2': in_channels * in_channels,
@@ -11,6 +12,7 @@ def _channels(x, in_group, out_group, in_channels, out_channels):
     in_c = int(in_channels / round(np.sqrt(mapping[in_group])))
     out_c = int(out_channels / round(np.sqrt(mapping[out_group])))
     return in_c, out_c
+
 
 def gconv_wrapper2d(x, in_group, out_group, ksize=3, in_channels=None, out_channels=16):
     """
@@ -34,8 +36,8 @@ def gconv_wrapper2d(x, in_group, out_group, ksize=3, in_channels=None, out_chann
     # to keep the same amount of parameters
     in_c, out_c = _channels(x, in_group, out_group, in_channels, out_channels)
 
-    #mapping = {'C4': int(out_channels/np.sqrt(4)), 'D4': int(out_channels/round(np.sqrt(8)))}
-    #in_c, out_c = (1, mapping[out_group]) if in_group == 'Z2' else (mapping[out_group], mapping[out_group])
+    # mapping = {'C4': int(out_channels/np.sqrt(4)), 'D4': int(out_channels/round(np.sqrt(8)))}
+    # in_c, out_c = (1, mapping[out_group]) if in_group == 'Z2' else (mapping[out_group], mapping[out_group])
 
     # utilize gconv2d_util to get gconv_indices, shape info and w_shape
     indices, shape_info, w_shape = gconv2d_util(
@@ -53,8 +55,8 @@ def gconv_wrapper2d(x, in_group, out_group, ksize=3, in_channels=None, out_chann
     b = bias_variable([gconv.get_shape()[-1]])
     return gconv + b
 
+
 def gconv_wrapper3d(x, in_group, out_group, ksize=3, in_channels=None, out_channels=16):
-    
     in_channels = in_channels if in_channels is not None else out_channels
     in_c, out_c = _channels(x, in_group, out_group, in_channels, out_channels)
 
@@ -69,12 +71,14 @@ def gconv_wrapper3d(x, in_group, out_group, ksize=3, in_channels=None, out_chann
     b = bias_variable([gconv.get_shape()[-1]])
     return gconv + b
 
-def gconv_bn_act(x,  in_group, out_group, ksize=3, in_channels=None, out_channels=16):
+
+def gconv_bn_act(x, in_group, out_group, ksize=3, in_channels=None, out_channels=16):
     """ 2d group convolution - batch normalization - activation """
     gconv = gconv_wrapper2d(x, in_group, out_group, ksize, in_channels, out_channels)
     bn = batch_normalization(gconv)
     act = activation(bn, key='relu')
     return act
+
 
 def bn_act_gconv(x, in_group, out_group, ksize=3, in_channels=None, out_channels=16):
     """ batch normalization - activation - 2d group convolution """
@@ -83,6 +87,7 @@ def bn_act_gconv(x, in_group, out_group, ksize=3, in_channels=None, out_channels
     gconv = gconv_wrapper2d(act, in_group, out_group, ksize, in_channels, out_channels)
     return gconv
 
+
 def act_bn_gconv(x, in_group, out_group, ksize=3, in_channels=None, out_channels=16):
     """ activation - batch normalization - 2d group convolution """
     act = activation(x, key='relu')
@@ -90,12 +95,14 @@ def act_bn_gconv(x, in_group, out_group, ksize=3, in_channels=None, out_channels
     gconv = gconv_wrapper2d(bn, in_group, out_group, ksize, in_channels, out_channels)
     return gconv
 
+
 def gconv3d_bn_act(x, in_group, out_group, ksize=3, in_channels=None, out_channels=16):
     """ 3d group convolution - batch normalization - activation function """
     gconv = gconv_wrapper3d(x, in_group, out_group, ksize, in_channels, out_channels)
     bn = batch_normalization(gconv)
     act = activation(bn)
     return act
+
 
 def bn_act_gconv3d(x, in_group, out_group, ksize=3, in_channels=None, out_channels=16):
     """ batch normalization - activation function - 3d group convolution """

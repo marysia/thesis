@@ -8,7 +8,7 @@ log_dir = os.path.join(home_dir, 'logs')
 data_dir = '/zdev/data/'
 
 # working locally: 
-if not os.path.exists(data_dir): 
+if not os.path.exists(data_dir):
     data_dir = os.path.join(home_dir, 'data')
 
 # candidate info
@@ -24,5 +24,5 @@ loss = 'binary_crossentropy'
 metrics = ['accuracy']
 lrate = .9
 momentum = .9
-decay = lrate/epochs
+decay = lrate / epochs
 nesterov = False

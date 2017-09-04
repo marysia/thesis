@@ -1,12 +1,12 @@
+import argparse
 import glob
 import os
 from stat import ST_CTIME
-import argparse
-import time
 
 logdir = '/home/marysia/thesis/logs'
 folders = ['mnist', 'patches2d', 'patches3d']
 keep_limit = 5
+
 
 def cleanup_all():
     # clean up current log files
@@ -17,11 +17,16 @@ def cleanup_all():
             print('\t -%s.' % logfile)
             os.remove(logfile)
 
+    # remove pycharm files
+    pycharm_files = glob.glob(logdir + '/*/*pycharm*')
+    for file in pycharm_files:
+        os.remove(file)
+
     # clean up folders
     for data_folder in folders:
         logfiles = [os.path.join(logdir, data_folder, f) for f in os.listdir(os.path.join(logdir, data_folder))]
         if len(logfiles) >= keep_limit + 1:
-            # sort based on tiume
+            # sort based on time
             logfiles = [(os.stat(path)[ST_CTIME], path) for path in logfiles]
             logfiles.sort()
 
@@ -49,12 +54,14 @@ def cleanup_all():
     except:
         raise Exception
 
+
 def cleanup_broken():
     broken_logfiles = glob.glob(logdir + '/*/broken*')
     if len(broken_logfiles) != 0:
         for logfile in broken_logfiles:
             print('Removing %s.' % logfile)
             os.remove(logfile)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -1,11 +1,12 @@
 import os
+
 import numpy as np
 
 from basedata import Data
 from patches import DataPatches
 
-class LIDCTestPatches(DataPatches):
 
+class LIDCTestPatches(DataPatches):
     def load(self):
         self.datadir = '/home/marysia/data/thesis/lidc-patches'
         self.train = Data(scope='train-empty', x=np.array([]), y=np.array([]))
@@ -23,5 +24,3 @@ class LIDCTestPatches(DataPatches):
         data = self.preprocess(data)
         data, labels, p = self.shuffle(data, labels)
         self.test = Data(scope='test', x=data, y=self._one_hot_encoding(labels, self.nb_classes))
-
-

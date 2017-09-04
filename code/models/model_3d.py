@@ -1,8 +1,8 @@
-from basemodel import BaseModel
-import tensorflow as tf
-import util.layers as layer
 import util.base_layers as base
 import util.gconv_layers as gconv
+import util.layers as layer
+from basemodel import BaseModel
+
 
 class CNN(BaseModel):
     def build_graph(self):
@@ -12,13 +12,13 @@ class CNN(BaseModel):
         tensor = base.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
 
         tensor = self.conv_bn_act(tensor, 1)
-        #tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
+        # tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
 
         tensor = self.conv_bn_act(tensor, 2)
         tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
 
         tensor = self.conv_bn_act(tensor, 3)
-        #tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
+        # tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
 
 
         tensor = self.conv_bn_act(tensor, 4)
@@ -38,11 +38,12 @@ class Z3CNN(CNN):
     def conv_bn_act(self, tensor, i):
         return layer.conv3d_bn_act(tensor, nb_channels_out=self.filters[i])
 
+
 class GCNN(CNN):
     def conv_bn_act(self, tensor, i):
         in_group = 'Z3' if i == 0 else 'O'
         out_group = 'O'
-        in_channels = self.filters[i-1] if i != 0 else None
+        in_channels = self.filters[i - 1] if i != 0 else None
         return gconv.gconv3d_bn_act(tensor, in_group=in_group, out_group=out_group,
                                     in_channels=in_channels, out_channels=self.filters[i])
 
@@ -64,8 +65,7 @@ class MultiDim(BaseModel):
 
         tensor = base.flatten(tensor)
         final = base.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
-        self.model_logits = final
-
+        return final
 
     def block_2d(self, tensor):
         tensor, z, c = base.dim_reshape(tensor)
@@ -76,31 +76,37 @@ class MultiDim(BaseModel):
 
     def conv3d_bn_act(self, tensor, i):
         raise NotImplementedError
+
     def conv2d_bn_act(self, tensor, out_channels):
         raise NotImplementedError
+
 
 class Z3MultiDim(MultiDim):
     def conv3d_bn_act(self, tensor, i):
         return layer.conv3d_bn_act(tensor, [3, 3, 3], nb_channels_out=self.filters[i])
+
     def conv2d_bn_act(self, tensor, out_channels):
         return layer.conv2d_bn_act(tensor, nb_channels_out=out_channels)
+
 
 class GMultiDim(MultiDim):
     def conv3d_bn_act(self, tensor, i):
         in_group = 'Z3' if i == 0 else 'O'
         out_group = 'O'
-        in_channels = self.filters[i-1] if i != 0 else None
+        in_channels = self.filters[i - 1] if i != 0 else None
         return gconv.gconv3d_bn_act(tensor, in_group=in_group, out_group=out_group,
                                     in_channels=in_channels, out_channels=self.filters[i])
+
     #
     # def conv2d_bn_act(self, tensor, out_channels):
     #     return gconv.gconv_bn_act(tensor, in_group='C4', out_group='C4', out_channels=out_channels)
     def conv2d_bn_act(self, tensor, out_channels):
-       return layer.conv2d_bn_act(tensor, nb_channels_out=out_channels)
+        return layer.conv2d_bn_act(tensor, nb_channels_out=out_channels)
+
 
 class Resnet(BaseModel):
     def build_graph(self):
-        #self.filters = [16, 32, 64, 128]
+        # self.filters = [16, 32, 64, 128]
 
         self.filters = [16, 16, 32, 32]
 
@@ -124,7 +130,7 @@ class Resnet(BaseModel):
 
         tensor = base.flatten(tensor)
         final = base.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
-        self.model_logits = final
+        return final
 
     def residual_block(self, input_tensor, out_channels):
         tensor = self.conv_bn_act(input_tensor, out_channels, out_channels)
@@ -136,9 +142,11 @@ class Resnet(BaseModel):
     def conv_bn_act(self, tensor, in_channels, out_channels, first=False):
         raise NotImplementedError
 
+
 class Z3Resnet(Resnet):
     def conv_bn_act(self, tensor, in_channels, out_channels, first=False):
         return layer.conv3d_bn_act(tensor, nb_channels_out=out_channels)
+
 
 class GResnet(Resnet):
     def conv_bn_act(self, tensor, in_channels, out_channels, first=False):
