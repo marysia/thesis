@@ -1,50 +1,72 @@
-
 # TODO: reshaping / flattening tests, check updating of shape, g_shape, ndim, g_ndim
 # TODO: test all left_actions, not just composition in group
 
 
-def test_p4_array():
-    from groupy.garray import p4_array
-    check_wallpaper_group(p4_array, p4_array.P4Array)
+# def test_p4_array():
+#     from groupy.garray import p4_array
+#     check_wallpaper_group(p4_array, p4_array.P4Array)
+#
+#
+# def test_p4m_array():
+#     from groupy.garray import p4m_array
+#     check_wallpaper_group(p4m_array, p4m_array.P4MArray)
+#
+#
+# def test_z2_array():
+#     from groupy.garray import Z2_array
+#     check_wallpaper_group(Z2_array, Z2_array.Z2Array)
+#
+#
+# def test_z3_array():
+#     from groupy.garray import Z3_array
+#     check_space_group(Z3_array, Z3_array.Z3Array)
+#
+#
+# def test_c4_array():
+#     from groupy.garray import C4_array
+#     check_finite_group(C4_array, C4_array.C4Array, C4_array.C4)
+#
+#
+# def test_d4_array():
+#     from groupy.garray import D4_array
+#     check_finite_group(D4_array, D4_array.D4Array, D4_array.D4)
+#
+#
+# def test_o_array():
+#     from groupy.garray import O_array
+#     check_finite_group(O_array, O_array.OArray, O_array.O)
 
 
-def test_p4m_array():
-    from groupy.garray import p4m_array
-    check_wallpaper_group(p4m_array, p4m_array.P4MArray)
+def test_b_array():
+    from groupy.garray import B_array
+    check_finite_group(B_array, B_array.BArray, B_array.B)
 
+def test_bt_array():
+    from groupy.garray import Bt_array
+    check_space_group(Bt_array, Bt_array.BtArray)
+#
+def test_br_array():
+    from groupy.garray import Br_array
+    check_finite_group(Br_array, Br_array.BrArray, Br_array.Br)
 
-def test_z2_array():
-    from groupy.garray import Z2_array
-    check_wallpaper_group(Z2_array, Z2_array.Z2Array)
+def test_brt_array():
+    from groupy.garray import Brt_array
+    check_space_group(Brt_array, Brt_array.BrtArray)
 
-def test_z3_array():
-    from groupy.garray import Z3_array
-    check_space_group(Z3_array, Z3_array.Z3Array)
+# def test_oh_array():
+#     from groupy.garray import Oh_array
+#     check_finite_group(Oh_array, Oh_array.OhArray, Oh_array.Oh)
+#
+#
+# def test_ot_array():
+#     from groupy.garray import Ot_array
+#     check_space_group(Ot_array, Ot_array.OtArray)
+#
+#
+# def test_oht_array():
+#     from groupy.garray import Oht_array
+#     check_space_group(Oht_array, Oht_array.OhtArray)
 
-def test_c4_array():
-    from groupy.garray import C4_array
-    check_finite_group(C4_array, C4_array.C4Array, C4_array.C4)
-
-
-def test_d4_array():
-    from groupy.garray import D4_array
-    check_finite_group(D4_array, D4_array.D4Array, D4_array.D4)
-
-def test_o_array():
-    from groupy.garray import O_array
-    check_finite_group(O_array, O_array.OArray, O_array.O)
-
-def test_oh_array():
-    from groupy.garray import Oh_array
-    check_finite_group(Oh_array, Oh_array.OhArray, Oh_array.Oh)
-
-def test_ot_array():
-    from groupy.garray import Ot_array
-    check_space_group(Ot_array, Ot_array.OtArray)
-
-def test_oht_array():
-    from groupy.garray import Oht_array
-    check_space_group(Oht_array, Oht_array.OhtArray)
 
 def check_space_group(garray_module, garray_class):
     a = garray_module.rand(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2, size=(2, 3))
@@ -61,7 +83,6 @@ def check_space_group(garray_module, garray_class):
     check_closed_inverse(m)
 
 def check_wallpaper_group(garray_module, garray_class):
-
     a = garray_module.rand(minu=-1, maxu=2, minv=-1, maxv=2, size=(2, 3))
     b = garray_module.rand(minu=-1, maxu=2, minv=-1, maxv=2, size=(2, 3))
     c = garray_module.rand(minu=-1, maxu=2, minv=-1, maxv=2, size=(2, 3))
@@ -80,7 +101,6 @@ def check_wallpaper_group(garray_module, garray_class):
 
 
 def check_finite_group(garray_module, garray_class, G):
-
     a = garray_module.rand()
     b = garray_module.rand()
     c = garray_module.rand()
@@ -114,6 +134,7 @@ def check_inverse(garray_module, a):
     assert (a * a.inv() == e).all()
     assert (a.inv().inv() == a).all()
 
+
 def check_garray_equal_as_sets(G, H):
     """
     Check that two GArrays G and H are equal as sets,
@@ -129,6 +150,7 @@ def check_garray_equal_as_sets(G, H):
     for i in range(Hf.size):
         hi = Hf[i]
         assert (hi == G).sum() > 0
+
 
 def check_closed_composition(G):
     """
