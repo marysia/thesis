@@ -1,9 +1,8 @@
-
 import tensorflow as tf
 
-from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices,\
+from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices, \
     make_d4_z2_indices, make_d4_p4m_indices, flatten_indices
-from groupy.gconv.tensorflow_gconv.transform_filter import transform_filter_2d_nchw, transform_filter_2d_nhwc
+from groupy.gconv.tensorflow_gconv.transform_filter import transform_filter_2d_nhwc
 
 
 def gconv2d(input, filter, strides, padding, gconv_indices, gconv_shape_info,
@@ -38,7 +37,7 @@ def gconv2d(input, filter, strides, padding, gconv_indices, gconv_shape_info,
 
     # Convolve input with transformed filters
     conv = tf.nn.conv2d(input=input, filter=transformed_filter, strides=strides, padding=padding)
-    #conv = tf.nn.conv2d(input=input, filter=transformed_filter, strides=strides, padding=padding,
+    # conv = tf.nn.conv2d(input=input, filter=transformed_filter, strides=strides, padding=padding,
     #                    use_cudnn_on_gpu=use_cudnn_on_gpu, data_format=data_format, name=name)
 
     return conv
@@ -103,4 +102,4 @@ def gconv2d_addbias(input, bias, nti=8):
     :return: input with bias added
     """
     # input = tf.reshape(input, ())
-    pass # TODO
+    pass  # TODO

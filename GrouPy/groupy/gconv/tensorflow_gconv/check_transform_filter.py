@@ -1,12 +1,9 @@
-
 import numpy as np
 import tensorflow as tf
-
-from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices
+from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices, \
+    make_d4_z2_indices, make_d4_p4m_indices, flatten_indices
 from groupy.gconv.tensorflow_gconv.transform_filter import transform_filter_2d_nchw, transform_filter_2d_nhwc
 
-from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices,\
-    make_d4_z2_indices, make_d4_p4m_indices, flatten_indices
 
 # NOTE: it seems like loading tensorflow and Chainer in the same session is likely to result in problems.
 # I've disabled these tests for now (renamed to check_... instead of test_... so they are ignored by nose)
@@ -65,7 +62,6 @@ def check_d4_p4m():
 
 
 def tf_trans_filter(w, inds):
-
     flat_inds = flatten_indices(inds)
     no, ni, nti, n, _ = w.shape
     shape_info = (no, inds.shape[0], ni, nti, n)
@@ -83,8 +79,8 @@ def tf_trans_filter(w, inds):
     rwt = rwt.transpose(3, 2, 0, 1).reshape(no, nto, ni, nti, n, n)
     return rwt
 
-def tf_trans_filter2(w, inds):
 
+def tf_trans_filter2(w, inds):
     flat_inds = flatten_indices(inds)
     no, ni, nti, n, _ = w.shape
     shape_info = (no, inds.shape[0], ni, nti, n)
@@ -101,6 +97,7 @@ def tf_trans_filter2(w, inds):
     nto = inds.shape[0]
     rwt = rwt.reshape(no, nto, ni, nti, n, n)
     return rwt
+
 
 def ch_trans_filter(w, inds):
     from chainer import cuda, Variable

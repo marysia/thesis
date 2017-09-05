@@ -1,22 +1,28 @@
-
+import groupy.garray.O_array as O
+import groupy.garray.B_array as B
 import numpy as np
 import tensorflow as tf
-
 from groupy.gconv.tensorflow_gconv.splitgconv3d import gconv3d_util, gconv3d
-
-from groupy.gfunc.z3func_array import Z3FuncArray
 from groupy.gfunc.otfunc_array import OtFuncArray
-import groupy.garray.O_array as O
+from groupy.gfunc.btfunc_array import BtFuncArray
+from groupy.gfunc.z3func_array import Z3FuncArray
+
+from groupy.gconv.make_gconv_indices import make_o_z3_indices, make_b_z3_indices
+
 
 def check_o_z3_conv_equivariance():
     li = [3, 5, 7, 9]
     for ksize in li:
         try:
             im = np.random.randn(2, ksize, ksize, ksize, 1)
+
+            print('Im shape', im.shape)
             x, y = make_graph('Z3', 'O', ksize)
             check_equivariance(im, x, y, Z3FuncArray, OtFuncArray, O)
         except:
             print('O - Z3: Fails for ksize=', ksize)
+
+
 # works for ksize is odd and > 3
 def check_o_o_conv_equivariance():
     li = [3, 5, 7, 9]
@@ -27,6 +33,20 @@ def check_o_o_conv_equivariance():
             check_equivariance(im, x, y, OtFuncArray, OtFuncArray, O)
         except:
             print('O - O: Fails for ksize=', ksize)
+
+def check_b_z3_conv_equivariance():
+    ksize = 3
+    im = np.random.randn(2, ksize, ksize, ksize, 1)
+    print('Im shape', im.shape)
+    x, y = make_graph('Z3', 'B', ksize)
+    check_equivariance(im, x, y, Z3FuncArray, BtFuncArray, B)
+
+def check_b_b_conv_equivariance():
+    ksize = 3
+    im = np.random.randn(2, ksize, ksize, ksize, 8)
+    x, y = make_graph('B', 'B', ksize)
+    check_equivariance(im, x, y, BtFuncArray, BtFuncArray, B)
+
 
 def make_graph(h_input, h_output, ksize):
     gconv_indices, gconv_shape_info, w_shape = gconv3d_util(
@@ -42,7 +62,6 @@ def make_graph(h_input, h_output, ksize):
 
 
 def check_equivariance(im, input, output, input_array, output_array, point_group):
-
     # Transform the image
     f = input_array(im.transpose((0, 4, 1, 2, 3)))
     g = point_group.rand()

@@ -1,13 +1,12 @@
-
-import numpy as np
-import tensorflow as tf
-
-from groupy.gconv.tensorflow_gconv.splitgconv2d import gconv2d_util, gconv2d
-from groupy.gfunc.z2func_array import Z2FuncArray
-from groupy.gfunc.p4func_array import P4FuncArray
-from groupy.gfunc.p4mfunc_array import P4MFuncArray
 import groupy.garray.C4_array as C4a
 import groupy.garray.D4_array as D4a
+import numpy as np
+import tensorflow as tf
+from groupy.gconv.tensorflow_gconv.splitgconv2d import gconv2d_util, gconv2d
+from groupy.gfunc.p4func_array import P4FuncArray
+from groupy.gfunc.p4mfunc_array import P4MFuncArray
+from groupy.gfunc.z2func_array import Z2FuncArray
+
 
 # NOTE: it seems like loading tensorflow and Chainer in the same session is likely to result in problems.
 # I've disabled these tests for now (renamed to check_... instead of test_... so they are ignored by nose)
@@ -55,7 +54,6 @@ def make_graph(h_input, h_output, ksize):
 
 
 def check_equivariance(im, input, output, input_array, output_array, point_group):
-
     # Transform the image
     f = input_array(im.transpose((0, 3, 1, 2)))
     g = point_group.rand()
@@ -81,4 +79,3 @@ def check_equivariance(im, input, output, input_array, output_array, point_group
     print 'Size of yx: ', yx.size
 
     assert np.allclose(yx, r_fmap1_data, rtol=1e-5, atol=1e-3)
-

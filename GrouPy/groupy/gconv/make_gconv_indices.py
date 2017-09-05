@@ -1,19 +1,19 @@
-
 # Code for generating indices used in G-convolutions for various groups G.
 # The indices created by these functions are used to rotate and flip filters on the plane or on a group.
 # These indices depend only on the filter size, so they are created only once at the beginning of training.
 
 import numpy as np
-
 from groupy.garray.C4_array import C4
 from groupy.garray.D4_array import D4
-from groupy.garray.p4_array import C4_halfshift
 from groupy.garray.O_array import O
-from groupy.gfunc.z2func_array import Z2FuncArray
-from groupy.gfunc.z3func_array import Z3FuncArray
+from groupy.garray.B_array import B
+from groupy.garray.p4_array import C4_halfshift
+from groupy.gfunc.otfunc_array import OtFuncArray
+from groupy.gfunc.btfunc_array import BtFuncArray
 from groupy.gfunc.p4func_array import P4FuncArray
 from groupy.gfunc.p4mfunc_array import P4MFuncArray
-from groupy.gfunc.otfunc_array import OtFuncArray
+from groupy.gfunc.z2func_array import Z2FuncArray
+from groupy.gfunc.z3func_array import Z3FuncArray
 
 
 def make_c4_z2_indices(ksize):
@@ -40,6 +40,23 @@ def make_c4_p4_indices(ksize):
         li = f.left_translation_indices(C4[:, None, None, None])
     return li.astype('int32')
 
+def make_b_z3_indices(ksize):
+    assert ksize % 2 == 1
+    x = np.random.randn(1, ksize, ksize, ksize)
+    f = Z3FuncArray(v=x)
+    a = B[:, None, None, None, None]
+    uvw = f.left_translation_indices(a)
+    i = np.zeros(uvw.shape[:-1] + (1,))
+    iuvw = np.c_[i, uvw]
+    return iuvw.astype('int32')
+
+def make_b_bt_indices(ksize):
+    assert ksize % 2 == 1
+    x = np.random.randn(8, ksize, ksize, ksize)
+    f = BtFuncArray(v=x)
+    li = f.left_translation_indices(B[:, None, None, None, None])
+    return li.astype('int32')
+
 def make_o_z3_indices(ksize):
     assert ksize % 2 == 1
     x = np.random.randn(1, ksize, ksize, ksize)
@@ -57,7 +74,6 @@ def make_o_ot_indices(ksize):
     f = OtFuncArray(v=x)
     li = f.left_translation_indices(O[:, None, None, None, None])
     return li.astype('int32')
-
 
 
 def make_d4_z2_indices(ksize):
@@ -94,10 +110,11 @@ def flatten_indices(inds):
     T = inds[..., 0]  # shape (nto, nti, n, n)
     U = inds[..., 1]  # shape (nto, nti, n, n)
     V = inds[..., 2]  # shape (nto, nti, n, n)
-    #inds_flat = T * n * n + U * n + V
+    # inds_flat = T * n * n + U * n + V
     inds_flat = U * n * nti + V * nti + T
 
     return inds_flat
+
 
 def flatten_indices_3d(inds):
     """
@@ -119,6 +136,7 @@ def flatten_indices_3d(inds):
     inds_flat = U * n * n * nti + V * n * nti + W * nti + T
 
     return inds_flat
+
 
 li = [3, 5, 7, 9]
 for ksize in li:
