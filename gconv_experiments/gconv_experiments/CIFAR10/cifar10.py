@@ -1,10 +1,9 @@
-
 import os
+
 import numpy as np
 
 
 def get_cifar10_data(datadir, trainfn, valfn):
-
     assert os.path.exists(datadir), 'Datadir does not exist: %s' % datadir
 
     raw_datadir = os.path.join(datadir, 'cifar-10-batches-py')
@@ -115,7 +114,6 @@ def normalize(data, eps=1e-8):
 
 
 class PCA(object):
-
     def __init__(self, D, n_components):
         self.n_components = n_components
         self.U, self.S, self.m = self.fit(D, n_components)

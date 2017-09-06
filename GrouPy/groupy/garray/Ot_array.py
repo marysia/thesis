@@ -1,8 +1,7 @@
 import random
-import numpy as np
-from groupy.garray.finitegroup import FiniteGroup
-from groupy.garray.matrix_garray import MatrixGArray
 
+import numpy as np
+from groupy.garray.matrix_garray import MatrixGArray
 
 '''
 Implementation of the space group O that allows translations.
@@ -18,6 +17,8 @@ To accurately represent the translation, we use 4x4 homogeneous matrices
 
 Note: self.base_elements are 3x3 matrices.
 '''
+
+
 class OtArray(MatrixGArray):
     '''
     Implementation of space group Ot.
@@ -110,6 +111,7 @@ class OtArray(MatrixGArray):
         element_list.sort()
         return element_list
 
+
 def identity(shape=(), p='int'):
     '''
     Returns the identity element: a matrix with 1's on the diagonal.
@@ -118,20 +120,20 @@ def identity(shape=(), p='int'):
     e = OtArray(data=np.array(li, dtype=np.int), p='hmat')
     return e.reparameterize(p)
 
+
 def rand(minu, maxu, minv, maxv, minw, maxw, size=()):
     '''
     Returns an OtArray of shape size, with randomly chosen elements in int parameterization.
     '''
-    data = np.zeros(size + (4, ), dtype=np.int64)
+    data = np.zeros(size + (4,), dtype=np.int64)
     data[..., 0] = np.random.randint(0, 24, size)
     data[..., 1] = np.random.randint(minu, maxu, size)
     data[..., 2] = np.random.randint(minv, maxv, size)
     data[..., 3] = np.random.randint(minw, maxw, size)
     return OtArray(data=data, p='int')
 
+
 def meshgrid(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2):
     li = [[i, u, v, w] for i in xrange(24) for u in xrange(minu, maxu) for v in xrange(minv, maxv) for
-     w in xrange(minw, maxw)]
+          w in xrange(minw, maxw)]
     return OtArray(li, p='int')
-
-

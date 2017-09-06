@@ -1,14 +1,11 @@
-
 # Convert mnist-rot data format and create train/val/test splits
 
-import os
 import argparse
+import os
 
 import numpy as np
 
-
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str)
     args = vars(parser.parse_args())
@@ -29,6 +26,3 @@ if __name__ == '__main__':
     np.savez(os.path.join(args['datadir'], 'train.npz'), data=train_val_data[:10000], labels=train_val_labels[:10000])
     np.savez(os.path.join(args['datadir'], 'valid.npz'), data=train_val_data[10000:], labels=train_val_labels[10000:])
     np.savez(os.path.join(args['datadir'], 'test.npz'), data=test_data, labels=test_labels)
-    
-    
-

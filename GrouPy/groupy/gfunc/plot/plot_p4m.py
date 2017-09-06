@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
+from groupy.gfunc.plot.plot_z2 import plot_z2
 from matplotlib.lines import Line2D
 from matplotlib.patches import FancyArrowPatch
-
-from groupy.gfunc.plot.plot_z2 import plot_z2
 
 
 # Miniature plot:
@@ -185,106 +184,111 @@ def plot_p4m(f, fignum=None, rlabels='cayley_mr', rcolor='red', mcolor='blue', r
 
     # Draw rotation arrows
     arrow = FancyArrowPatch(
-            pt_e_r,
-            pt_r_e,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=10, angleB=-100',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle
+        pt_e_r,
+        pt_r_e,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=10, angleB=-100',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle
     )
     fig.patches.append(arrow)
 
     arrow = FancyArrowPatch(
-            pt_r_r2,
-            pt_r2_r,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=100, angleB=170',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle
+        pt_r_r2,
+        pt_r2_r,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=100, angleB=170',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle
     )
     fig.patches.append(arrow)
 
     arrow = FancyArrowPatch(
-            pt_r2_r3,
-            pt_r3_r2,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=190, angleB=260',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle
+        pt_r2_r3,
+        pt_r3_r2,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=190, angleB=260',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle
     )
     fig.patches.append(arrow)
 
     arrow = FancyArrowPatch(
-            pt_r3_e,
-            pt_e_r3,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=280, angleB=-10',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle
+        pt_r3_e,
+        pt_e_r3,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=280, angleB=-10',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle
     )
     fig.patches.append(arrow)
 
     arrow = FancyArrowPatch(
-            pt_m_mr,
-            pt_mr_m,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=170, angleB=280',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle
+        pt_m_mr,
+        pt_mr_m,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=170, angleB=280',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle
     )
     fig.patches.append(arrow)
 
     arrow = FancyArrowPatch(
-            pt_mr_mr2,
-            pt_mr2_mr,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=260, angleB=10',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle
+        pt_mr_mr2,
+        pt_mr2_mr,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=260, angleB=10',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle
     )
     fig.patches.append(arrow)
 
     arrow = FancyArrowPatch(
-            pt_mr2_mr3,
-            pt_mr3_mr2,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=-10, angleB=100',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle
+        pt_mr2_mr3,
+        pt_mr3_mr2,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=-10, angleB=100',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle
     )
     fig.patches.append(arrow)
 
     arrow = FancyArrowPatch(
-            pt_mr3_m,
-            pt_m_mr3,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=260, angleB=10',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle
+        pt_mr3_m,
+        pt_m_mr3,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=260, angleB=10',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle
     )
     fig.patches.append(arrow)
 
     # Draw mirror lines
-    main_ax.add_line(Line2D((pt_e_m[0], pt_m_e[0]), (pt_e_m[1], pt_m_e[1]), zorder=0, linewidth=4, color=mcolor, transform=fig.transFigure, linestyle=mlinestyle))
-    main_ax.add_line(Line2D((pt_r_mr3[0], pt_mr3_r[0]), (pt_r_mr3[1], pt_mr3_r[1]), zorder=0, linewidth=4, color=mcolor, transform=fig.transFigure, linestyle=mlinestyle))
-    main_ax.add_line(Line2D((pt_r2_mr2[0], pt_mr2_r2[0]), (pt_r2_mr2[1], pt_mr2_r2[1]), zorder=0, linewidth=4, color=mcolor, transform=fig.transFigure, linestyle=mlinestyle))
-    main_ax.add_line(Line2D((pt_r3_mr[0], pt_mr_r3[0]), (pt_r3_mr[1], pt_mr_r3[1]), zorder=0, linewidth=4, color=mcolor, transform=fig.transFigure, linestyle=mlinestyle))
+    main_ax.add_line(Line2D((pt_e_m[0], pt_m_e[0]), (pt_e_m[1], pt_m_e[1]), zorder=0, linewidth=4, color=mcolor,
+                            transform=fig.transFigure, linestyle=mlinestyle))
+    main_ax.add_line(Line2D((pt_r_mr3[0], pt_mr3_r[0]), (pt_r_mr3[1], pt_mr3_r[1]), zorder=0, linewidth=4, color=mcolor,
+                            transform=fig.transFigure, linestyle=mlinestyle))
+    main_ax.add_line(
+        Line2D((pt_r2_mr2[0], pt_mr2_r2[0]), (pt_r2_mr2[1], pt_mr2_r2[1]), zorder=0, linewidth=4, color=mcolor,
+               transform=fig.transFigure, linestyle=mlinestyle))
+    main_ax.add_line(Line2D((pt_r3_mr[0], pt_mr_r3[0]), (pt_r3_mr[1], pt_mr_r3[1]), zorder=0, linewidth=4, color=mcolor,
+                            transform=fig.transFigure, linestyle=mlinestyle))
 
     main_ax.axis('off')
 

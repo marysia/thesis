@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from groupy.gfunc.plot.plot_z2 import plot_z2
 from groupy.gfunc.plot.plot_p4 import plot_p4
 from groupy.gfunc.plot.plot_p4m import plot_p4m
+from groupy.gfunc.plot.plot_z2 import plot_z2
+
 
 # Code used to create the figures in
 # T.S. Cohen, M. Welling, Group Equivariant Convolutional Networks.
@@ -25,7 +26,6 @@ def paper_plots_p4():
 
 
 def gif_p4():
-
     im_e, fmaps_e = testplot_p4(r=0)
     im_r, fmaps_r = testplot_p4(r=1)
     im_r2, fmaps_r2 = testplot_p4(r=2)
@@ -117,7 +117,6 @@ def paper_plots_p4m():
 
 
 def testplot_p4m(im=None, m=0, r=0):
-
     if im is None:
         im = np.zeros((5, 5), dtype='float32')
         im[0:5, 1] = 1.
@@ -131,6 +130,7 @@ def testplot_p4m(im=None, m=0, r=0):
         rot = D4Array([flip, theta_index], 'int')
         rot_imf = rot * imf
         return rot_imf.v
+
     im = rotate_flip_z2_func(im, m, r)
 
     filter_e = np.array([[-1., -4., 1.],
@@ -144,7 +144,8 @@ def testplot_p4m(im=None, m=0, r=0):
     print im.shape
 
     imv = Variable(cuda.to_gpu(im.astype('float32').reshape(1, 1, 5, 5)))
-    conv = P4MConvZ2(in_channels=1, out_channels=1, ksize=3, pad=2, flat_channels=True, initialW=filter_e.reshape(1, 1, 1, 3, 3))
+    conv = P4MConvZ2(in_channels=1, out_channels=1, ksize=3, pad=2, flat_channels=True,
+                     initialW=filter_e.reshape(1, 1, 1, 3, 3))
     conv.to_gpu()
     conv_imv = conv(imv)
     print im.shape, conv_imv.data.shape

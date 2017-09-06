@@ -1,9 +1,7 @@
-
-#TODO check axioms in unit test instead of in constructor
+# TODO check axioms in unit test instead of in constructor
 
 
 class FiniteGroup(object):
-
     def __init__(self, garray_type):
 
         if not isinstance(self, garray_type):
@@ -21,12 +19,12 @@ class FiniteGroup(object):
             # Inverse must be in G
             if not g.inv() in self:
                 continue
-                #aise ValueError('FiniteGroup not closed under inverses: inv(' + str(g) + ') = ' + str(g.inv()))
+                # aise ValueError('FiniteGroup not closed under inverses: inv(' + str(g) + ') = ' + str(g.inv()))
 
             for h in self:
                 if not g * h in self:
                     continue
-                    #raise ValueError('FiniteGroup not closed under products: ' + str(g) + str(h) + ' = ' + str(g * h))
+                    # raise ValueError('FiniteGroup not closed under products: ' + str(g) + str(h) + ' = ' + str(g * h))
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):

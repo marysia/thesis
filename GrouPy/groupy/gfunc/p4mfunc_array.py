@@ -1,10 +1,8 @@
-
 import groupy.garray.p4m_array as p4ma
 from groupy.gfunc.gfuncarray import GFuncArray
 
 
 class P4MFuncArray(GFuncArray):
-
     def __init__(self, v, umin=None, umax=None, vmin=None, vmax=None):
 
         if umin is None or umax is None or vmin is None or vmax is None:

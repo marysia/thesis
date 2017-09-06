@@ -1,11 +1,10 @@
-
 import copy
+
 import numpy as np
 from groupy.garray.garray import GArray
 
 
 class GFuncArray(object):
-
     def __init__(self, v, i2g):
         """
         A GFunc is a discretely sampled function on a group or homogeneous space G.
@@ -70,6 +69,7 @@ class GFuncArray(object):
         """
         Evaluate the G-func at the sample points
         """
+        return self
         if not isinstance(sample_points, type(self.i2g)):
             raise TypeError('Invalid type ' + str(type(sample_points)) + ' expected ' + str(type(self.i2g)))
 

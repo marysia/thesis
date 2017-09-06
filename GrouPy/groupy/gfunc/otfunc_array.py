@@ -5,7 +5,7 @@ from groupy.gfunc.gfuncarray import GFuncArray
 class OtFuncArray(GFuncArray):
     def __init__(self, v, umin=None, umax=None, vmin=None, vmax=None, wmin=None, wmax=None):
 
-        #TODO: error message
+        # TODO: error message
         if umin is None or umax is None or vmin is None or vmax is None:
             if not (umin is None and umax is None and vmin is None and vmax is None):
                 raise ValueError('Either all or none of umin, umax, vmin, vmax must equal None')

@@ -2,7 +2,6 @@
 Temporary file for importing and trying out various functions; ignore
 '''
 
-
 import test_garray
 
 print 'Testing O and Oh'

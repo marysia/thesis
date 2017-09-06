@@ -1,10 +1,9 @@
-
-import numpy as np
 import groupy.garray.p4_array as p4a
+import numpy as np
 from groupy.gfunc.gfuncarray import GFuncArray
 
-class P4FuncArray(GFuncArray):
 
+class P4FuncArray(GFuncArray):
     def __init__(self, v, umin=None, umax=None, vmin=None, vmax=None):
 
         if umin is None or umax is None or vmin is None or vmax is None:
@@ -47,8 +46,7 @@ class P4FuncArray(GFuncArray):
 
 
 def tst():
-
-    from groupy.garray.p4_array import P4Array, meshgrid, u_range, v_range, rotation, translation
+    from groupy.garray.p4_array import meshgrid, u_range, v_range, rotation
 
     x = np.random.randn(4, 3, 3)
     c = meshgrid(u=u_range(-1, 2), v=v_range(-1, 2))

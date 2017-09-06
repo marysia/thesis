@@ -1,10 +1,8 @@
-
 import groupy.garray.Z2_array as z2a
 from groupy.gfunc.gfuncarray import GFuncArray
 
 
 class Z2FuncArray(GFuncArray):
-
     def __init__(self, v, umin=None, umax=None, vmin=None, vmax=None):
 
         if umin is None or umax is None or vmin is None or vmax is None:

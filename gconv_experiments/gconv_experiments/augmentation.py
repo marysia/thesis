@@ -1,13 +1,12 @@
-
 import numpy as np
 import skimage.transform as tf
 from scipy.ndimage import shift
+
 
 # TODO: multithreading
 
 
 def rotate_transform_batch(x, rotation=None):
-
     r = np.random.uniform(-0.5, 0.5, size=x.shape[0]) * rotation
 
     # hack; skimage.transform wants float images to be in [-1, 1]
@@ -47,7 +46,6 @@ D4 = np.array([
 
 
 def dihedral_transform_batch(x):
-
     g = np.random.randint(low=0, high=8, size=x.shape[0])
 
     h, w = x.shape[-2:]
@@ -70,7 +68,6 @@ def dihedral_transform_batch(x):
 
 
 def flip_transform_batch(x):
-
     g = np.random.randint(low=0, high=3, size=x.shape[0])
 
     x_out = np.empty_like(x)
@@ -86,7 +83,6 @@ def flip_transform_batch(x):
 
 
 def hflip_transform_batch(x):
-
     g = np.random.randint(low=0, high=2, size=x.shape[0])
 
     x_out = np.empty_like(x)
@@ -100,12 +96,10 @@ def hflip_transform_batch(x):
 
 
 def translate_transform_batch(x):
-
     t = (np.random.rand(x.shape[0], 2) - 0.5) * 4
 
     x_out = np.empty_like(x)
     for i in range(x.shape[0]):
-
         # Super slow but whatever...
         shift(x[i, 0], shift=t[i], output=x_out[i, 0], order=3, mode='reflect')
         shift(x[i, 1], shift=t[i], output=x_out[i, 1], order=3, mode='reflect')

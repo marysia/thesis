@@ -45,6 +45,12 @@ class Data:
         if not self.balanced:
             self.set_balanced_values()
 
+    def resize(self, samples):
+        if not samples > len(self.x):
+            self.x = self.x[:samples]
+            self.y = self.y[:samples]
+            self.id = self.id[:samples]
+
     def get_images(self):
         return self.x
 
@@ -64,8 +70,10 @@ class Data:
     def get_balanced_batch(self, i, batch_size):
         start = i * batch_size
         end = (i + 1) * batch_size
-
-        return self.x[start:end], self.y[start:end]
+        if len(self.x) > end:
+            return self.x[start:end], self.y[start:end]
+        else:
+            return self.x[-batch_size:], self.y[-batch_size:]
 
     def get_unbalanced_batch(self, i, batch_size):
         f = int(batch_size / self.fraction)

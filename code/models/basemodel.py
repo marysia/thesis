@@ -10,8 +10,9 @@ from util.helpers import progress
 
 
 class BaseModel:
-    def __init__(self, name, data):
+    def __init__(self, name, group, data):
         self.model_name = name
+        self.group = group
         self.data = data
 
         with tf.name_scope('Placeholders'):

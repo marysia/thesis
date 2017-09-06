@@ -19,6 +19,7 @@ def test_ot_net_equivariance():
         point_group=o,
     )
 
+
 def test_p4_net_equivariance():
     from groupy.gfunc import Z2FuncArray, P4FuncArray
     import groupy.garray.C4_array as c4a
@@ -111,7 +112,6 @@ def test_p4m_p4m_conv_equivariance():
 
 
 def check_equivariance(im, layers, input_array, output_array, point_group):
-
     # Transform the image
     f = input_array(im)
     g = point_group.rand()

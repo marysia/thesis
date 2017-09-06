@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch
-
 from groupy.gfunc.plot import plot_z2
+from matplotlib.patches import FancyArrowPatch
 
 
 def plot_p4(f, fignum=None, rlabels='cayley', rcolor='red', rlinestyle='-',
@@ -48,7 +47,8 @@ def plot_p4(f, fignum=None, rlabels='cayley', rcolor='red', rlinestyle='-',
     ax_r3 = fig.add_subplot(3, 3, 6)
     plot_z2(f[3], fignum=fignum)
     ax_r3.yaxis.set_label_position('left')
-    ax_r3.set_ylabel(rlabel_names[rlabels][3], fontsize=fontsize, rotation='horizontal', va='center', labelpad=labelpad_factor_2 * fontsize)
+    ax_r3.set_ylabel(rlabel_names[rlabels][3], fontsize=fontsize, rotation='horizontal', va='center',
+                     labelpad=labelpad_factor_2 * fontsize)
     ax_r3.set_xticks([])
     ax_r3.set_yticks([])
 
@@ -62,7 +62,8 @@ def plot_p4(f, fignum=None, rlabels='cayley', rcolor='red', rlinestyle='-',
     ax_r = fig.add_subplot(3, 3, 4)
     plot_z2(f[1], fignum=fignum)
     ax_r.yaxis.set_label_position('right')
-    ax_r.set_ylabel(rlabel_names[rlabels][1], fontsize=fontsize, rotation=0, va='center', labelpad=labelpad_factor_2 * fontsize)
+    ax_r.set_ylabel(rlabel_names[rlabels][1], fontsize=fontsize, rotation=0, va='center',
+                    labelpad=labelpad_factor_2 * fontsize)
     ax_r.set_xticks([])
     ax_r.set_yticks([])
 
@@ -87,50 +88,50 @@ def plot_p4(f, fignum=None, rlabels='cayley', rcolor='red', rlinestyle='-',
     pt_e_r3 = figtr.transform(ax_e.transData.transform(pt_right))
 
     arrow = FancyArrowPatch(
-            pt_e_r,
-            pt_r_e,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=10, angleB=-100',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle,
+        pt_e_r,
+        pt_r_e,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=10, angleB=-100',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle,
     )
     fig.patches.append(arrow)
 
     arrow = FancyArrowPatch(
-            pt_r_r2,
-            pt_r2_r,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=100, angleB=170',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle,
+        pt_r_r2,
+        pt_r2_r,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=100, angleB=170',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle,
     )
     fig.patches.append(arrow)
 
     arrow = FancyArrowPatch(
-            pt_r2_r3,
-            pt_r3_r2,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=190, angleB=260',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle,
+        pt_r2_r3,
+        pt_r3_r2,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=190, angleB=260',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle,
     )
     fig.patches.append(arrow)
 
     arrow = FancyArrowPatch(
-            pt_r3_e,
-            pt_e_r3,
-            transform=fig.transFigure,
-            connectionstyle='angle3, angleA=280, angleB=-10',
-            arrowstyle='->,head_length=3.5,head_width=2.5',
-            lw='2.0',
-            color=rcolor,
-            linestyle=rlinestyle,
+        pt_r3_e,
+        pt_e_r3,
+        transform=fig.transFigure,
+        connectionstyle='angle3, angleA=280, angleB=-10',
+        arrowstyle='->,head_length=3.5,head_width=2.5',
+        lw='2.0',
+        color=rcolor,
+        linestyle=rlinestyle,
     )
     fig.patches.append(arrow)
 

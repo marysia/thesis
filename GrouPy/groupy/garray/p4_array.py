@@ -1,7 +1,7 @@
-
 import numpy as np
-from groupy.garray.matrix_garray import MatrixGArray
 from groupy.garray.Z2_array import Z2Array
+from groupy.garray.matrix_garray import MatrixGArray
+
 
 # A transformation in p4 can be coded using three integers:
 # r in {0, 1, 2, 3}, the rotation index
@@ -26,7 +26,6 @@ from groupy.garray.Z2_array import Z2Array
 
 
 class P4Array(MatrixGArray):
-
     parameterizations = ['int', 'hmat']
     _g_shapes = {'int': (3,), 'hmat': (3, 3)}
     _left_actions = {}

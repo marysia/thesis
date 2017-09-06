@@ -5,7 +5,7 @@ from groupy.gfunc.gfuncarray import GFuncArray
 class OhtFuncArray(GFuncArray):
     def __init__(self, v, umin=None, umax=None, vmin=None, vmax=None, wmin=None, wmax=None):
 
-        #TODO: error message
+        # TODO: error message
         if umin is None or umax is None or vmin is None or vmax is None:
             if not (umin is None and umax is None and vmin is None and vmax is None):
                 raise ValueError('Either all or none of umin, umax, vmin, vmax must equal None')
@@ -44,11 +44,7 @@ class OhtFuncArray(GFuncArray):
 
         super(OhtFuncArray, self).__init__(v=v, i2g=i2g)
 
-
     def g2i(self, g):
-        '''
-        what
-        '''
         gint = g.reparameterize('int').data.copy()
 
         gint[..., 2] -= self.umin
@@ -56,6 +52,6 @@ class OhtFuncArray(GFuncArray):
         gint[..., 4] -= self.wmin
 
         # flat stabilizer: instead of (24, 2, ...) use (48, ...)
-        gint[..., 1] += gint[..., 0] * 2
+        gint[..., 1] += gint[..., 0] * 2    # multiply by 2 because 2 reflections for each of the 24 elements.
         gint = gint[..., 1:]
         return gint

@@ -2,13 +2,13 @@ import cupy as cp
 import numpy as np
 from chainer import Variable
 from chainer import cuda
+from groupy.gconv.chainer_gconv.transform_filter import TransformGFilter, TransformGFilter3D
+from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices, \
+    make_d4_z2_indices, make_d4_p4m_indices, make_o_z3_indices
+
 
 # TODO: check that sequential transforms match the application of a composition of transforms: g (h f) = (gh) f
 # TODO: check that applying a transformation and its inverse leaves the signal invariant g^-1 (g f) = f
-
-from groupy.gconv.make_gconv_indices import make_c4_z2_indices, make_c4_p4_indices,\
-    make_d4_z2_indices, make_d4_p4m_indices, make_o_z3_indices
-from groupy.gconv.chainer_gconv.transform_filter import TransformGFilter, TransformGFilter3D
 
 
 def test_transform_grad():
@@ -73,5 +73,6 @@ def check_transform_grad(inds, w, transformer, dtype, toll):
 
     print dtype, toll, relerr
     assert relerr < toll
+
 
 check_transform_o_z3_grad()

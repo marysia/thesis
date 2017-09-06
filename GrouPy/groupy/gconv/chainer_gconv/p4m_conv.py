@@ -3,7 +3,6 @@ from groupy.gconv.make_gconv_indices import make_d4_z2_indices, make_d4_p4m_indi
 
 
 class P4MConvZ2(SplitGConv2D):
-
     input_stabilizer_size = 1
     output_stabilizer_size = 8
 
@@ -12,7 +11,6 @@ class P4MConvZ2(SplitGConv2D):
 
 
 class P4MConvP4M(SplitGConv2D):
-
     input_stabilizer_size = 8
     output_stabilizer_size = 8
 

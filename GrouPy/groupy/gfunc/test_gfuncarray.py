@@ -1,14 +1,18 @@
 import numpy as np
 
+
 def test_ot_func():
     from groupy.gfunc.otfunc_array import OtFuncArray
     import groupy.garray.O_array as o
 
+    print('Hello')
     v = np.random.randn(2, 6, 24, 5, 5, 5)
     f = OtFuncArray(v=v)
 
     g = o.rand(size=(1,))
     h = o.rand(size=(1,))
+    print(g)
+    print(h)
 
     check_associative(g, h, f)
     check_identity(o, f)
@@ -20,7 +24,7 @@ def test_oht_func():
     from groupy.gfunc.ohtfunc_array import OhtFuncArray
     import groupy.garray.Oh_array as oh
 
-    v = np.random.randn(2, 6, 48, 5, 5, 5)
+    v = np.random.randn(2, 6, 48, 1, 1, 1)
     f = OhtFuncArray(v=v)
 
     g = oh.rand(size=(1,))
@@ -28,6 +32,36 @@ def test_oht_func():
 
     check_associative(g, h, f)
     check_identity(oh, f)
+    check_invertible(g, f)
+    check_i2g_g2i_invertible(f)
+
+def test_bt_func():
+    from groupy.gfunc.btfunc_array import BtFuncArray
+    import groupy.garray.B_array as b
+
+    v = np.random.randn(2, 6, 8, 3, 3, 3)
+    f = BtFuncArray(v=v)
+
+    g = b.rand(size=(1,))
+    h = b.rand(size=(1,))
+
+    check_associative(g, h, f)
+    check_identity(b, f)
+    check_invertible(g, f)
+    check_i2g_g2i_invertible(f)
+
+def test_brt_func():
+    from groupy.gfunc.brtfunc_array import BrtFuncArray
+    import groupy.garray.Br_array as br
+
+    v = np.random.randn(2, 6, 16, 3, 3, 3)
+    f = BrtFuncArray(v=v)
+
+    g = br.rand(size=(1,))
+    h = br.rand(size=(1,))
+
+    check_associative(g, h, f)
+    check_identity(br, f)
     check_invertible(g, f)
     check_i2g_g2i_invertible(f)
 
@@ -112,6 +146,7 @@ def test_z3_func():
     check_invertible(g, f)
     check_i2g_g2i_invertible(f)
 
+
 def check_associative(g, h, f):
     gh = g * h
     hf = h * f
@@ -129,20 +164,22 @@ def check_invertible(g, f):
     a = g.inv()
     b = (g * f)
     c = a * b
-    assert(c.v == f.v).all()
+    assert (c.v == f.v).all()
 
 
 
-  #  assert ((g.inv() * (g * f)).v == f.v).all()
+    #  assert ((g.inv() * (g * f)).v == f.v).all()
 
 
 def check_i2g_g2i_invertible(f):
     i2g = f.i2g
     i = f.g2i(i2g)
     inds = [i[..., j] for j in range(i.shape[-1])]
+
+
+    print('i2g', i2g.shape)
+    print('i', i.shape)
+    print('len inds', len(inds))
+    b = i2g[inds]
+    print('b ', b.shape)
     assert (i2g[inds] == i2g).all()
-
-
-
-
-

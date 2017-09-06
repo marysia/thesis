@@ -1,23 +1,20 @@
-
-import ast
 import argparse
-import logging
-import time
-import os
+import ast
 import imp
+import logging
+import os
 import shutil
 import subprocess
-
-import numpy as np
+import time
 
 import chainer
-from chainer import optimizers, cuda, serializers, Variable
 import cupy as cp
-
+import numpy as np
+from chainer import optimizers, cuda, serializers, Variable
+from gconv_experiments.augmentation import rotate_transform_batch, hflip_transform_batch, \
+    dihedral_transform_batch, translate_transform_batch
 from progressbar import ProgressBar
 
-from gconv_experiments.augmentation import rotate_transform_batch, hflip_transform_batch,\
-    dihedral_transform_batch, translate_transform_batch
 from cifar10 import get_cifar10_data
 
 
@@ -67,7 +64,6 @@ def get_model_and_optimizer(result_dir, modelfn, opt, opt_kwargs, net_kwargs, gp
 
 
 def do_epoch(data, labels, model, optimizer, batchsize, transformations, silent, train=True, gpu=0, finetune=False):
-
     N = data.shape[0]
     pbar = ProgressBar(0, N)
     perm = np.random.permutation(N)
@@ -121,23 +117,22 @@ def do_epoch(data, labels, model, optimizer, batchsize, transformations, silent,
 
 
 def train(
-    datadir,
-    resultdir,
-    modelfn, trainfn, valfn,
-    epochs, batchsize,
-    opt, opt_kwargs,
-    net_kwargs,
-    transformations,
-    val_freq,
-    save_freq,
-    weight_decay,
-    lr_decay_schedule,
-    lr_decay_factor,
-    gpu,
-    seed,
-    silent=False,
-    logme=None):
-
+        datadir,
+        resultdir,
+        modelfn, trainfn, valfn,
+        epochs, batchsize,
+        opt, opt_kwargs,
+        net_kwargs,
+        transformations,
+        val_freq,
+        save_freq,
+        weight_decay,
+        lr_decay_schedule,
+        lr_decay_factor,
+        gpu,
+        seed,
+        silent=False,
+        logme=None):
     # Set the seed
     np.random.seed(seed)
     cp.random.seed(seed)
@@ -190,7 +185,6 @@ def train(
         logging.info(msg)
 
         if epoch % val_freq == 0:
-
             # TODO: finetune in last epoch *before* validation epoch?
             logging.info('START FINETUNING')
             model.start_finetuning()
@@ -283,4 +277,5 @@ if __name__ == '__main__':
     print 'Final validation error:', val_error
     print 'Saving model...'
     import chainer.serializers as sl
+
     sl.save_hdf5('./my.model', model)

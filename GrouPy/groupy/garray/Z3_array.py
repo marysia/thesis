@@ -1,10 +1,9 @@
-
 import numpy as np
 
 from groupy.garray.garray import GArray
 
-class Z3Array(GArray):
 
+class Z3Array(GArray):
     parameterizations = ['int']
     _left_actions = {}
     _reparameterizations = {}
@@ -49,11 +48,12 @@ def rand(minu, maxu, minv, maxv, minw, maxw, size=()):
     data[..., 2] = np.random.randint(minw, maxw, size)
     return Z3Array(data=data, p='int')
 
+
 def meshgrid(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2):
     '''
     Creates a meshgrid of all elements of the group, within the given
     translation parameters.
     '''
     li = [[u, v, w] for u in xrange(minu, maxu) for v in xrange(minv, maxv) for
-     w in xrange(minw, maxw)]
+          w in xrange(minw, maxw)]
     return Z3Array(li, p='int')

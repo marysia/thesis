@@ -1,6 +1,7 @@
-
 import copy
+
 import numpy as np
+
 
 # TODO: add checks in constructor to make sure data argument is well formed (for the given parameterization).
 # TODO: for example, for a finite group, when p=='int', we want data >= 0 and data <= order_of_G
@@ -136,7 +137,7 @@ class GArray(object):
             return self.shape[0]
         else:
             return 1
-    
+
     def __getitem__(self, key):
         # We return a factory here instead of self.__class__(..) so that a subclass
         # can decide what type the result should have.

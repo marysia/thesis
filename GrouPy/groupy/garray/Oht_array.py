@@ -1,7 +1,7 @@
-import random
 import copy
+import random
+
 import numpy as np
-from groupy.garray.finitegroup import FiniteGroup
 from groupy.garray.matrix_garray import MatrixGArray
 
 '''
@@ -20,6 +20,7 @@ To accurately represent the translation, we use 4x4 homogeneous matrices
 Note: self.base_elements are 3x3 matrices.
 '''
 
+
 class OhtArray(MatrixGArray):
     parameterizations = ['int', 'hmat']
     _g_shapes = {'int': (5,), 'hmat': (4, 4)}
@@ -33,7 +34,6 @@ class OhtArray(MatrixGArray):
         self._left_actions[OhtArray] = self.__class__.left_action_hmat
         super(OhtArray, self).__init__(data, p)
         self.base_elements = self.get_base_elements()
-
 
     def hmat2int(self, hmat_data):
         '''
@@ -105,7 +105,6 @@ class OhtArray(MatrixGArray):
         i = self.base_elements.index(orig_data.tolist())
         return i, m
 
-
     def get_base_elements(self):
         '''
         Function to generate a list containing elements of group Oh,
@@ -132,13 +131,14 @@ def rand(minu, maxu, minv, maxv, minw, maxw, size=()):
     '''
     Returns an OhtArray of shape size, with randomly chosen elements in int parameterization.
     '''
-    data = np.zeros(size + (5, ), dtype=np.int64)
+    data = np.zeros(size + (5,), dtype=np.int64)
     data[..., 0] = np.random.randint(0, 24, size)
     data[..., 1] = np.random.randint(0, 2, size)
     data[..., 2] = np.random.randint(minu, maxu, size)
     data[..., 3] = np.random.randint(minv, maxv, size)
     data[..., 4] = np.random.randint(minw, maxw, size)
     return OhtArray(data=data, p='int')
+
 
 def identity(p='int'):
     '''
@@ -148,13 +148,13 @@ def identity(p='int'):
     e = OhtArray(data=np.array(li, dtype=np.int), p='hmat')
     return e.reparameterize(p)
 
+
 def meshgrid(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2):
     '''
     Creates a meshgrid of all elements of the group, within the given
     translation parameters.
     '''
-    li = [[i, m, u, v, w] for i in xrange(24) for m in xrange(2) for u in xrange(minu, maxu) for v in xrange(minv, maxv) for
-     w in xrange(minw, maxw)]
+    li = [[i, m, u, v, w] for i in xrange(24) for m in xrange(2) for u in xrange(minu, maxu) for v in xrange(minv, maxv)
+          for
+          w in xrange(minw, maxw)]
     return OhtArray(li, p='int')
-
-

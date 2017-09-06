@@ -1,6 +1,6 @@
-
 import ast
 import sys
+
 sys.path.append('../../')
 import argparse
 import logging
@@ -62,7 +62,6 @@ def get_model_and_optimizer(result_dir, modelfn, opt, opt_kwargs, net_kwargs, gp
 
 
 def preprocess_mnist_data(train_data, test_data, train_labels, test_labels):
-
     train_mean = np.mean(train_data)  # compute mean over all pixels make sure equivariance is preserved
     train_data -= train_mean
     test_data -= train_mean
@@ -78,7 +77,6 @@ def preprocess_mnist_data(train_data, test_data, train_labels, test_labels):
 
 
 def train_epoch(train_data, train_labels, model, optimizer, batchsize, transformations, silent, gpu=0, finetune=False):
-
     N = train_data.shape[0]
     pbar = ProgressBar(0, N)
     perm = np.random.permutation(N)
@@ -144,17 +142,16 @@ def validate(test_data, test_labels, model, batchsize, silent, gpu):
 
 
 def train(
-    modelfn, trainfn, valfn,
-    epochs, batchsize,
-    opt, opt_kwargs,
-    net_kwargs,
-    transformations,
-    val_freq,
-    save_freq,
-    seed,
-    gpu,
-    silent=False, logme=None):
-
+        modelfn, trainfn, valfn,
+        epochs, batchsize,
+        opt, opt_kwargs,
+        net_kwargs,
+        transformations,
+        val_freq,
+        save_freq,
+        seed,
+        gpu,
+        silent=False, logme=None):
     # Set the seed
     np.random.seed(seed)
 
@@ -247,8 +244,8 @@ def train(
             print 'FINETUNING'
             model.start_finetuning()
             sum_loss, sum_accuracy = train_epoch(
-                    train_data, train_labels, model, optimizer,
-                    batchsize, transformations, silent, gpu, finetune=True)
+                train_data, train_labels, model, optimizer,
+                batchsize, transformations, silent, gpu, finetune=True)
             msg = 'epoch:{:02d}\tfinetune mean loss={}, error={}'.format(
                 epoch, sum_loss / n_train, 1. - sum_accuracy / n_train)
             logging.info(msg)
@@ -298,7 +295,8 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--batchsize', type=int, default=128)
 
-    parser.add_argument('--opt', type=str, default='Adam', choices=['MomentumSGD', 'Adam', 'AdaGrad', 'RMSprop', 'NesterovAG'])
+    parser.add_argument('--opt', type=str, default='Adam',
+                        choices=['MomentumSGD', 'Adam', 'AdaGrad', 'RMSprop', 'NesterovAG'])
     parser.add_argument('--opt_kwargs', type=ast.literal_eval, default={})  # {'alpha': 0.001})
 
     parser.add_argument('--net_kwargs', type=ast.literal_eval, default={})
@@ -335,4 +333,5 @@ if __name__ == '__main__':
     print 'Final validation error:', val_error
     print 'Saving model...'
     import chainer.serializers as sl
+
     sl.save_hdf5('./my.model', model)

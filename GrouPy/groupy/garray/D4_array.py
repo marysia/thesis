@@ -1,14 +1,11 @@
 import numpy as np
-from groupy.garray.garray import GArray
-from groupy.garray.finitegroup import FiniteGroup
-from groupy.garray.p4m_array import P4MArray
 from groupy.garray.Z2_array import Z2Array
-
+from groupy.garray.finitegroup import FiniteGroup
 from groupy.garray.matrix_garray import MatrixGArray
+from groupy.garray.p4m_array import P4MArray
 
 
 class D4Array(MatrixGArray):
-
     parameterizations = ['int', 'mat', 'hmat']
     _g_shapes = {'int': (2,), 'mat': (2, 2), 'hmat': (3, 3)}
     _left_actions = {}
@@ -49,7 +46,6 @@ class D4Array(MatrixGArray):
 
 
 class D4Group(FiniteGroup, D4Array):
-
     def __init__(self):
         D4Array.__init__(
             self,

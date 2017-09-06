@@ -1,13 +1,11 @@
 import math
 
-import numpy as np
-
 import chainer
 import chainer.functions as F
+import numpy as np
 from chainer import Variable
-from chainer.utils import type_check
-
 from groupy.gconv.chainer_gconv.transform_filter import TransformGFilter
+
 
 # Implementation note:
 # The standard operation computed by chainer's Convolution2D is the correlation with filter psi on the right:
@@ -121,7 +119,8 @@ class SplitGConv2D(chainer.Link):
         if filter_mask is not None:
             if not filter_mask.shape == (self.out_channels, self.in_channels, self.input_stabilizer_size):
                 raise ValueError('Invalid filter_mask shape. Got: ' + str(filter_mask.shape) +
-                                 '. Expected: ' + str((self.out_channels, self.in_channels, self.input_stabilizer_size)))
+                                 '. Expected: ' + str(
+                    (self.out_channels, self.in_channels, self.input_stabilizer_size)))
 
             filter_mask = filter_mask[..., None, None].astype(dtype)
 

@@ -1,4 +1,3 @@
-
 # Chainer Functions for rotating filters or feature maps
 
 from chainer import cuda
@@ -8,9 +7,9 @@ from chainer.utils import type_check
 from groupy.gconv.chainer_gconv.kernels.integer_indexing_cuda_kernel import grad_index_group_func_kernel
 from groupy.gconv.chainer_gconv.kernels.integer_indexing_cuda_kernel import index_group_func_kernel
 
-
 from groupy.gconv.chainer_gconv.kernels.integer_indexing_cuda_kernel_3d import grad_index_group_func_kernel_3d
 from groupy.gconv.chainer_gconv.kernels.integer_indexing_cuda_kernel_3d import index_group_func_kernel_3d
+
 
 class TransformGFilter3D(function.Function):
     """
@@ -40,7 +39,6 @@ class TransformGFilter3D(function.Function):
         # TODO: check x_type is float or double
 
     def forward_gpu(self, inputs):
-
         w, = inputs
         xp = cuda.get_array_module(w)
         och, ich, _, nz, ny, nx = w.shape
@@ -60,7 +58,6 @@ class TransformGFilter3D(function.Function):
         return rotated_w,
 
     def backward_gpu(self, inputs, grad_output):
-
         w, = inputs
         grad_rotated_w, = grad_output
         xp = cuda.get_array_module(w)
@@ -79,6 +76,7 @@ class TransformGFilter3D(function.Function):
         )
 
         return grad_w,
+
 
 class TransformGFilter(function.Function):
     """
@@ -107,7 +105,6 @@ class TransformGFilter(function.Function):
         # TODO: check x_type is float or double
 
     def forward_gpu(self, inputs):
-
         w, = inputs
         xp = cuda.get_array_module(w)
         och, ich, _, ny, nx = w.shape
@@ -126,7 +123,6 @@ class TransformGFilter(function.Function):
         return rotated_w,
 
     def backward_gpu(self, inputs, grad_output):
-
         w, = inputs
         grad_rotated_w, = grad_output
         xp = cuda.get_array_module(w)

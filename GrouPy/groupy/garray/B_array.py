@@ -92,8 +92,14 @@ class BArray(MatrixGArray):
         and 0, 1, 2, or 3 rotations over z.
         '''
         # specify generators
-        g1 = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])  # 180 degrees over y
-        g2 = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])  # 90 degrees over z
+        mode = 'zyx'
+        if mode == 'xyz':
+            g1 = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])  # 180 degrees over y
+            g2 = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])  # 90 degrees over z
+        elif mode == 'zyx':
+            g1 = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])  # 180 degrees over y
+            g2 = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]])  # 90 degrees over z
+
 
         element_list = []
         element = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])

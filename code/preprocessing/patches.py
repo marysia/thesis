@@ -10,13 +10,6 @@ class DataPatches(BaseData):
         self.name = 'fp-reduction-patches'
         self.shape = args.shape
         self.zoomed = args.zoomed
-        self.samples = args.samples
-
-        # quick hack for 2d patches data
-        if '2d' in args.data:
-            shape = list(args.shape)
-            shape[0] = 1
-            self.shape = tuple(shape)
 
         self.train_dataset = args.train
         self.val_dataset = args.val
@@ -70,11 +63,6 @@ class DataPatches(BaseData):
         labels = np.concatenate([np.ones(pos.shape[0]), np.zeros(neg.shape[0])])
 
         data, labels, p = self.shuffle(data, labels)
-
-        if scope == 'train' and self.samples != -100:
-            data = data[:self.samples]
-            labels = labels[:self.samples]
-            p = p[:self.samples]
 
         return Data(scope=scope, x=data, y=self._one_hot_encoding(labels, self.nb_classes), id=p, balanced=balanced)
 

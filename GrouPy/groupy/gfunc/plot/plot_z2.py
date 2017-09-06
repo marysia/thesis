@@ -1,11 +1,9 @@
-
-import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_z2(f, fignum=None, range=None, color_map='gray'):
-
     # plt.figure(fignum)
 
     if range is None:

@@ -1,10 +1,9 @@
-
 import numpy as np
 
 from groupy.garray.garray import GArray
 
-class Z2Array(GArray):
 
+class Z2Array(GArray):
     parameterizations = ['int']
     _left_actions = {}
     _reparameterizations = {}
@@ -59,7 +58,6 @@ def meshgrid(u=u_range(), v=v_range()):
     u = Z2Array(u.data[:, None, ...], p=u.p)
     v = Z2Array(v.data[None, :, ...], p=v.p)
     return u * v
-
 
 # def gmeshgrid(*args):
 #    out = identity()

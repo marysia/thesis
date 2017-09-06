@@ -1,10 +1,11 @@
-import random
 import copy
+import random
+
 import numpy as np
-from groupy.garray.finitegroup import FiniteGroup
-from groupy.garray.matrix_garray import MatrixGArray
 from groupy.garray.Oht_array import OhtArray
 from groupy.garray.Z3_array import Z3Array
+from groupy.garray.finitegroup import FiniteGroup
+from groupy.garray.matrix_garray import MatrixGArray
 
 '''
 Implementation of finite group Oh, the group of octahedral symmetry.
@@ -19,6 +20,7 @@ or not the element is a mirror (1 or -1).
 
 This group is also known as m3m.
 '''
+
 
 class OhArray(MatrixGArray):
     parameterizations = ['int', 'mat', 'hmat']
@@ -115,6 +117,7 @@ class OhArray(MatrixGArray):
             element_list.sort()
         return element_list
 
+
 class OhGroup(FiniteGroup, OhArray):
     def __init__(self):
         OhArray.__init__(
@@ -127,7 +130,9 @@ class OhGroup(FiniteGroup, OhArray):
     def factory(self, *args, **kwargs):
         return OhArray(*args, **kwargs)
 
+
 Oh = OhGroup()
+
 
 def rand(size=()):
     '''
@@ -138,6 +143,7 @@ def rand(size=()):
     data[..., 1] = np.random.randint(0, 2, size)
     return OhArray(data=data, p='int')
 
+
 def identity(p='int'):
     '''
     Returns the identity element: a matrix with 1's on the diagonal.
@@ -145,6 +151,7 @@ def identity(p='int'):
     li = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     e = OhArray(data=np.array(li, dtype=np.int), p='mat')
     return e.reparameterize(p)
+
 
 def meshgrid(i=24, m=2):
     '''

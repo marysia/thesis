@@ -111,8 +111,13 @@ class BtArray(MatrixGArray):
         These are the base elements in 3x3 matrix notation without translations.
         '''
         # specify generators
-        g1 = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])  # 180 degrees over y
-        g2 = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])  # 90 degrees over z
+        mode = 'zyx'
+        if mode == 'xyz':
+            g1 = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])  # 180 degrees over y
+            g2 = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])  # 90 degrees over z
+        elif mode == 'zyx':
+            g1 = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])  # 180 degrees over y
+            g2 = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]])  # 90 degrees over z
 
         element_list = []
         element = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])

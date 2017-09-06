@@ -8,7 +8,7 @@ from base_layers import batch_normalization, activation, weight_variable, bias_v
 def _channels(x, in_group, out_group, in_channels, out_channels):
     mapping = {'Z2': in_channels * in_channels,
                'Z3': in_channels * in_channels,
-               'C4': 4, 'D4': 8, 'O': 24}
+               'C4': 4, 'D4': 8, 'O': 24, 'B': 8}
     in_c = int(in_channels / round(np.sqrt(mapping[in_group])))
     out_c = int(out_channels / round(np.sqrt(mapping[out_group])))
     return in_c, out_c
@@ -36,8 +36,6 @@ def gconv_wrapper2d(x, in_group, out_group, ksize=3, in_channels=None, out_chann
     # to keep the same amount of parameters
     in_c, out_c = _channels(x, in_group, out_group, in_channels, out_channels)
 
-    # mapping = {'C4': int(out_channels/np.sqrt(4)), 'D4': int(out_channels/round(np.sqrt(8)))}
-    # in_c, out_c = (1, mapping[out_group]) if in_group == 'Z2' else (mapping[out_group], mapping[out_group])
 
     # utilize gconv2d_util to get gconv_indices, shape info and w_shape
     indices, shape_info, w_shape = gconv2d_util(

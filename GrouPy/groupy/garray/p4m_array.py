@@ -1,7 +1,7 @@
-
 import numpy as np
-from groupy.garray.matrix_garray import MatrixGArray
 from groupy.garray.Z2_array import Z2Array
+from groupy.garray.matrix_garray import MatrixGArray
+
 
 # A transformation in p4m can be coded using four integers:
 # m in {0, 1}, mirror reflection in the second translation axis or not
@@ -30,7 +30,6 @@ from groupy.garray.Z2_array import Z2Array
 
 
 class P4MArray(MatrixGArray):
-
     parameterizations = ['int', 'hmat']
     _g_shapes = {'int': (4,), 'hmat': (3, 3)}
     _left_actions = {}
@@ -161,7 +160,6 @@ def meshgrid(m=m_range(), r=r_range(), u=u_range(), v=v_range()):
     u = P4MArray(u.data[None, None, :, None, ...], p=u.p)
     v = P4MArray(v.data[None, None, None, :, ...], p=v.p)
     return u * v * m * r
-
 
 # def gmeshgrid(*args):
 #    out = identity()

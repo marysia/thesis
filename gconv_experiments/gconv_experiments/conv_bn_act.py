@@ -1,10 +1,8 @@
-
-from chainer import Chain
 import chainer.functions as F
+from chainer import Chain
 
 
 class ConvBNAct(Chain):
-
     def __init__(self,
                  conv,
                  bn=True,
