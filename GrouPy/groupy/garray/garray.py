@@ -41,8 +41,8 @@ class GArray(object):
         self.p = p
         self.g_shape = self._g_shapes[p]
         self.shape = data.shape[:data.ndim - self.g_ndim]
-
         if self.data.shape[self.ndim:] != self.g_shape:
+
             raise ValueError('Invalid data shape. Expected shape ' + str(self.g_shape) +
                              ' for parameterization ' + str(p) +
                              '. Got data shape ' + str(self.data.shape[self.ndim:]) + ' instead.')

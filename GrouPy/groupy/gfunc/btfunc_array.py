@@ -46,7 +46,6 @@ class BtFuncArray(GFuncArray):
 
     def g2i(self, g):
         gint = g.reparameterize('int').data.copy()
-        print(gint.shape)
         gint[..., 2] -= self.umin
         gint[..., 3] -= self.vmin
         gint[..., 4] -= self.wmin
@@ -54,4 +53,5 @@ class BtFuncArray(GFuncArray):
         # flat stabilizer: instead of (4, 2, ...) use (8, ...)
         gint[..., 1] += gint[..., 0] * 4    # multiply by 4 because 4 z rotations for each y
         gint = gint[..., 1:]
+
         return gint

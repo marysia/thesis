@@ -42,8 +42,53 @@ class CNN(BaseModel):
             return gconv.gconv3d_bn_act(tensor, in_group=in_group, out_group=self.group,
                                         in_channels=in_channels, out_channels=self.filters[i])
 
+class WideBoostingNetwork(BaseModel):
+    def build_graph(self):
+        k = 1
+        num_filters = [8 * k, 16 * k, 32 * k, 64 * k]
+        activation = 'crelu'
 
-#
+        tensor = self.x
+        tensor = base.convolution3d(tensor, nb_channels_out=16, filter_shape=(3, 3, 3))
+        tensor = self.resnet_block(tensor, num_filters[0], activation, length=3, strided=False)
+        tensor = self.resnet_block(tensor, num_filters[1], activation, length=3, strided=True)
+        tensor = self.resnet_block(tensor, num_filters[2], activation, length=3, strided=True)
+        tensor = self.resnet_block(tensor, num_filters[3], activation, length=3, strided=True)
+
+        tensor = base.batch_normalization(tensor)
+        tensor = base.activation(tensor, key=activation)
+
+        # global average pooling instead
+        tensor = base.maxpool3d(tensor, strides=[1, 2, 9, 9, 1])
+
+        tensor = base.convolution3d(tensor, nb_channels_out=2, filter_shape=(1, 1, 1))
+
+        # just sigmoid or softmax instead
+        tensor = base.flatten(tensor)
+        final = base.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
+        return final
+
+    def resnet_block(self, tensor, filters, activation, length=3, strided=True):
+
+        for i in xrange(length):
+            save_tensor = tensor
+
+            stride = (2, 2, 2) if i == 0 and strided else (1, 1, 1)
+
+            tensor = base.batch_normalization(tensor)
+            tensor = base.activation(tensor, activation)
+            tensor = base.convolution3d(tensor, nb_channels_out=filters, filter_shape=(3, 3, 3), stride=(1, 1, 1))  # CHANGED
+
+            tensor = base.batch_normalization(tensor)
+            tensor = base.activation(tensor, activation)
+            # dropout
+            tensor = base.convolution3d(tensor, nb_channels_out=filters, filter_shape=(3, 3, 3), stride=stride)
+
+            if i == 0:
+                save_tensor = base.convolution3d(save_tensor, nb_channels_out=filters, filter_shape=(1, 1, 1), stride=stride)
+
+            tensor = base.merge(save_tensor, tensor, method='add')
+        return tensor
 # class MultiDim(BaseModel):
 #     def build_graph(self):
 #         self.filters = [16, 32, 64]

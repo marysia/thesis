@@ -1,13 +1,14 @@
 import groupy.garray.O_array as O
 import groupy.garray.B_array as B
+import groupy.garray.Br_array as Br
 import numpy as np
 import tensorflow as tf
 from groupy.gconv.tensorflow_gconv.splitgconv3d import gconv3d_util, gconv3d
 from groupy.gfunc.otfunc_array import OtFuncArray
 from groupy.gfunc.btfunc_array import BtFuncArray
+from groupy.gfunc.brtfunc_array import BrtFuncArray
 from groupy.gfunc.z3func_array import Z3FuncArray
 
-from groupy.gconv.make_gconv_indices import make_o_z3_indices, make_b_z3_indices
 
 
 def check_o_z3_conv_equivariance():
@@ -37,7 +38,6 @@ def check_o_o_conv_equivariance():
 def check_b_z3_conv_equivariance():
     ksize = 3
     im = np.random.randn(2, ksize, ksize, ksize, 1)
-    print('Im shape', im.shape)
     x, y = make_graph('Z3', 'B', ksize)
     check_equivariance(im, x, y, Z3FuncArray, BtFuncArray, B)
 
@@ -46,6 +46,18 @@ def check_b_b_conv_equivariance():
     im = np.random.randn(2, ksize, ksize, ksize, 8)
     x, y = make_graph('B', 'B', ksize)
     check_equivariance(im, x, y, BtFuncArray, BtFuncArray, B)
+
+def check_br_z3_conv_equivariance():
+    ksize = 3
+    im = np.random.randn(2, ksize, ksize, ksize, 1)
+    x, y = make_graph('Z3', 'BR', ksize)
+    check_equivariance(im, x, y, Z3FuncArray, BrtFuncArray, Br)
+
+def check_br_br_conv_equivariance():
+    ksize = 3
+    im = np.random.randn(2, ksize, ksize, ksize, 16)
+    x, y = make_graph('BR', 'BR', ksize)
+    check_equivariance(im, x, y, Z3FuncArray, BrtFuncArray, Br)
 
 
 def make_graph(h_input, h_output, ksize):
@@ -80,10 +92,5 @@ def check_equivariance(im, input, output, input_array, output_array, point_group
     fmap1_garray = output_array(yrx.transpose((0, 4, 1, 2, 3)))
     r_fmap1_data = (g.inv() * fmap1_garray).v.transpose((0, 2, 3, 4, 1))
 
-    diff = np.abs(yx - r_fmap1_data)
-    print '\nSum of differences: ', diff.sum()
-    print 'Median * total: ', np.median(diff) * yx.size
-    print 'Max: ', np.max(diff), ' Mean: ', np.mean(diff), ' Median: ', np.median(diff)
-    print 'Size of yx: ', yx.size
-
     assert np.allclose(yx, r_fmap1_data, rtol=1e-5, atol=1e-3)
+

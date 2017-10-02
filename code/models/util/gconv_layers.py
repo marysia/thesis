@@ -8,7 +8,7 @@ from base_layers import batch_normalization, activation, weight_variable, bias_v
 def _channels(x, in_group, out_group, in_channels, out_channels):
     mapping = {'Z2': in_channels * in_channels,
                'Z3': in_channels * in_channels,
-               'C4': 4, 'D4': 8, 'O': 24, 'B': 8}
+               'C4': 4, 'D4': 8, 'O': 24, 'B': 8, 'BR': 16}
     in_c = int(in_channels / round(np.sqrt(mapping[in_group])))
     out_c = int(out_channels / round(np.sqrt(mapping[out_group])))
     return in_c, out_c

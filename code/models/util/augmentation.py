@@ -3,62 +3,27 @@ import warnings
 import numpy as np
 import scipy.ndimage
 
+def add_noise(x):
+    """ Add noise """
+    x += np.random.randn(x.shape[0], x.shape[1], x.shape[2]) * 0.05
+    return x
 
-def apply_augmentation(x, transformations, keep_prob=.5):
-    """
-    Function applies all listed augmentations, with a probability of _keep_prob_ to
-    keep the original batch.
-    Args:
-        x: batch
-        transformations: list of transformations
-        keep_prob: probability of not applying the transformation and keeping the original batch
+def add_blur(x, scalar):
+    return scipy.ndimage.gaussian_filter(x, sigma=scalar)
 
-    Returns:
-        x: transformed batch
-    """
-    mapping = {
-        'scale': scale_batch,
-        'flip': flip_batch,
-        'rotate': rotate_batch
-    }
-
-    for transformation in transformations:
-        if np.random.rand() > keep_prob:
-            x = mapping[transformation](x)
-
+def rotate_dataset(x, rotation):
+    """ Rotates batch n times 90 degrees. """
+    x_out = np.empty_like(x)
+    for i in xrange(x.shape[0]):
+        for j in xrange(x.shape[1]):
+            im = x[i, j, :, :, 0]
+            im = np.rot90(im, rotation)
+            x_out[i, j, :, :, 0] = im
     return x
 
 
-def scale_batch(x):
-    """
-    Scales batch to .8-1.2.
-    Args:
-        x: original batch
-
-    Returns:
-        batch: scaled batch
-
-    """
-    scalar = np.random.uniform(low=.8, high=1.2)
-    batch = np.empty_like(x)
-    for i in xrange(x.shape[0]):
-        volume = x[i, :, :, :, 0]
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', UserWarning)
-            volume = scipy.ndimage.zoom(volume, scalar)
-        volume = _reshape_volume(volume, x.shape[1:4])
-        batch[i, :, :, :, 0] = volume
-    return batch
-
-
-def flip_batch(x):
-    """
-    Flips batch over one of the axis.
-    Args:
-        x: original batch
-    """
-    flip = np.random.randint(0, len(x.shape) - 1)
+def flip_dataset(x, flip):
+    """ Flips the entire batch in the z, y or x axis."""
     if flip == 0:
         return x
     if flip == 1:
@@ -68,70 +33,81 @@ def flip_batch(x):
     if flip == 3:
         return x[:, :, :, ::-1, :]
 
+def scale_volume(x, scalar):
+    """ Scales the volume between 0.9 and 1.1 time the original volume. """
+    return scipy.ndimage.zoom(x, scalar)
 
-def rotate_batch(x):
-    """
-    Rotates batch with 90o rotations over one of the axis.
-    Args:
-        x: original batch
 
-    Returns:
-        x_out: new batch.
-
-    """
-    axis = np.random.randint(0, 1)
-    rotations = np.random.randint(0, 4)
-    axis = 0
-
+def rotate_volume(x, rotation):
+    """ Rotates the volume 0-360 degrees. """
     x_out = np.empty_like(x)
-
     for i in xrange(x.shape[0]):
-        im = x[i, :, :, :, :]
-        for r in xrange(rotations):
-            im = _rotate_3d(im, axis)
-        x_out[i, :, :, :, :] = im
+        im = x[i, :, :]
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
+            im = scipy.ndimage.rotate(im, rotation, reshape=False)
+
+        x_out[i, :, :] = im
+    return x_out
+
+def flip_volume(x, flip):
+    """ Flips the volume in the z, y or x axis. """
+    if flip == 0:
+        return x
+    if flip == 1:
+        return x[::-1, :, :]
+    if flip == 2:
+        return x[:, ::-1, :]
+    if flip == 3:
+        return x[:, :, ::-1]
+
+def crop_volume(x, shape):
+    """ Crops the volume to the desired shape. """
+    center = {
+        'x': x.shape[2] / 2 + np.random.randint(-3, 4),
+        'y': x.shape[1] / 2 + np.random.randint(-3, 4),
+        'z': x.shape[0] / 2 + np.random.randint(0, 1)  # max of 1 translation
+    }
+
+    dif = {
+        'x': shape[2] / 2,
+        'y': shape[1] / 2,
+        'z': shape[0] / 2
+    }
+
+    return x[center['z'] - dif['z']:center['z'] + dif['z'], center['y'] - dif['y']:center['y'] + dif['y'],
+           center['x'] - dif['x']:center['x'] + dif['x']]
+
+def augment_batch(x, transformations, shape, keep_prob=.2):
+    """  Perform augmentations on batch with chance.
+    Possible augmentations: flips, rotations, scaling. Always crop, to get the right shape.
+    """
+
+    x_out = np.zeros((x.shape[0], shape[0], shape[1], shape[2], 1))
+    for i in xrange(x.shape[0]):
+        flip = np.random.randint(0, 4)
+        rotation = np.random.randint(0, 360)
+        scale = np.random.uniform(low=.8, high=1.2)
+        blur = np.random.randint(0, 2)
+
+        volume = x[i, :, :, :, 0]
+        volume = scale_volume(volume, scale) if 'scale' in transformations and np.random.random() > keep_prob else volume
+        volume = rotate_volume(volume, rotation) if 'rotate' in transformations and np.random.random() > keep_prob else volume
+        volume = flip_volume(volume, flip) if 'flip' in transformations and np.random.random() > keep_prob else volume
+        volume = add_noise(volume) if 'noise' in transformations and np.random.random() > keep_prob else volume
+        volume = add_blur(volume, blur) if 'blur' in transformations and np.random.random() > keep_prob else volume
+        # crop with translation (calculate after scaling/rotation)
+        volume = crop_volume(volume, shape)
+        x_out[i, :, :, :, 0] = volume
+
     return x_out
 
 
-def _reshape_volume(volume, shape):
-    """
-    Reshapes a new volume (e.g. 10x35x35 or 6x25x25) to original volume shape (e.g. 8x30x30)
-    Args:
-        volume: Volume to be reshaped
-        shape: target shape
+def augment_dataset(x, rotations, flip):
+    """ Augment the dataset to average over all symmetries. No cropping necessary,
+    as test set is already the correct shape."""
 
-    Returns:
-        result: resulting volume
-
-    """
-    differences = abs(np.array(shape) - np.array(volume.shape)) + 1
-    x_offset = np.random.randint(0, differences[1])
-    y_offset = np.random.randint(0, differences[2])
-    z_offset = np.random.randint(0, differences[0])
-
-    # size hasn't changed
-    if volume.shape == shape:
-        result = volume
-
-    # new volume is smaller than original
-    elif volume.shape < shape:
-        result = np.zeros(shape)
-        result[z_offset:z_offset + volume.shape[0], x_offset:x_offset + volume.shape[1],
-        y_offset:y_offset + volume.shape[2]] = volume
-
-    # new volume is bigger than original
-    elif volume.shape > shape:
-        result = volume[z_offset:z_offset + shape[0], x_offset:x_offset + shape[1], y_offset:y_offset + shape[2]]
-
-    return result
-
-
-def _rotate_3d(im, axis):
-    im_out = np.empty_like(im)
-    if axis == 0:
-        for j in xrange(im.shape[0]):
-            im_out[j, :, :, :] = np.rot90(im[0], 3)
-    if axis == 1:
-        for j in xrange(im.shape[2]):
-            im_out[j, :, :, :] = np.rot90(im[:, :, :, j], 3)
-    return im_out
+    x = rotate_dataset(x, rotations)
+    x = flip_dataset(x, flip)
+    return x

@@ -7,9 +7,11 @@ from groupy.garray.C4_array import C4
 from groupy.garray.D4_array import D4
 from groupy.garray.O_array import O
 from groupy.garray.B_array import B
+from groupy.garray.Br_array import Br
 from groupy.garray.p4_array import C4_halfshift
 from groupy.gfunc.otfunc_array import OtFuncArray
 from groupy.gfunc.btfunc_array import BtFuncArray
+from groupy.gfunc.brtfunc_array import BrtFuncArray
 from groupy.gfunc.p4func_array import P4FuncArray
 from groupy.gfunc.p4mfunc_array import P4MFuncArray
 from groupy.gfunc.z2func_array import Z2FuncArray
@@ -38,6 +40,23 @@ def make_c4_p4_indices(ksize):
         li = f.left_translation_indices(C4_halfshift[:, None, None, None])
     else:
         li = f.left_translation_indices(C4[:, None, None, None])
+    return li.astype('int32')
+
+def make_br_z3_indices(ksize):
+    assert ksize % 2 == 1
+    x = np.random.randn(1, ksize, ksize, ksize)
+    f = Z3FuncArray(v=x)
+    a = Br[:, None, None, None, None]
+    uvw = f.left_translation_indices(a)
+    i = np.zeros(uvw.shape[:-1] + (1,))
+    iuvw = np.c_[i, uvw]
+    return iuvw.astype('int32')
+
+def make_br_brt_indices(ksize):
+    assert ksize % 2 == 1
+    x = np.random.randn(16, ksize, ksize, ksize)
+    f = BrtFuncArray(v=x)
+    li = f.left_translation_indices(Br[:, None, None, None, None])
     return li.astype('int32')
 
 def make_b_z3_indices(ksize):
@@ -134,13 +153,4 @@ def flatten_indices_3d(inds):
     V = inds[..., 2]  # shape (nto, nti, n, n, n)
     W = inds[..., 3]  # shape (nto, nti, n, n, n)
     inds_flat = U * n * n * nti + V * n * nti + W * nti + T
-
     return inds_flat
-
-
-li = [3, 5, 7, 9]
-for ksize in li:
-    inds = flatten_indices(make_c4_z2_indices(ksize=ksize))
-    inds = flatten_indices_3d(make_o_z3_indices(ksize=ksize))
-    inds = flatten_indices(make_c4_p4_indices(ksize=ksize))
-    inds = flatten_indices_3d(make_o_ot_indices(ksize=ksize))

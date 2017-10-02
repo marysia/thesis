@@ -46,12 +46,14 @@ class BrtFuncArray(GFuncArray):
 
     def g2i(self, g):
         gint = g.reparameterize('int').data.copy()
-        gint[..., 2] -= self.umin
-        gint[..., 3] -= self.vmin
-        gint[..., 4] -= self.wmin
+        gint[..., 3] -= self.umin
+        gint[..., 4] -= self.vmin
+        gint[..., 5] -= self.wmin
 
         # flat stabilizer: instead of (2, 4, 2, ...) use (16, ...)
-        #gint[..., 1] += gint[..., 0] * 8
+        gint[..., 1] += gint[..., 0] * 4
+        gint[..., 2] += gint[..., 1] * 2
 
-        gint = gint[..., 1:]
+        gint = gint[..., 2:]
+
         return gint

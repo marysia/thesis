@@ -167,19 +167,8 @@ def check_invertible(g, f):
     assert (c.v == f.v).all()
 
 
-
-    #  assert ((g.inv() * (g * f)).v == f.v).all()
-
-
 def check_i2g_g2i_invertible(f):
     i2g = f.i2g
     i = f.g2i(i2g)
     inds = [i[..., j] for j in range(i.shape[-1])]
-
-
-    print('i2g', i2g.shape)
-    print('i', i.shape)
-    print('len inds', len(inds))
-    b = i2g[inds]
-    print('b ', b.shape)
     assert (i2g[inds] == i2g).all()
