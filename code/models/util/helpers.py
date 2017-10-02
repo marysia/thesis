@@ -5,9 +5,24 @@ import sys
 
 import numpy as np
 import tensorflow as tf
+import matplotlib as mpl
+
+mpl.use('Agg')
+import pylab as plt
 
 results_folder = '/home/marysia/thesis/results'
 
+def error_plot(errors, epoch_interval):
+    train_errors = [elem[0] for elem in errors]
+    val_errors = [elem[1] for elem in errors]
+
+    x = list(xrange(0, epoch_interval * len(errors), epoch_interval))
+
+    plt.plot(x, train_errors, label='Train error')
+    plt.plot(x, val_errors, label='Val errors')
+    plt.legend(loc='best')
+    plt.title('Train/val errors')
+    plt.savefig(results_folder + '/errors.png')
 
 def total_parameters():
     '''

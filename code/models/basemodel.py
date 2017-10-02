@@ -5,8 +5,8 @@ import numpy as np
 import tensorflow as tf
 
 import util.metrics
-from util.augmentation import apply_augmentation
-from util.helpers import progress
+from util.augmentation import augment_batch
+from util.helpers import progress, error_plot
 
 
 class BaseModel:
@@ -15,8 +15,10 @@ class BaseModel:
         self.group = group
         self.data = data
 
+        self.evaluation = {'weight': 0, 'results': [], 'mse': 0}
+
         with tf.name_scope('Placeholders'):
-            self.x = tf.placeholder(tf.float32, shape=[None] + list(self.data.train.x.shape[1:]))
+            self.x = tf.placeholder(tf.float32, shape=[None] + self.data.shape + [1])
             self.y = tf.placeholder(tf.float32, shape=[None, self.data.nb_classes])
 
         self.model_logits = self.build_graph()
@@ -35,20 +37,23 @@ class BaseModel:
 
         self.submission = args.submission
         self.verbose = args.verbose
+        self.symmetry = args.symmetry
 
         self.transformations = augmentation
 
         self.training = True
 
-        self.batch_size = 128
+        self.batch_size = 32
         self.epochs = 5
         self.learning_rate = 0.0001
         self.lr_decay = 1.0
 
         self.model_weight = 0
 
-        steps = self.data.train.samples / self.batch_size
-        self.steps = steps * 2 if not self.data.train.balanced else steps
+        if self.data.train.balanced:
+            self.steps = self.data.train.samples / self.batch_size
+        else:
+            self.steps = len(self.data.train.pos_idx) / (self.batch_size / 2)
 
         self.softmax = tf.nn.softmax(self.model_logits)
         self.cross_entropy = tf.reduce_mean(
@@ -93,7 +98,7 @@ class BaseModel:
                 i = self.train_time(sess, args.mode_param, args.reinforce, args.save_step)
 
             elif args.mode == 'converge':
-                i = self.train_converge()
+                i = self.train_converge(sess, args.mode_param)
 
             else:
                 pass
@@ -125,7 +130,7 @@ class BaseModel:
         while not self.ender.terminate and i < self.epochs:
             i += 1
             prefix = '\rEpoch %d of %d: ' % (i, self.epochs)
-            self._train_step(prefix, i)
+            self._train_step(prefix)
 
             if i % save_step == 0:
                 if self.verbose:
@@ -158,7 +163,7 @@ class BaseModel:
             i += 1
             prefix = '\rIteration %d: ' % (i)
 
-            self._train_step(prefix, i)
+            self._train_step(prefix)
 
             # if time passed in minutes since last save moment is bigger than save step: save.
             if ((time.time() - last_save) / 60) > save_step:
@@ -171,41 +176,43 @@ class BaseModel:
             if reinforce and (i % save_step) == 0:
                 self._reinforce(sess)
 
+        # termination signal was received
         if self.ender.terminate:
             exiting_time = (time.time() - base_time) / 60
             self.log.info('Program was terminated after %d minutes (%d iterations). Exiting gracefully.' % (
                 exiting_time, i))
         else:
             self.log.info('Performed %d iterations in %d minutes.' % (i, mode_param))
+
         return i
 
-    def train_converge(self, mode_param):
+    def train_converge(self, sess, mode_param):
         '''
-        Currently unused.
+        Train until the error on the validation set is more or less the same as the error on the
+        training set.
         '''
-        max_difference = mode_param if mode_param is not None else 0.01
-        # initialize variables
+        errors = []
         i = 0
-        val_results = []
-        # stop if the highest difference from mean (of last ten results on val set)  is smaller than 0.01
-        while i < 10 or np.max(np.abs(val_results[-10:] - np.mean(val_results[-10:]))) > max_difference:
-            # perform training step
-            prefix = '\rIteration %d: ' % (i + 1)
-            result_train, result_val = self._train_step(prefix)
+        #while abs(current_mse - previous_mse) > 0.001 and not self.ender.terminate:
+        while not self.ender.terminate:
+            # Check every _mode_param_ steps.
+            for _ in xrange(mode_param):
+                prefix = '\rIteration %d: ' % (i + 1)
+                self._train_step(prefix)
+                i += 1
 
-            # update variables
-            val_results.append(result_val)
-            i += 1
+            validation_mse = util.metrics.mse(sess, self, self.data.val.x, self.data.val.y)
+            training_mse = util.metrics.mse(sess, self, self.data.train.x, self.data.train.y)
+            errors.append((training_mse, validation_mse))
+            self.log.info('\n%sTraining error: %.3f \t Validation error: %.3f' % (prefix, training_mse, validation_mse))
+            if not validation_mse < training_mse:
+                break
 
-            # print if necessary
-            if self.verbose:
-                self.log.info(
-                    '\nIteration %d: train accuracy: %g, validation accuracy: %g, max deviation: %.2f') \
-                % (i, result_train, result_val, np.max(np.abs(val_results[-10:] - np.mean(val_results[-10:]))))
+        util.helpers.error_plot(errors, mode_param)
 
-        return i
 
     def _reinforce(self, sess):
+        ''' Run incorrect batches an extra time '''
         # get results for training set
         results = util.metrics.run_session_to_get_predictions(sess, self, self.data.train.x)
         # get indices of all results that aren't correct
@@ -226,42 +233,51 @@ class BaseModel:
 
             self.optimizer.run(feed_dict={self.x: batch_x, self.y: batch_y})
 
-    def _train_step(self, prefix, epoch):
-        ''' Training step. '''
+    def _train_step(self, prefix):
+        ''' Training step. Retrieve batch, apply augmentation and run optimizer.'''
         for step in range(self.steps):
             batch_x, batch_y = self.data.train.get_next_batch(step, self.batch_size)
 
-            batch_x = apply_augmentation(batch_x, self.transformations)
+            batch_x = augment_batch(batch_x, self.transformations, self.data.shape)
 
             self.optimizer.run(feed_dict={self.x: batch_x, self.y: batch_y})
 
-            self.learning_rate = self.learning_rate * self.lr_decay
             if self.verbose:
                 progress(prefix, step, self.steps)
+        # self.learning_rate = self.learning_rate * self.lr_decay
 
     def progress_metrics(self, sess, prefix):
         ''' Log progress during training, preferably on validation set but otherwise test set.'''
         x, y = (self.data.val.x, self.data.val.y) if not 'empty' in self.data.val.scope else (
             self.data.test.x, self.data.test.y)
 
-        results = util.metrics.run_session_to_get_predictions(sess, self, x)
+        # predictions, confusion matrix, accuracy, precision, sensitivity and false positive rate.
+        results = util.metrics.run_session_to_get_predictions(sess, self, x, False)
         confusion_matrix = util.metrics.confusion_matrix(results, y)
         a, p, s, fp_rate = util.metrics.get_metrics(confusion_matrix)
 
-        self.model_weight = a
+        self.evaluation['weight'] = a   # weight of model = accuracy on validation set
         self.log.result('%s, accuracy: %.2f, sensitivity: %.2f, fp_rate: %.2f' % (prefix, a, s, fp_rate))
 
     def evaluate(self, sess):
         ''' Get evaluation metrics through util.metrics and log at the end of the training run.'''
-        self.progress_metrics(sess, 'Validation set results: ')
+        # get results on validation set.
+        self.progress_metrics(sess, '\nValidation set results: ')
 
-        results = util.metrics.run_session_to_get_predictions(sess, self, self.data.test.x)
+        # predictions, confusion matrix, accuracy, precision, sensitivity and false positive rate.
+        results = util.metrics.run_session_to_get_predictions(sess, self, self.data.test.x, self.symmetry)
         confusion_matrix = util.metrics.confusion_matrix(results, self.data.test.y)
         a, p, s, fp_rate = util.metrics.get_metrics(confusion_matrix)
 
         self.log.result('Acc: %.2f, Prec: %.2f, Sensitivity: %.2f, FP-rate: %.2f' % (a, p, s, fp_rate))
         self.log.result(util.helpers.pretty_print_confusion_matrix(confusion_matrix))
 
-        if self.submission:
-            util.helpers.create_submission(self.model_name, self.log, self.data.test, results)
-        self.results = results
+        #if self.submission:
+        #    util.helpers.create_submission(self.model_name, self.log, self.data.test, results)
+
+        # set results to evaluation parameter (dictionary)
+        self.evaluation['results'] = results
+        #self.evaluation['mse'] = util.metrics.mse(sess, self, self.data.test.x, self.data.test.y)
+        self.evaluation['sensitivity'] = s
+        self.evaluation['fp-rate'] = fp_rate
+        self.evaluation['accuracy'] = a

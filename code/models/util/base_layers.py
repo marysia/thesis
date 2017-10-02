@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 
 
-def activation(tensor, key='relu'):
+def activation(tensor, key='crelu'):
     '''
     Activation function. Adds bias and executes activation function based on key.
     '''
@@ -57,17 +57,17 @@ def convolution2d(tensor, filter_shape, nb_channels_out):
     return tensor
 
 
-def convolution3d(tensor, filter_shape, nb_channels_out):
+def convolution3d(tensor, filter_shape, nb_channels_out, stride=[1, 1, 1]):
     '''
     Peform 3d convolution
     '''
     with tf.name_scope('convolution3d'):
-        strides = [1, 1, 1, 1, 1]
+        stride = [1] + list(stride) + [1]   # batch & channel
         nb_channels_in = int(tensor.get_shape()[-1])
-        W = weight_variable(filter_shape + [nb_channels_in, nb_channels_out])
+        W = weight_variable(list(filter_shape) + [nb_channels_in, nb_channels_out])
         # W = _weights_distribution(filter_shape+[nb_channels_in, nb_channels_out], "weight_distribution", schema = "he")
         b = bias_variable([nb_channels_out])
-        tensor = tf.nn.conv3d(input=tensor, filter=W, strides=strides, padding="SAME") + b
+        tensor = tf.nn.conv3d(input=tensor, filter=W, strides=stride, padding="SAME") + b
     return tensor
 
 

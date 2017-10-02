@@ -65,10 +65,11 @@ class Logger():
         self.write_to_file(text, '[ERROR] \t', time)
 
     # --- helper functions --- #
-    def finalize(self, broken):
+    def finalize(self, termination, exception):
         ''' Copies current running file to logdir/datafolder/logname.log and logdir/latest.log
         and removes logdir/current.log'''
         if not 'pycharm' in self.logname:
+            broken = True if termination or exception else False
             shutil.copy(self.log_path, self.final_log_name(self.logfolder, self.logname, broken))
             shutil.copy(self.log_path, self.latest_logpath)
         os.remove(self.log_path)

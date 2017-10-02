@@ -1,13 +1,10 @@
 import numpy as np
 import tensorflow as tf
+from augmentation import augment_dataset
+BATCH = 100
 
-BATCH = 200
 
-
-def run_session_to_get_predictions(sess, model, x):
-    ''' Get list of lists based on trained model.
-    Process in small batches to prevent resource exhausted error.'''
-    model.training = False
+def get_pred(sess, model, x):
     results = []
     for i in xrange(int(x.shape[0] / BATCH)):
         feed_dict = {model.x: x[i * BATCH:(i + 1) * BATCH]}
@@ -15,7 +12,40 @@ def run_session_to_get_predictions(sess, model, x):
         sub_results = sess.run(probabilities, feed_dict=feed_dict)
         # sub_results = sess.run(model.model_logits, feed_dict=feed_dict)
         results += sub_results.tolist()
+
+    # finalize last sub-batch
+    if x.shape[0] % BATCH != 0:
+        feed_dict = {model.x: x[(i + 1) * BATCH:]}
+        probabilities = tf.nn.softmax(model.model_logits)
+        sub_results = sess.run(probabilities, feed_dict=feed_dict)
+        results += sub_results.tolist()
     return results
+
+def run_session_to_get_predictions(sess, model, x, symmetry):
+    ''' Get list of lists based on trained model.
+    Process in small batches to prevent resource exhausted error.'''
+    model.training = False
+    results = []
+    if not symmetry:
+        results.append(get_pred(sess, model, x))
+    else:
+        li = []
+        for rotations in xrange(4):
+            for flips in xrange(4):
+                data = augment_dataset(x, rotations, flips)
+                li.append(get_pred(sess, model, data))
+        for row in li:
+            if row not in results:
+                results.append(row)
+
+
+        # for axis in xrange(2):
+        #     for rotations in xrange(4):
+        #         for flips in xrange(2):
+        #             data = augment_dataset(x, axis, rotations, flips)
+        #             results.append(get_pred(sess, model, data))
+
+    return list(np.mean(results, axis=0))
 
 
 def run_session_to_get_accuracy(model, x, y):
@@ -32,6 +62,22 @@ def run_session_to_get_accuracy(model, x, y):
 
     model.training = True
     return test_accuracy
+
+def mse(sess, model, test_set_x, targets):
+    '''
+    Returns mean squared error.
+    * sess: session to get predictions
+    * model: self of base model class
+    * test_set_x: 3D patches of test set
+    * targets: target labels
+    '''
+    probabilities = run_session_to_get_predictions(sess, model, test_set_x)
+    predictions = np.zeros_like(probabilities)
+    for i in xrange(len(probabilities)):
+        predictions[i, np.argmax(probabilities[i])] = 1
+
+    return ((predictions - targets) ** 2).mean()
+
 
 
 def accuracy(results, y):

@@ -15,9 +15,9 @@ import os
 import numpy as np
 import tensorflow as tf
 
-import models.util.helpers
-from models.model_3d import Z3CNN
-from preprocessing.patches import DataPatches
+import code.models.util.helpers
+from code.models.model_3d import Z3CNN
+from code.preprocessing.patches import DataPatches
 
 models_dict = {
     'Z3CNN': Z3CNN
