@@ -13,7 +13,7 @@ in total.
 Int parameterization is in the form of (y, z) where y represents the number of 180 degree rotations over the y axis
 (0, 1) and z represents the number of 180 degree rotations over the z axis (0, 1, 2, 3).
 '''
-class BArray(MatrixGArray):
+class C4hArray(MatrixGArray):
     parameterizations = ['int', 'mat', 'hmat']
     _g_shapes = {'int': (2,), 'mat': (3, 3), 'hmat': (4, 4)}
     _left_actions = {}

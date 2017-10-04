@@ -35,10 +35,10 @@ def conv_act_pool(tensor, filter_shape, nb_channels_out):
     return tensor
 
 
-def conv3d_bn_act(tensor, filter_shape=[3, 3, 3], nb_channels_out=16, activation='relu'):
+def conv3d_bn_act(tensor, filter_shape=[3, 3, 3], nb_channels_out=16, activation='crelu'):
     tensor = base.convolution3d(tensor, filter_shape, nb_channels_out)
-    tensor = base.activation(tensor, key=activation)
     tensor = base.batch_normalization(tensor)
+    tensor = base.activation(tensor, key=activation)
     return tensor
 
 

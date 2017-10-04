@@ -487,7 +487,7 @@ def get_files(files, constraints):
         for c in constraints:
             try:
                 int(c)
-                if not '_' + c + '.csv' in file.lower():
+                if not '-' + c + '.csv' in file.lower():
                     negative_files.append(f)
             except:
                 if not c.lower() in file.lower():

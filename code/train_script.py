@@ -12,8 +12,8 @@ from utils.generic import log_time, submission, get_best_predictions
 from utils.logger import Logger
 from noduleCADEvaluationLUNA16 import create_froc_curve
 models3d = {
-#     'WBN': WideBoostingNetwork
-     'CNN': CNN
+     'WBN': WideBoostingNetwork
+     #'CNN': CNN
 }
 
 # global program ender
@@ -117,14 +117,11 @@ def main(args):
     data = DataPatches(args)
 
     # go through sample size in reverse order: [10.000, 1.000, 100, 10]
-   # try:
     samples = args.samples
     samples.sort(reverse=True)
     for sample_size in samples:
         data.train.resize(int(sample_size))  # resize the training data to sample_size
- #       train(data, log, models3d, args, args.augment)
-    #except:
-    #    broken = True
+        train(data, log, models3d, args, args.augment)
 
     log.finalize(ender.terminate, broken)
 

@@ -51,7 +51,7 @@ class BaseModel:
         self.model_weight = 0
 
         if self.data.train.balanced:
-            self.steps = self.data.train.samples / self.batch_size
+            self.steps = (self.data.train.samples / self.batch_size) + 1
         else:
             self.steps = len(self.data.train.pos_idx) / (self.batch_size / 2)
 

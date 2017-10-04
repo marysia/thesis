@@ -66,8 +66,8 @@ def convolution3d(tensor, filter_shape, nb_channels_out, stride=[1, 1, 1]):
         nb_channels_in = int(tensor.get_shape()[-1])
         W = weight_variable(list(filter_shape) + [nb_channels_in, nb_channels_out])
         # W = _weights_distribution(filter_shape+[nb_channels_in, nb_channels_out], "weight_distribution", schema = "he")
-        b = bias_variable([nb_channels_out])
-        tensor = tf.nn.conv3d(input=tensor, filter=W, strides=stride, padding="SAME") + b
+        # b = bias_variable([nb_channels_out])
+        tensor = tf.nn.conv3d(input=tensor, filter=W, strides=stride, padding="SAME") # + b
     return tensor
 
 

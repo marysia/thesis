@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 
-from basedata import BaseData, Data, Data2
+from basedata import BaseData, Data
 
 
 class DataPatches(BaseData):
@@ -38,7 +38,7 @@ class DataPatches(BaseData):
         Returns a Data class instance with specified dataset and scope.
         """
         if dataset == 'empty':
-            return Data(scope='%s-empty' % scope, x=np.array([]), y=np.array([]), id=np.array([]), balanced=None)
+            return Data(scope='%s-empty' % scope, x=np.array([]), y=np.array([]), nb_classes=2, balanced=None)
 
         if dataset == 'nlst-balanced':
             return self.nlst(scope, True)
@@ -69,10 +69,7 @@ class DataPatches(BaseData):
         data = self.preprocess(data, scope)
         labels = np.concatenate([np.ones(pos.shape[0]), np.zeros(neg.shape[0])])
 
-        return Data2(scope=scope, x=data, y=labels, nb_classes = self.nb_classes, balanced=True)
-        #data, labels, p = self.shuffle(data, labels)
-
-        #return Data(scope=scope, x=data, y=self._one_hot_encoding(labels, self.nb_classes), id=p, balanced=balanced)
+        return Data(scope=scope, x=data, y=labels, nb_classes = self.nb_classes, balanced=True)
 
     def lidc_localization(self, scope, balanced):
         """
@@ -89,9 +86,7 @@ class DataPatches(BaseData):
         data = self.preprocess(data, scope)
         labels = np.concatenate([np.ones(pos.shape[0]), np.zeros(neg.shape[0])])
 
-        data, labels, p = self.shuffle(data, labels)
-
-        return Data(scope=scope, x=data, y=self._one_hot_encoding(labels, self.nb_classes), id=p, balanced=balanced)
+        return Data(scope=scope, x=data, y=labels, nb_classes=self.nb_classes, balanced=balanced)
 
     def _data_reshape(self, data):
         """

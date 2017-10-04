@@ -1,4 +1,5 @@
 import datetime
+import time
 import glob
 import os
 import random
@@ -35,6 +36,8 @@ class Logger():
             f.write('----- LOG -----\n')
             f.write(str(args))
 
+
+
     # --- writing functions --- #            
     def write_to_file(self, text, code, time=False):
         ''' 
@@ -47,11 +50,12 @@ class Logger():
         # print to console as well.
         print(text)
         with open(self.log_path, 'a') as f:
-            f.write('\n' + code + str(text))
+            f.write('\n')
             if time or self.time:
                 f.write(self.get_time())
+            f.write(code + str(text))
 
-    def result(self, text, time=False):
+    def result(self, text, time=True):
         ''' Writes result to log file. '''
         self.write_to_file(text, '[RESULT] \t', time)
 
@@ -60,7 +64,7 @@ class Logger():
         self.write_to_file(text, '', time)
         # self.write_to_file(text, '[INFO] \t \t', time)
 
-    def error(self, text, time=False):
+    def error(self, text, time=True):
         ''' Writes result to log file. '''
         self.write_to_file(text, '[ERROR] \t', time)
 
@@ -76,7 +80,8 @@ class Logger():
 
     def get_time(self):
         ''' Returns timestamp in appropriate format. '''
-        timestamp = datetime.datetime.now().strftime(" (%Y-%m-%d %H:%M:%S) ")
+        t = time.time() + (2 * 3600)  # system time is two hours behind; adjust.
+        timestamp = datetime.datetime.fromtimestamp(t).strftime(' \t [%Y-%m-%d %H:%M:%S] ')
         return timestamp
 
     # --- naming functions --- #
@@ -85,16 +90,16 @@ class Logger():
         Naming convention: current.log, else current_2.log/current_3.log, etc.
         Enables multiple simultaneous runs.
         '''
-        if not os.path.exists(os.path.join(self.logdir, 'current.log')):
-            return os.path.join(self.logdir, 'current.log')
 
-        for i in xrange(10):
-            name = 'current_%d.log' % (i + 2)
-            filepath = os.path.join(self.logdir, name)
-            if not os.path.exists(filepath):
+
+        for i in xrange(1, 10):
+            files = glob.glob(os.path.join(self.logdir, 'running_%d*' % i))
+            if len(files) == 0:
+                filepath = os.path.join(self.logdir, 'running_%d_%s.log' % (i, self.logname))
                 return filepath
 
         raise Exception('Too many current files running, error.')
+
 
     def final_log_name(self, logfolder, logname, broken):
         '''

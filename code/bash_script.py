@@ -12,7 +12,9 @@ def froc_curves():
     os.system(cmd)
     cmd = "python noduleCADEvaluationLUNA16.py --final --constraints z3 --fname froc-z3"
     os.system(cmd)
-    cmd = "python noduleCADEvaluationLUNA16.py --final --constraints b --fname froc-b"
+    cmd = "python noduleCADEvaluationLUNA16.py --final --constraints c4h --fname froc-c4h"
+    os.system(cmd)
+    cmd = "python noduleCADEvaluationLUNA16.py --final --constraints d4h --fname froc-d4h"
     os.system(cmd)
     cmd = "python noduleCADEvaluationLUNA16.py --final --fname froc-all"
     os.system(cmd)
@@ -21,16 +23,16 @@ def froc_curves():
 def train_runs():
     cuda = "CUDA_VISIBLE_DEVICES=1 "
 
-    cmd = cuda + "python train_script.py --log 1000 --groups z3 b br o --mode time --mode_param 300 --samples 1000 --shape 12 72 72 --augment scale flip rotate noise --symmetry --submission"
+    cmd = cuda + "python train_script.py --log 1000 --groups z3 c4h d4h o --mode time --mode_param 300 --samples 1000 --shape 12 72 72 --augment scale flip rotate noise --symmetry --submission"
     os.system(cmd)
 
-    cmd = cuda + "python train_script.py --log 5000 --groups z3 b br o --mode time --mode_param 300 --samples 5000 --shape 12 72 72 --augment scale flip rotate noise --symmetry --submission"
+    cmd = cuda + "python train_script.py --log 5000 --groups z3 c4h d4h o --mode time --mode_param 300 --samples 5000 --shape 12 72 72 --augment scale flip rotate noise --symmetry --submission"
     os.system(cmd)
 
-    cmd = cuda + "python train_script.py --log 10000 --groups z3 b br o --mode time --mode_param 300 --samples 10000 --shape 12 72 72 --augment scale flip rotate noise --symmetry --submission"
+    cmd = cuda + "python train_script.py --log 10000 --groups z3 c4h d4h o --mode time --mode_param 300 --samples 10000 --shape 12 72 72 --augment scale flip rotate noise --symmetry --submission"
     os.system(cmd)
 
-    cmd = cuda + "python train_script.py --log 15000 --groups z3 b br o --mode time --mode_param 300 --samples 15000 --shape 12 72 72 --augment scale flip rotate noise --symmetry --submission"
+    cmd = cuda + "python train_script.py --log 15000 --groups z3 c4h d4h o --mode time --mode_param 300 --samples 15000 --shape 12 72 72 --augment scale flip rotate noise --symmetry --submission"
     os.system(cmd)
 
 

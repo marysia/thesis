@@ -10,7 +10,7 @@ keep_limit = 5
 
 def cleanup_all():
     # clean up current log files
-    logfiles = glob.glob(logdir + '/current*log')
+    logfiles = glob.glob(logdir + '/running*log')
     if len(logfiles) > 0:
         print('Cleaning up current log files: ')
         for logfile in logfiles:
