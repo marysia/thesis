@@ -46,19 +46,19 @@ def gconv3d_util(h_input, h_output, in_channels, out_channels, ksize):
         gconv_indices = flatten_indices_3d(make_o_ot_indices(ksize=ksize))
         nti = 24
         nto = 24
-    elif h_input == 'Z3' and h_output == 'B':
+    elif h_input == 'Z3' and h_output == 'C4H':
         gconv_indices = flatten_indices_3d(make_b_z3_indices(ksize=ksize))
         nti = 1
         nto = 8
-    elif h_input == 'B' and h_output == 'B':
+    elif h_input == 'C4H' and h_output == 'C4H':
         gconv_indices = flatten_indices_3d(make_b_bt_indices(ksize=ksize))
         nti = 8
         nto = 8
-    elif h_input == 'Z3' and h_output == 'BR':
+    elif h_input == 'Z3' and h_output == 'D4H':
         gconv_indices = flatten_indices_3d(make_br_z3_indices(ksize=ksize))
         nti = 1
         nto = 16
-    elif h_input == 'BR' and h_output == 'BR':
+    elif h_input == 'D4H' and h_output == 'D4H':
         gconv_indices = flatten_indices_3d(make_br_brt_indices(ksize=ksize))
         nti = 16
         nto = 16

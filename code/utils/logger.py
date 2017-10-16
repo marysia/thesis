@@ -25,6 +25,7 @@ class Logger():
         self.depth = depth
         self.revision = revision
         self.prefix = ''  # can be altered in self.create_directory()
+        self.discard = args.discard
 
         self.runid = ''.join(random.choice(string.ascii_lowercase) for _ in range(6))
 
@@ -32,9 +33,11 @@ class Logger():
         self.log_path = self.current_log_name()
         self.latest_logpath = os.path.join(self.logdir, 'latest.log')
 
-        with open(self.log_path, 'w') as f:
-            f.write('----- LOG -----\n')
-            f.write(str(args))
+        self.cleanup()
+        if not self.discard:
+            with open(self.log_path, 'w') as f:
+                f.write('----- LOG -----\n')
+                f.write(str(args))
 
 
 
@@ -49,11 +52,12 @@ class Logger():
         '''
         # print to console as well.
         print(text)
-        with open(self.log_path, 'a') as f:
-            f.write('\n')
-            if time or self.time:
-                f.write(self.get_time())
-            f.write(code + str(text))
+        if not self.discard:
+            with open(self.log_path, 'a') as f:
+                f.write('\n')
+                if time or self.time:
+                    f.write(self.get_time())
+                f.write(code + str(text))
 
     def result(self, text, time=True):
         ''' Writes result to log file. '''
@@ -69,14 +73,21 @@ class Logger():
         self.write_to_file(text, '[ERROR] \t', time)
 
     # --- helper functions --- #
+    def cleanup(self):
+        if 'pycharm' in self.logname:
+            pycharm_files = glob.glob(os.path.join(self.logdir, '*pycharm*'))
+            for pycharm_file in pycharm_files:
+                os.remove(pycharm_file)
+
     def finalize(self, termination, exception):
         ''' Copies current running file to logdir/datafolder/logname.log and logdir/latest.log
         and removes logdir/current.log'''
-        if not 'pycharm' in self.logname:
-            broken = True if termination or exception else False
-            shutil.copy(self.log_path, self.final_log_name(self.logfolder, self.logname, broken))
-            shutil.copy(self.log_path, self.latest_logpath)
-        os.remove(self.log_path)
+        if not self.discard:
+            if not 'pycharm' in self.logname:
+                broken = True if termination or exception else False
+                shutil.copy(self.log_path, self.final_log_name(self.logfolder, self.logname, broken))
+                shutil.copy(self.log_path, self.latest_logpath)
+            os.remove(self.log_path)
 
     def get_time(self):
         ''' Returns timestamp in appropriate format. '''

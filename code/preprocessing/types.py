@@ -1,8 +1,8 @@
 import os
-
+import cv2
 import numpy as np
 
-from basedata import BaseData, Data, Data2
+from basedata import BaseData, Data
 
 class DataTypes(BaseData):
     def __init__(self, args):
@@ -27,14 +27,14 @@ class DataTypes(BaseData):
     def get_dataset(self, dataset, scope):
 
         if dataset == 'empty':
-            return Data(scope='%s-empty' % scope, x=np.array([]), y=np.array([]), id=np.array([]), balanced=None)
+            return Data(scope='%s-empty' % scope, x=np.array([]), y=np.array([]), nb_classes=3, balanced=None)
 
-        if dataset == 'nlst':
-            return self.nlst(scope)
-        if dataset == 'lidc':
+        if 'nlst' in dataset:
+            return self.nlst(scope, dataset)
+        if 'lidc' in dataset:
             return self.lidc(scope)
 
-    def nlst(self, scope):
+    def nlst(self, scope, dataset):
         datadir = '/home/marysia/data/thesis/patches/nlst-patches/'
         f_scope = 'train' if scope == 'train' else 'test'
 
@@ -42,19 +42,74 @@ class DataTypes(BaseData):
         data = loaded['data']
         data = self.preprocess(data, scope)
         meta = loaded['meta']
-        types = np.array([elem['type'] for elem in meta])
+        textures = np.array([elem['type'] for elem in meta])
 
-        index = [i for i, value in enumerate(types) if value == 'fluid' or value == 'other' or value == 'unknown']
-        data = np.delete(data, index)
-        types = np.delete(types, index)
+        index = np.array([i for i, value in enumerate(textures) if (value == 'soft-tissue') or (value == 'mixed') or (value == 'ground-glass')])
+        data = data[index]
+        textures = textures[index]
+        types = np.zeros(len(textures))
         # transform types to 0, 1, 2, etc.
-        types[types == 'soft-tissue'] = 0
-        types[types == 'mixed'] = 1
-        types[types == 'ground-glass'] = 2
+        types[textures == 'soft-tissue'] = 0
+        types[textures == 'mixed'] = 1
+        types[textures == 'ground-glass'] = 2
 
-        return Data2(scope=scope, x=data, y=types, nb_classes=3, balanced=True)
+        if 'balanced' in dataset:
+            balanced = True
+            samples = sorted((len(types[types == 0]), len(types[types==1]), len(types[types==2])))[0]
+            counts = [samples] * self.nb_classes
+            indices = []
+            for i, value in enumerate(types):
+                if counts[int(value)-1] > 0:
+                    indices.append(i)
+                    counts[int(value)-1] -= 1
+            indices = np.array(indices)
+            types = types[indices]
+            data = data[indices]
+        else:
+            balanced = False
+
+        d = Data(scope=scope, x=data, y=types, nb_classes=3, balanced=False)
+        self.save_png(d.x, np.argmax(d.y, axis=1), 5, 'nlst')
+
+        return Data(scope=scope, x=data, y=types, nb_classes=3, balanced=balanced)
 
 
+    def lidc(self, scope):
+        datadir = '/home/marysia/data/thesis/patches/lidc-localization-patches/'
+        loaded = np.load(os.path.join(datadir, 'positive_patches.npz'))
+        data = loaded['data']
+        data = self.preprocess(data, scope)
+        meta = loaded['meta']
+
+        textures = np.array([np.mean(elem['annotation-metadata']['texture']) for elem in meta])
+        types = np.zeros(len(textures))
+        types[textures > 4.0] = -1
+        types[textures < 2.0] = 1
+        types += 1  # hack to get 0-2
+
+        d = Data(scope=scope, x=data, y=types, nb_classes=3, balanced=False)
+        self.save_png(d.x, np.argmax(d.y, axis=1), 5, 'lidc')
+
+        return Data(scope=scope, x=data, y=types, nb_classes=3, balanced=False)
+
+    def save_png(self, data, labels, number, dataset):
+        folder = '/home/marysia/thesis/results/plots/'
+        label = ['solid', 'part-solid', 'ground-glass']
+        limits = [number] * 3
+
+        for i in xrange(len(labels)):
+            label_idx = int(labels[i] - 1)
+            if limits[label_idx] > 0:
+                fname = '-'.join([dataset, label[label_idx], str(limits[label_idx])])
+                fname = os.path.join(folder, fname + '.png')
+                img = data[i, 7, :, :, 0]
+
+                img[img < -1] = -1
+                img[img > 1] = 1
+                img = (img + 1) * 127.5
+
+                cv2.imwrite(fname, img)
+                limits[label_idx] -= 1
 
     def _data_reshape(self, data):
         """

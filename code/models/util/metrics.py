@@ -3,6 +3,40 @@ import tensorflow as tf
 from augmentation import augment_dataset
 BATCH = 100
 
+def get_results(meta, scope, symmetry):
+    labels = meta['labels-' + scope + '-set']
+    predictions_str = scope
+    predictions_str += '-symmetry' if symmetry else ''
+    predictions_str += '-predictions'
+    predictions = meta[predictions_str]
+    return predictions, labels
+
+def get_accuracy(meta, scope, symmetry):
+    predictions, labels = get_results(meta, scope, symmetry)
+
+    correct = 0
+    for i in xrange(len(labels)):
+        if labels[i] == np.argmax(predictions[i]):
+            correct += 1
+    return correct / float(len(labels))
+
+def get_confusion_matrix(meta, scope, symmetry):
+    predictions, labels = get_results(meta, scope, symmetry)
+
+    nb_classes = predictions[0].shape[0]
+
+    confusion_matrix = np.zeros(shape=(nb_classes, nb_classes))
+
+    for i, predictions in enumerate(predictions):
+        guess = np.argmax(predictions)
+        actual = labels[i]
+        confusion_matrix[actual][guess] += 1
+
+
+    accuracies = np.zeros(shape=(nb_classes))
+    for i in xrange(len(accuracies)):
+        accuracies[i] = confusion_matrix[i][i] / float(np.sum(confusion_matrix[i]))
+    return confusion_matrix, accuracies
 
 def get_pred(sess, model, x):
     results = []
@@ -21,7 +55,7 @@ def get_pred(sess, model, x):
         results += sub_results.tolist()
     return results
 
-def run_session_to_get_predictions(sess, model, x, symmetry):
+def get_predictions(sess, model, x, symmetry):
     ''' Get list of lists based on trained model.
     Process in small batches to prevent resource exhausted error.'''
     model.training = False
@@ -62,22 +96,6 @@ def run_session_to_get_accuracy(model, x, y):
 
     model.training = True
     return test_accuracy
-
-def mse(sess, model, test_set_x, targets):
-    '''
-    Returns mean squared error.
-    * sess: session to get predictions
-    * model: self of base model class
-    * test_set_x: 3D patches of test set
-    * targets: target labels
-    '''
-    probabilities = run_session_to_get_predictions(sess, model, test_set_x)
-    predictions = np.zeros_like(probabilities)
-    for i in xrange(len(probabilities)):
-        predictions[i, np.argmax(probabilities[i])] = 1
-
-    return ((predictions - targets) ** 2).mean()
-
 
 
 def accuracy(results, y):

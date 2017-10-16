@@ -2,11 +2,11 @@ import random
 import numpy as np
 from groupy.garray.finitegroup import FiniteGroup
 from groupy.garray.matrix_garray import MatrixGArray
-from groupy.garray.Bt_array import BtArray
+from groupy.garray.C4ht_array import C4htArray
 from groupy.garray.Z3_array import Z3Array
 
 '''
-Implementation of finite group B, the group of beam symmetry. No official name is known as of yet, 
+Implementation of finite group C4h, the group of beam symmetry. No official name is known as of yet, 
 but the group exists of 180 degree rotations over the y-axis and 90 degree rotations over the z-axis -- 8 elements
 in total. 
 
@@ -18,18 +18,18 @@ class C4hArray(MatrixGArray):
     _g_shapes = {'int': (2,), 'mat': (3, 3), 'hmat': (4, 4)}
     _left_actions = {}
     _reparameterizations = {}
-    _group_name = 'B'
+    _group_name = 'C4h'
 
     def __init__(self, data, p='int'):
         data = np.asarray(data)
         assert data.dtype == np.int
 
-        # classes BArray can be multiplied with
-        self._left_actions[BArray] = self.__class__.left_action_hmat
-        self._left_actions[BtArray] = self.__class__.left_action_hmat
+        # classes C4hArray can be multiplied with
+        self._left_actions[C4hArray] = self.__class__.left_action_hmat
+        self._left_actions[C4htArray] = self.__class__.left_action_hmat
         self._left_actions[Z3Array] = self.__class__.left_action_vec
 
-        super(BArray, self).__init__(data, p)
+        super(C4hArray, self).__init__(data, p)
         self.elements = self.get_elements()
 
     def mat2int(self, mat_data):
@@ -81,8 +81,8 @@ class C4hArray(MatrixGArray):
 
     def get_elements(self):
         '''
-        Function to generate a list containing  elements of group Brt,
-        similar to get_elements() of BArray.
+        Function to generate a list containing  elements of group C4hrt,
+        similar to get_elements() of C4hArray.
 
         Elements are stored as lists rather than numpy arrays to enable
         lookup through self.elements.index(x) and sorting.
@@ -111,33 +111,33 @@ class C4hArray(MatrixGArray):
         return element_list
 
 
-class BGroup(FiniteGroup, BArray):
+class C4hGroup(FiniteGroup, C4hArray):
     def __init__(self):
-        BArray.__init__(
+        C4hArray.__init__(
             self,
             data=np.array([[i, j] for i in xrange(2) for j in xrange(4)]),
             p='int'
         )
-        FiniteGroup.__init__(self, BArray)
+        FiniteGroup.__init__(self, C4hArray)
 
     def factory(self, *args, **kwargs):
-        return BArray(*args, **kwargs)
+        return C4hArray(*args, **kwargs)
 
-B = BGroup()
+C4h = C4hGroup()
 
 def rand(size=()):
     '''
-    Returns an BArray of shape size, with randomly chosen elements in int parameterization.
+    Returns an C4hArray of shape size, with randomly chosen elements in int parameterization.
     '''
     data = np.zeros(size + (2,), dtype=np.int)
     data[..., 0] = np.random.randint(0, 2, size)
     data[..., 1] = np.random.randint(0, 4, size)
-    return BArray(data=data, p='int')
+    return C4hArray(data=data, p='int')
 
 def identity(p='int'):
     '''
     Returns the identity element: a matrix with 1's on the diagonal.
     '''
     li = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    e = BArray(data=np.array(li, dtype=np.int), p='mat')
+    e = C4hArray(data=np.array(li, dtype=np.int), p='mat')
     return e.reparameterize(p)

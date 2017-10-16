@@ -1,12 +1,12 @@
 import groupy.garray.O_array as O
-import groupy.garray.B_array as B
-import groupy.garray.Br_array as Br
+import groupy.garray.C4h_array as C4h
+import groupy.garray.D4h_array as D4h
 import numpy as np
 import tensorflow as tf
 from groupy.gconv.tensorflow_gconv.splitgconv3d import gconv3d_util, gconv3d
 from groupy.gfunc.otfunc_array import OtFuncArray
-from groupy.gfunc.btfunc_array import BtFuncArray
-from groupy.gfunc.brtfunc_array import BrtFuncArray
+from groupy.gfunc.c4htfunc_array import C4htFuncArray
+from groupy.gfunc.d4htfunc_array import D4htFuncArray
 from groupy.gfunc.z3func_array import Z3FuncArray
 
 
@@ -35,29 +35,29 @@ def check_o_o_conv_equivariance():
         except:
             print('O - O: Fails for ksize=', ksize)
 
-def check_b_z3_conv_equivariance():
+def check_c4h_z3_conv_equivariance():
     ksize = 3
     im = np.random.randn(2, ksize, ksize, ksize, 1)
-    x, y = make_graph('Z3', 'B', ksize)
-    check_equivariance(im, x, y, Z3FuncArray, BtFuncArray, B)
+    x, y = make_graph('Z3', 'C4H', ksize)
+    check_equivariance(im, x, y, Z3FuncArray, C4htFuncArray, C4h)
 
-def check_b_b_conv_equivariance():
+def check_c4h_c4h_conv_equivariance():
     ksize = 3
     im = np.random.randn(2, ksize, ksize, ksize, 8)
-    x, y = make_graph('B', 'B', ksize)
-    check_equivariance(im, x, y, BtFuncArray, BtFuncArray, B)
+    x, y = make_graph('C4H', 'C4H', ksize)
+    check_equivariance(im, x, y, C4htFuncArray, C4htFuncArray, C4h)
 
-def check_br_z3_conv_equivariance():
+def check_d4h_z3_conv_equivariance():
     ksize = 3
     im = np.random.randn(2, ksize, ksize, ksize, 1)
-    x, y = make_graph('Z3', 'BR', ksize)
-    check_equivariance(im, x, y, Z3FuncArray, BrtFuncArray, Br)
+    x, y = make_graph('Z3', 'D4H', ksize)
+    check_equivariance(im, x, y, Z3FuncArray, D4htFuncArray, D4h)
 
-def check_br_br_conv_equivariance():
+def check_d4h_d4h_conv_equivariance():
     ksize = 3
     im = np.random.randn(2, ksize, ksize, ksize, 16)
-    x, y = make_graph('BR', 'BR', ksize)
-    check_equivariance(im, x, y, Z3FuncArray, BrtFuncArray, Br)
+    x, y = make_graph('D4H', 'D4H', ksize)
+    check_equivariance(im, x, y, Z3FuncArray, D4htFuncArray, D4h)
 
 
 def make_graph(h_input, h_output, ksize):
@@ -94,3 +94,8 @@ def check_equivariance(im, input, output, input_array, output_array, point_group
 
     assert np.allclose(yx, r_fmap1_data, rtol=1e-5, atol=1e-3)
 
+
+check_c4h_z3_conv_equivariance()
+check_c4h_c4h_conv_equivariance()
+check_d4h_z3_conv_equivariance()
+check_d4h_d4h_conv_equivariance()

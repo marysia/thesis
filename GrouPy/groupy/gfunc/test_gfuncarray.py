@@ -5,7 +5,6 @@ def test_ot_func():
     from groupy.gfunc.otfunc_array import OtFuncArray
     import groupy.garray.O_array as o
 
-    print('Hello')
     v = np.random.randn(2, 6, 24, 5, 5, 5)
     f = OtFuncArray(v=v)
 
@@ -35,33 +34,33 @@ def test_oht_func():
     check_invertible(g, f)
     check_i2g_g2i_invertible(f)
 
-def test_bt_func():
-    from groupy.gfunc.btfunc_array import BtFuncArray
-    import groupy.garray.B_array as b
+def test_c4ht_func():
+    from groupy.gfunc.c4htfunc_array import C4htFuncArray
+    import groupy.garray.C4h_array as c4h
 
     v = np.random.randn(2, 6, 8, 3, 3, 3)
-    f = BtFuncArray(v=v)
+    f = C4htFuncArray(v=v)
 
-    g = b.rand(size=(1,))
-    h = b.rand(size=(1,))
+    g = c4h.rand(size=(1,))
+    h = c4h.rand(size=(1,))
 
     check_associative(g, h, f)
-    check_identity(b, f)
+    check_identity(c4h, f)
     check_invertible(g, f)
     check_i2g_g2i_invertible(f)
 
-def test_brt_func():
-    from groupy.gfunc.brtfunc_array import BrtFuncArray
-    import groupy.garray.Br_array as br
+def test_d4ht_func():
+    from groupy.gfunc.d4htfunc_array import D4htFuncArray
+    import groupy.garray.D4h_array as d4h
 
     v = np.random.randn(2, 6, 16, 3, 3, 3)
-    f = BrtFuncArray(v=v)
+    f = D4htFuncArray(v=v)
 
-    g = br.rand(size=(1,))
-    h = br.rand(size=(1,))
+    g = d4h.rand(size=(1,))
+    h = d4h.rand(size=(1,))
 
     check_associative(g, h, f)
-    check_identity(br, f)
+    check_identity(d4h, f)
     check_invertible(g, f)
     check_i2g_g2i_invertible(f)
 

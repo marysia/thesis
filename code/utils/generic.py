@@ -2,6 +2,8 @@ import datetime
 import time
 import os
 import csv
+import pickle
+import json
 import numpy as np
 
 results_folder = '/home/marysia/thesis/results/'
@@ -12,9 +14,56 @@ def log_time(log, args, models):
     log.info('Starting training at: \t %s' % start_str)
 
     if args.mode == 'time':
-        end_time = start_time + ((args.mode_param * 60) * len(models.keys()))
+        end_time = start_time + ((args.mode_param * 60) * len(models.keys()) * len(args.groups))
         end_str = datetime.datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S')
         log.info('Estimated end time: \t %s' % end_str)
+
+def save_pickle(dict, fname):
+    with open(fname, 'wb') as f:
+        pickle.dump(dict, f)
+
+def save_json(dict, fname):
+    with open(fname, 'wb') as f:
+        json.dump(dict, f)
+
+def save_meta(dict):
+    if not dict == {}:
+        elements = [dict['log-identifier'], dict['name'], dict['group'], str(dict['training-set-samples'])]
+        fname = os.path.join(results_folder, 'pickles', '-'.join(elements) + '.pkl')
+        print(fname)
+        with open(fname, 'wb') as f:
+            pickle.dump(dict, f)
+
+def create_submission(graphmeta, symmetry):
+    if graphmeta['test-dataset'] != 'lidc-localization':
+        return
+
+    if 'test-symmetry-predictions' in graphmeta and symmetry:
+        predictions = graphmeta['test-symmetry-predictions']
+    else:
+        predictions = graphmeta['test-predictions']
+
+    positive = np.load('/home/marysia/data/thesis/patches/lidc-localization-patches/positive_patches.npz')
+    negative = np.load('/home/marysia/data/thesis/patches/lidc-localization-patches/negative_patches.npz')
+    positive_meta = positive['meta']
+    negative_meta = negative['meta']
+    meta = np.concatenate([positive_meta, negative_meta])
+
+
+    nodules = [['seriesuid', 'coordX', 'coordY', 'coordZ', 'probability']]
+    for i in xrange(graphmeta['test-set-samples']):
+        original_idx = graphmeta['permutation-test-set'][i]
+        z, y, x = np.round(meta[original_idx]['center'])
+        probability = predictions[i][1]
+        seriesuid = str(meta[original_idx]['scan-id'])
+
+        nodules.append([seriesuid, x, y, z, probability])
+
+    name = '-'.join([graphmeta['log-identifier'], graphmeta['name'], graphmeta['group'], str(graphmeta['training-set-samples'])])
+    fname = os.path.join(results_folder, 'submissions', '%s.csv' % name)
+    with open(fname, 'wb') as f:
+        writer = csv.writer(f)
+        writer.writerows(nodules)
 
 def submission(test_scope, testdata, predictions, name, log):
     '''

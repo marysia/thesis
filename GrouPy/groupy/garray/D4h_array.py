@@ -1,11 +1,11 @@
 import numpy as np
 from groupy.garray.finitegroup import FiniteGroup
 from groupy.garray.matrix_garray import MatrixGArray
-from groupy.garray.Brt_array import BrtArray
+from groupy.garray.D4ht_array import D4htArray
 from groupy.garray.Z3_array import Z3Array
 
 '''
-Implementation of finite group Br, the group of beam symmetry with reflections. No official name is known as of yet, 
+Implementation of finite group D4h, the group of beam symmetry with reflections. No official name is known as of yet, 
 but the group exists of 180 degree rotations over the y-axis and 90 degree rotations over the z-axis,
 combined with reflections -- 16 elements in total. 
 
@@ -14,23 +14,23 @@ Int parameterization is in the form of (y, z, m) where y represents the number o
 reflection (0, 1).
 '''
 
-class BrArray(MatrixGArray):
+class D4hArray(MatrixGArray):
     parameterizations = ['int', 'mat', 'hmat']
     _g_shapes = {'int': (3,), 'mat': (3, 3), 'hmat': (4, 4)}
     _left_actions = {}
     _reparameterizations = {}
-    _group_name = 'Br'
+    _group_name = 'D4h'
 
     def __init__(self, data, p='int'):
         data = np.asarray(data)
         assert data.dtype == np.int
 
         # classes OArray can be multiplied with
-        self._left_actions[BrArray] = self.__class__.left_action_hmat
-        self._left_actions[BrtArray] = self.__class__.left_action_hmat
+        self._left_actions[D4hArray] = self.__class__.left_action_hmat
+        self._left_actions[D4htArray] = self.__class__.left_action_hmat
         self._left_actions[Z3Array] = self.__class__.left_action_vec
 
-        super(BrArray, self).__init__(data, p)
+        super(D4hArray, self).__init__(data, p)
         self.elements = self.get_elements()
 
 
@@ -98,7 +98,7 @@ class BrArray(MatrixGArray):
 
     def get_elements(self):
         '''
-        Function to generate a list containing  elements of group Br,
+        Function to generate a list containing  elements of group D4h,
         similar to get_elements() of BArray.
 
         Elements are stored as lists rather than numpy arrays to enable
@@ -118,34 +118,34 @@ class BrArray(MatrixGArray):
         return element_list
 
 
-class BrGroup(FiniteGroup, BrArray):
+class D4hGroup(FiniteGroup, D4hArray):
     def __init__(self):
-        BrArray.__init__(
+        D4hArray.__init__(
             self,
             data=np.array([[i, j, m] for i in xrange(2) for j in xrange(4) for m in xrange(2)]),
             p='int'
         )
-        FiniteGroup.__init__(self, BrArray)
+        FiniteGroup.__init__(self, D4hArray)
 
     def factory(self, *args, **kwargs):
-        return BrArray(*args, **kwargs)
+        return D4hArray(*args, **kwargs)
 
-Br = BrGroup()
+D4h = D4hGroup()
 
 def rand(size=()):
     '''
-    Returns an BrArray of shape size, with randomly chosen elements in int parameterization.
+    Returns an D4hArray of shape size, with randomly chosen elements in int parameterization.
     '''
     data = np.zeros(size + (3,), dtype=np.int)
     data[..., 0] = np.random.randint(0, 2, size)
     data[..., 1] = np.random.randint(0, 4, size)
     data[..., 2] = np.random.randint(0, 2, size)
-    return BrArray(data=data, p='int')
+    return D4hArray(data=data, p='int')
 
 def identity(p='int'):
     '''
     Returns the identity element: a matrix with 1's on the diagonal.
     '''
     li = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    e = BrArray(data=np.array(li, dtype=np.int), p='mat')
+    e = D4hArray(data=np.array(li, dtype=np.int), p='mat')
     return e.reparameterize(p)

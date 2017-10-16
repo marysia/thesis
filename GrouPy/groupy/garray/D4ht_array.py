@@ -2,8 +2,8 @@ import numpy as np
 from groupy.garray.matrix_garray import MatrixGArray
 
 '''
-Implementation of space group Br that allows translations. It has no official name, and is therefor referred to as Brt.
-Implementation is similar to that of group Br. However, to represent the translations in 3D space, 
+Implementation of space group D4h that allows translations. It has no official name, and is therefor referred to as D4ht.
+Implementation is similar to that of group D4h. However, to represent the translations in 3D space, 
 the int parameterization is now in the form of (y, z, m, u, v, w)
 
 Implementation of the space group Oh that allows translations.
@@ -22,18 +22,18 @@ Note: self.base_elements are 3x3 matrices.
 '''
 
 
-class BrtArray(MatrixGArray):
+class D4htArray(MatrixGArray):
     parameterizations = ['int', 'hmat']
     _g_shapes = {'int': (6,), 'hmat': (4, 4)}
     _left_actions = {}
     _reparameterizations = {}
-    _group_name = 'Brt'
+    _group_name = 'D4ht'
 
     def __init__(self, data, p='int'):
         data = np.asarray(data)
         assert data.dtype == np.int
-        self._left_actions[BrtArray] = self.__class__.left_action_hmat
-        super(BrtArray, self).__init__(data, p)
+        self._left_actions[D4htArray] = self.__class__.left_action_hmat
+        super(D4htArray, self).__init__(data, p)
         self.elements = self.get_elements()
 
     def hmat2int(self, hmat_data):
@@ -123,7 +123,7 @@ class BrtArray(MatrixGArray):
 
     def get_elements(self):
         '''
-        Function to generate a list containing  elements of group Brt,
+        Function to generate a list containing  elements of group D4ht,
         similar to get_elements() of BArray.
 
         These are the base elements in 3x3 matrix notation without translations.
@@ -144,7 +144,7 @@ class BrtArray(MatrixGArray):
 
 def rand(minu=0, maxu=5, minv=0, maxv=5, minw=0, maxw=5, size=()):
     '''
-    Returns an BrtArray of shape size, with randomly chosen elements in int parameterization.
+    Returns an D4htArray of shape size, with randomly chosen elements in int parameterization.
     '''
     data = np.zeros(size + (6,), dtype=np.int64)
     data[..., 0] = np.random.randint(0, 2, size)  # 180 degree rotation over y
@@ -153,7 +153,7 @@ def rand(minu=0, maxu=5, minv=0, maxv=5, minw=0, maxw=5, size=()):
     data[..., 3] = np.random.randint(minu, maxu, size)  # translation on x
     data[..., 4] = np.random.randint(minv, maxv, size)  # translation on y
     data[..., 5] = np.random.randint(minw, maxw, size)  # translation on z
-    return BrtArray(data=data, p='int')
+    return D4htArray(data=data, p='int')
 
 
 def identity(p='int'):
@@ -161,7 +161,7 @@ def identity(p='int'):
     Returns the identity element: a matrix with 1's on the diagonal.
     '''
     li = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
-    e = BrtArray(data=np.array(li, dtype=np.int), p='hmat')
+    e = D4htArray(data=np.array(li, dtype=np.int), p='hmat')
     return e.reparameterize(p)
 
 
@@ -172,4 +172,4 @@ def meshgrid(minu=-1, maxu=2, minv=-1, maxv=2, minw=-1, maxw=2):
     '''
     li = [[y, z, m, u, v, w] for y in xrange(2) for z in xrange(4) for m in xrange(2) for u in xrange(minu, maxu) for v
           in xrange(minv, maxv) for w in xrange(minw, maxw)]
-    return BrtArray(li, p='int')
+    return D4htArray(li, p='int')

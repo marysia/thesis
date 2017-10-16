@@ -42,20 +42,6 @@ def dropout(tensor, keep_prob, training):
     return tensor_dropout
 
 
-def convolution2d(tensor, filter_shape, nb_channels_out):
-    '''
-    Performs 2d convolution
-    '''
-    with tf.name_scope('convolution2d'):
-        strides = [1, 1, 1, 1]
-        nb_channels_in = int(tensor.get_shape()[-1])
-        W = weight_variable(filter_shape + [nb_channels_in, nb_channels_out])
-
-        # W = _weights_distribution(filter_shape+[nb_channels_in, nb_channels_out], "weight_distribution", schema = "he")
-        b = bias_variable([nb_channels_out])
-        tensor = tf.nn.conv2d(input=tensor, filter=W, strides=strides, padding="SAME") + b
-    return tensor
-
 
 def convolution3d(tensor, filter_shape, nb_channels_out, stride=[1, 1, 1]):
     '''

@@ -1,8 +1,8 @@
-import groupy.garray.Bt_array as bt
+import groupy.garray.C4ht_array as c4ht
 from groupy.gfunc.gfuncarray import GFuncArray
 
 
-class BtFuncArray(GFuncArray):
+class C4htFuncArray(GFuncArray):
     def __init__(self, v, umin=None, umax=None, vmin=None, vmax=None, wmin=None, wmax=None):
 
         # TODO: error message
@@ -32,7 +32,7 @@ class BtFuncArray(GFuncArray):
         self.wmin = wmin
         self.wmax = wmax + 1
 
-        i2g = bt.meshgrid(
+        i2g = c4ht.meshgrid(
             minu=self.umin,
             maxu=self.umax,
             minv=self.vmin,
@@ -42,7 +42,7 @@ class BtFuncArray(GFuncArray):
         )
         i2g = i2g.reshape(v.shape[-4:])
 
-        super(BtFuncArray, self).__init__(v=v, i2g=i2g)
+        super(C4htFuncArray, self).__init__(v=v, i2g=i2g)
 
     def g2i(self, g):
         gint = g.reparameterize('int').data.copy()

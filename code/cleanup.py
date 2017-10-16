@@ -4,7 +4,7 @@ import os
 from stat import ST_CTIME
 
 logdir = '/home/marysia/thesis/logs'
-folders = ['mnist', 'patches2d', 'patches3d']
+folders = ['patches3d', 'composition']
 keep_limit = 5
 
 

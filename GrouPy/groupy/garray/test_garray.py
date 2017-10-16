@@ -37,21 +37,21 @@
 #     check_finite_group(O_array, O_array.OArray, O_array.O)
 
 
-def test_b_array():
-    from groupy.garray import B_array
-    check_finite_group(B_array, B_array.BArray, B_array.B)
+def test_c4h_array():
+    from groupy.garray import C4h_array
+    check_finite_group(C4h_array, C4h_array.C4hArray, C4h_array.C4h)
 
-def test_bt_array():
-    from groupy.garray import Bt_array
-    check_space_group(Bt_array, Bt_array.BtArray)
+def test_c4ht_array():
+    from groupy.garray import C4ht_array
+    check_space_group(C4ht_array, C4ht_array.C4htArray)
 #
-def test_br_array():
-    from groupy.garray import Br_array
-    check_finite_group(Br_array, Br_array.BrArray, Br_array.Br)
+def test_d4h_array():
+    from groupy.garray import D4h_array
+    check_finite_group(D4h_array, D4h_array.D4hArray, D4h_array.D4h)
 
-def test_brt_array():
-    from groupy.garray import Brt_array
-    check_space_group(Brt_array, Brt_array.BrtArray)
+def test_d4ht_array():
+    from groupy.garray import D4ht_array
+    check_space_group(D4ht_array, D4ht_array.D4htArray)
 
 # def test_oh_array():
 #     from groupy.garray import Oh_array

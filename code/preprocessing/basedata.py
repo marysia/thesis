@@ -97,7 +97,7 @@ class Data:
         if self.balanced:
             return self.get_balanced_batch(i, batch_size)
         else:
-            return self.get_unbalanced_batch(i, batch_size)
+            return self.get_balanced_batch(i, batch_size)
 
     def get_balanced_batch(self, i, batch_size):
         ''' Get the next balanced batch. In case the next batch cannot be retrieved, get random indices.'''
