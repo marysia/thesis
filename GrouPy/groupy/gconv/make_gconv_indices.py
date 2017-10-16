@@ -69,7 +69,7 @@ def make_c4h_z3_indices(ksize):
     iuvw = np.c_[i, uvw]
     return iuvw.astype('int32')
 
-def make_b_bt_indices(ksize):
+def make_c4h_c4ht_indices(ksize):
     assert ksize % 2 == 1
     x = np.random.randn(8, ksize, ksize, ksize)
     f = C4htFuncArray(v=x)
