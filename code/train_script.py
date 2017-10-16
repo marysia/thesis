@@ -7,6 +7,7 @@ from preprocessing.patches import DataPatches
 from utils.control import ProgramEnder
 from utils.generic import log_time, save_meta, create_submission
 from utils.logger import Logger
+from utils.config import LOGDIR
 
 models3d = {
     #'WBN': WideBoostingNetwork,
@@ -15,7 +16,7 @@ models3d = {
 
 # global program ender
 ender = ProgramEnder()
-logdir = '/home/marysia/thesis/logs/'
+LOGDIR = '/home/marysia/thesis/logs/'
 
 
 def train(data, log, trainmodels, args):
@@ -61,7 +62,7 @@ def main(args):
     to a smaller set each time, and training.
     """
     broken = False
-    log = Logger(args, logdir, logfolder='patches3d', logname=args.log)
+    log = Logger(args, LOGDIR, logfolder='patches3d', logname=args.log)
     data = DataPatches(args)
 
     # go through sample size in reverse order: [10.000, 1.000, 100, 10]

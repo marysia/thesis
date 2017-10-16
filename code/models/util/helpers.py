@@ -1,16 +1,15 @@
 ''' Model-related helper functions '''
-import csv
-import os
+
 import sys
 
-import numpy as np
 import tensorflow as tf
 import matplotlib as mpl
 
 mpl.use('Agg')
 import pylab as plt
 
-results_folder = '/home/marysia/thesis/results'
+sys.path.append('../../')
+from utils.config import RESULTSDIR
 
 def error_plot(errors, epoch_interval):
     train_errors = [elem[0] for elem in errors]
@@ -22,7 +21,7 @@ def error_plot(errors, epoch_interval):
     plt.plot(x, val_errors, label='Val errors')
     plt.legend(loc='best')
     plt.title('Train/val errors')
-    plt.savefig(results_folder + '/errors.png')
+    plt.savefig(RESULTSDIR + '/errors.png')
 
 def total_parameters():
     '''

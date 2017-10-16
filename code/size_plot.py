@@ -6,7 +6,10 @@ import pylab as plt
 import pickle
 import glob
 import sys
+import os
 import numpy as np
+
+from utils.config import RESULTSDIR
 
 def create_plot():
 
@@ -28,7 +31,7 @@ def create_plot():
 
 def loss_plot(identifier, mode, losstype):
     print losstype
-    fname = glob.glob('/home/marysia/thesis/results/pickles/' + identifier + '*')[0]
+    fname = glob.glob(os.path.join(RESULTSDIR, 'pickles', identifier + '*'))[0]
 
     with open(fname, 'rb') as f:
         meta = pickle.load(f)
@@ -74,7 +77,7 @@ def loss_plot(identifier, mode, losstype):
     plt.ylabel('Loss')
     plt.legend(loc='best')
     plt.title(title)
-    plt.savefig('/home/marysia/thesis/results/plots/%s.png' % fname)
+    plt.savefig(os.path.join(RESULTSDIR, 'plots', '%s.png' % fname))
 
 if __name__ == '__main__':
     identifier = sys.argv[1]

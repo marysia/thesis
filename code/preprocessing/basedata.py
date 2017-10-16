@@ -2,9 +2,11 @@ import random
 
 import numpy as np
 
-
+import sys
+sys.path.append('..')
+from utils.config import DATADIR
 class BaseData:
-    def __init__(self, datadir='/home/marysia/thesis/data'):
+    def __init__(self, datadir=DATADIR):
         self.datadir = datadir
         self._set_classes()
         self.load()

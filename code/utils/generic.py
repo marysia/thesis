@@ -5,8 +5,12 @@ import csv
 import pickle
 import json
 import numpy as np
+import sys
 
-results_folder = '/home/marysia/thesis/results/'
+sys.path.append('..')
+from config import RESULTSDIR, DATADIR
+
+lidc_folder = os.path.join(DATADIR, 'patches', 'lidc-localization-patches')
 
 def log_time(log, args, models):
     start_time = time.time() + (2 * 3600)  # system time is two hours behind; adjust.
@@ -29,7 +33,7 @@ def save_json(dict, fname):
 def save_meta(dict):
     if not dict == {}:
         elements = [dict['log-identifier'], dict['name'], dict['group'], str(dict['training-set-samples'])]
-        fname = os.path.join(results_folder, 'pickles', '-'.join(elements) + '.pkl')
+        fname = os.path.join(RESULTSDIR, 'pickles', '-'.join(elements) + '.pkl')
         print(fname)
         with open(fname, 'wb') as f:
             pickle.dump(dict, f)
@@ -43,8 +47,8 @@ def create_submission(graphmeta, symmetry):
     else:
         predictions = graphmeta['test-predictions']
 
-    positive = np.load('/home/marysia/data/thesis/patches/lidc-localization-patches/positive_patches.npz')
-    negative = np.load('/home/marysia/data/thesis/patches/lidc-localization-patches/negative_patches.npz')
+    positive = np.load(os.path.join(lidc_folder, 'positive_patches.npz'))
+    negative = np.load(os.path.join(lidc_folder, 'negative_patches.npz'))
     positive_meta = positive['meta']
     negative_meta = negative['meta']
     meta = np.concatenate([positive_meta, negative_meta])
@@ -60,7 +64,7 @@ def create_submission(graphmeta, symmetry):
         nodules.append([seriesuid, x, y, z, probability])
 
     name = '-'.join([graphmeta['log-identifier'], graphmeta['name'], graphmeta['group'], str(graphmeta['training-set-samples'])])
-    fname = os.path.join(results_folder, 'submissions', '%s.csv' % name)
+    fname = os.path.join(RESULTSDIR, 'submissions', '%s.csv' % name)
     with open(fname, 'wb') as f:
         writer = csv.writer(f)
         writer.writerows(nodules)
@@ -75,8 +79,8 @@ def submission(test_scope, testdata, predictions, name, log):
     if test_scope != 'lidc-localization':
         return
 
-    positive = np.load('/home/marysia/data/thesis/patches/lidc-localization-patches/positive_patches.npz')
-    negative = np.load('/home/marysia/data/thesis/patches/lidc-localization-patches/negative_patches.npz')
+    positive = np.load(os.path.join(lidc_folder, 'positive_patches.npz'))
+    negative = np.load(os.path.join(lidc_folder, 'negative_patches.npz'))
     positive_meta = positive['meta']
     negative_meta = negative['meta']
     meta = np.concatenate([positive_meta, negative_meta])
@@ -91,7 +95,7 @@ def submission(test_scope, testdata, predictions, name, log):
 
         nodules.append([seriesuid, x, y, z, probability])
 
-    fname = os.path.join(results_folder, 'submissions', '%s.csv' % name)
+    fname = os.path.join(RESULTSDIR, 'submissions', '%s.csv' % name)
     with open(fname, 'wb') as f:
         writer = csv.writer(f)
         writer.writerows(nodules)

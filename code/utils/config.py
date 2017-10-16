@@ -1,28 +1,8 @@
 import os
+HOME = os.getenv("HOME")
 
-# directories 
-home_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-log_dir = os.path.join(home_dir, 'logs')
+vm = 'azure' if 'marysia' in HOME else 'aws'
 
-# working remotely: 
-data_dir = '/zdev/data/'
-
-# working locally: 
-if not os.path.exists(data_dir):
-    data_dir = os.path.join(home_dir, 'data')
-
-# candidate info
-patch_size = (7, 72, 72)
-scale = (2.5, .512, .512)
-
-# model info 
-batch_size = 32
-epochs = 50
-
-optimized = 'sgd'
-loss = 'binary_crossentropy'
-metrics = ['accuracy']
-lrate = .9
-momentum = .9
-decay = lrate / epochs
-nesterov = False
+DATADIR = os.path.join(HOME, 'data', 'thesis') if vm == 'azure' else '/mnt/thesis'
+LOGDIR = os.path.join(HOME, 'thesis', 'logs')
+RESULTSDIR = os.path.join(HOME, 'thesis', 'results')

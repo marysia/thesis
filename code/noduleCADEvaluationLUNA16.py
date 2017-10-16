@@ -12,7 +12,10 @@ import sklearn.metrics as skl_metrics
 import numpy as np
 import argparse
 import re
-sys.path.append('/home/marysia/thesis/luna_evaluation')
+
+from utils.config import HOME, RESULTSDIR
+luna_evaluation_dir = os.path.join(HOME, 'thesis', 'luna_evaluation')
+sys.path.append(luna_evaluation_dir)
 from NoduleFinding import NoduleFinding
 
 from tools import csvTools
@@ -421,9 +424,9 @@ def noduleCADEvaluation(annotations_filename,annotations_excluded_filename,serie
     print annotations_filename
     
     #(allNodules, seriesUIDs) = collect(annotations_filename, annotations_excluded_filename, seriesuids_filename)
-    with open('/home/marysia/thesis/luna_evaluation/allNodules.pkl', 'rb') as f:
+    with open(os.path.join(luna_evaluation_dir, 'allNodules.pkl'), 'rb') as f:
         allNodules = pickle.load(f)
-    with open('/home/marysia/thesis/luna_evaluation/seriesUIDs.pkl', 'rb') as f:
+    with open(os.path.join(luna_evaluation_dir, 'allNodules.pkl'), 'rb') as f:
         seriesUIDs = pickle.load(f)
 
     evaluateCAD(seriesUIDs, results_filename, outputDir, allNodules,
@@ -434,11 +437,11 @@ def noduleCADEvaluation(annotations_filename,annotations_excluded_filename,serie
 
 
 def create_froc_curve(result_files, fname):
-    outputDir = '/home/marysia/thesis/results/CADEvaluation/'
+    outputDir = os.path.join(RESULTSDIR, 'CADEvaluation')
 
-    with open('/home/marysia/thesis/luna_evaluation/allNodules.pkl', 'rb') as f:
+    with open(os.path.join(luna_evaluation_dir, 'allNodules.pkl'), 'rb') as f:
         allNodules = pickle.load(f)
-    with open('/home/marysia/thesis/luna_evaluation/seriesUIDs.pkl', 'rb') as f:
+    with open(os.path.join(luna_evaluation_dir, 'allNodules.pkl'), 'rb') as f:
         seriesUIDs = pickle.load(f)
 
 
@@ -507,9 +510,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.final:
-        all_files = glob.glob('/home/marysia/thesis/results/final_submissions/*.csv')
+        all_files = glob.glob(os.path.join(RESULTSDIR, 'final_submissions', '*.csv'))
     else:
-        all_files = glob.glob('/home/marysia/thesis/results/submissions/*.csv')
+        all_files = glob.glob(os.path.join(RESULTSDIR, 'submissions', '*.csv'))
 
     files = get_files(all_files, args.constraints)
 

@@ -1,7 +1,10 @@
 import numpy as np
 import cv2
+from utils.config import RESULTSDIR, DATADIR
+import os
 def array_to_png(array, fname):
-    folder = '/home/marysia/thesis/results/nodule_img/'
+    folder = os.path.join(RESULTSDIR, 'nodule_img')
+    fname = os.path.join(folder, fname+'.png')
     fname = folder + fname + '.png'
     data = array[6, :, :]
 
@@ -14,8 +17,9 @@ def array_to_png(array, fname):
     img = (img + 1) * 127.5
     cv2.imwrite(fname, img)
 
-a = np.load('/home/marysia/data/thesis/patches/lidc-localization-patches/positive_patches.npz')['meta']
-b = np.load('/home/marysia/data/thesis/patches/lidc-localization-patches/positive_patches.npz')['data']
+a = np.load(os.path.join(DATADIR, 'patches', 'lidc-localization-patches', 'positive_patches.npz'))['meta']
+b = np.load(os.path.join(DATADIR, 'patches', 'lidc-localization-patches', 'positive_patches.npz'))['data']
+
 texture = [elem['annotation-metadata']['texture'] for elem in a]
 avgs = [np.mean(elem) for elem in texture]
 

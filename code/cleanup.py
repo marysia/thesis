@@ -2,15 +2,15 @@ import argparse
 import glob
 import os
 from stat import ST_CTIME
-
-logdir = '/home/marysia/thesis/logs'
+from utils.config import LOGDIR
+LOGDIR = '/home/marysia/thesis/logs'
 folders = ['patches3d', 'composition']
 keep_limit = 5
 
 
 def cleanup_all():
     # clean up current log files
-    logfiles = glob.glob(logdir + '/running*log')
+    logfiles = glob.glob(LOGDIR + '/running*log')
     if len(logfiles) > 0:
         print('Cleaning up current log files: ')
         for logfile in logfiles:
@@ -18,13 +18,13 @@ def cleanup_all():
             os.remove(logfile)
 
     # remove pycharm files
-    pycharm_files = glob.glob(logdir + '/*/*pycharm*')
+    pycharm_files = glob.glob(LOGDIR + '/*/*pycharm*')
     for file in pycharm_files:
         os.remove(file)
 
     # clean up folders
     for data_folder in folders:
-        logfiles = [os.path.join(logdir, data_folder, f) for f in os.listdir(os.path.join(logdir, data_folder))]
+        logfiles = [os.path.join(LOGDIR, data_folder, f) for f in os.listdir(os.path.join(LOGDIR, data_folder))]
         if len(logfiles) >= keep_limit + 1:
             # sort based on time
             logfiles = [(os.stat(path)[ST_CTIME], path) for path in logfiles]
@@ -56,7 +56,7 @@ def cleanup_all():
 
 
 def cleanup_broken():
-    broken_logfiles = glob.glob(logdir + '/*/broken*')
+    broken_logfiles = glob.glob(LOGDIR + '/*/broken*')
     if len(broken_logfiles) != 0:
         for logfile in broken_logfiles:
             print('Removing %s.' % logfile)

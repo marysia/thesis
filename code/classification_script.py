@@ -8,15 +8,15 @@ from utils.control import ProgramEnder
 from utils.logger import Logger
 from preprocessing.generic import data_metrics
 from utils.generic import save_meta
-
+from utils.config import LOGDIR
 # global program ender
 ender = ProgramEnder()
-logdir = '/home/marysia/thesis/logs/'
+LOGDIR = '/home/marysia/thesis/logs/'
 
 
 def main(args):
     data = DataTypes(args)
-    log = Logger(args, logdir, logfolder='composition', logname=args.log)
+    log = Logger(args, LOGDIR, logfolder='composition', logname=args.log)
     data_metrics(data, log)
 
     tot_params = 0

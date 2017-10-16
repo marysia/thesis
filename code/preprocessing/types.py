@@ -4,6 +4,10 @@ import numpy as np
 
 from basedata import BaseData, Data
 
+import sys
+sys.path.append('..')
+from utils.config import DATADIR, RESULTSDIR
+
 class DataTypes(BaseData):
     def __init__(self, args):
         self.name = 'nodule-classification'
@@ -35,7 +39,7 @@ class DataTypes(BaseData):
             return self.lidc(scope)
 
     def nlst(self, scope, dataset):
-        datadir = '/home/marysia/data/thesis/patches/nlst-patches/'
+        datadir = os.path.join(DATADIR, 'thesis', 'patches', 'nlst-patches')
         f_scope = 'train' if scope == 'train' else 'test'
 
         loaded = np.load(os.path.join(datadir, 'positive_%s_patches_meta.npz' % f_scope))
@@ -75,7 +79,8 @@ class DataTypes(BaseData):
 
 
     def lidc(self, scope):
-        datadir = '/home/marysia/data/thesis/patches/lidc-localization-patches/'
+
+        datadir = os.path.join(DATADIR, 'thesis', 'patches', 'lidc-localization-patches')
         loaded = np.load(os.path.join(datadir, 'positive_patches.npz'))
         data = loaded['data']
         data = self.preprocess(data, scope)
@@ -93,6 +98,7 @@ class DataTypes(BaseData):
         return Data(scope=scope, x=data, y=types, nb_classes=3, balanced=False)
 
     def save_png(self, data, labels, number, dataset):
+        folder = os.path.join(RESULTSDIR, 'plots')
         folder = '/home/marysia/thesis/results/plots/'
         label = ['solid', 'part-solid', 'ground-glass']
         limits = [number] * 3

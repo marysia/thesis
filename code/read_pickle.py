@@ -3,6 +3,9 @@ import sys
 import os
 import numpy as np
 import glob
+
+from utils.config import RESULTSDIR
+
 def read_pickle(fname):
     with open(fname, 'r') as f:
         meta = pickle.load(f)
@@ -13,8 +16,7 @@ def read_pickle(fname):
             print(key, value)
 
 if __name__ == "__main__":
-
-    files = glob.glob('/home/marysia/thesis/results/pickles/' + sys.argv[1] + '*')
+    files = glob.glob(os.path.join(RESULTSDIR, 'pickles', sys.argv[1] + '*'))
 
     for f in files:
         read_pickle(f)
