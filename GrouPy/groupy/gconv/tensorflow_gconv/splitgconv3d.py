@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from groupy.gconv.make_gconv_indices import make_o_z3_indices, \
-    make_o_ot_indices, make_b_z3_indices, make_b_bt_indices, make_br_z3_indices, make_br_brt_indices, flatten_indices_3d
+    make_o_ot_indices, make_c4h_z3_indices, make_c4h_c4ht_indices, make_d4h_z3_indices, make_d4h_d4ht_indices, flatten_indices_3d
 from groupy.gconv.tensorflow_gconv.transform_filter import transform_filter_3d_nhwc
 
 
@@ -47,19 +47,19 @@ def gconv3d_util(h_input, h_output, in_channels, out_channels, ksize):
         nti = 24
         nto = 24
     elif h_input == 'Z3' and h_output == 'C4H':
-        gconv_indices = flatten_indices_3d(make_b_z3_indices(ksize=ksize))
+        gconv_indices = flatten_indices_3d(make_c4h_z3_indices(ksize=ksize))
         nti = 1
         nto = 8
     elif h_input == 'C4H' and h_output == 'C4H':
-        gconv_indices = flatten_indices_3d(make_b_bt_indices(ksize=ksize))
+        gconv_indices = flatten_indices_3d(make_c4h_c4ht_indices(ksize=ksize))
         nti = 8
         nto = 8
     elif h_input == 'Z3' and h_output == 'D4H':
-        gconv_indices = flatten_indices_3d(make_br_z3_indices(ksize=ksize))
+        gconv_indices = flatten_indices_3d(make_d4h_z3_indices(ksize=ksize))
         nti = 1
         nto = 16
     elif h_input == 'D4H' and h_output == 'D4H':
-        gconv_indices = flatten_indices_3d(make_br_brt_indices(ksize=ksize))
+        gconv_indices = flatten_indices_3d(make_d4h_d4ht_indices(ksize=ksize))
         nti = 16
         nto = 16
     else:
