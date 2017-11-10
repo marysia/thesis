@@ -175,7 +175,7 @@ class BaseModel:
 
     def validation_loss(self):
         ''' Calculates the loss on the validation set.
-        Additionally, after 3/4th of training has been done, keeps track
+        Additionally, after a fraction of training has been done, keeps track
         of the lowest loss and evaluates if necessary. '''
         self.training = False
         if 'empty' not in self.data.val.scope:
@@ -187,7 +187,7 @@ class BaseModel:
                 cost += self.sess.run([self.cross_entropy], feed_dict={self.x: x, self.y: y})[0]
             cost /= steps
             self.validation_losses.append(cost)
-            #print('Loss: ' + str(cost))
+
             if (self.progress / float(self.mode_param)) > self.save_fraction:
                 if (self.progress / float(self.mode_param) == 1) and ('permutation-test-set' not in self.meta.keys()):
                     self.log.info('\nReached end of train cycle; evaluating validation and test set.')
@@ -202,7 +202,7 @@ class BaseModel:
 
 
     def set_meta(self, iteration, parameters):
-        ''' Sets metadata '''
+        ''' Sets metadata to be saved in pickle later on. '''
         if not self.discard:
             # model info
             self.meta['name'] = self.name
@@ -233,7 +233,7 @@ class BaseModel:
 
         
     def evaluate(self):
-        ''' Saves validation and test set results to metadata
+        ''' Saves validation and test set results to meta variable
             Saved per set:
                 * Permutation of data shuffle to retrieve original series uid
                 * Labels (not one-hot encoded)

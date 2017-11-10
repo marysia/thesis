@@ -51,9 +51,8 @@ def convolution3d(tensor, filter_shape, nb_channels_out, stride=[1, 1, 1]):
         stride = [1] + list(stride) + [1]   # batch & channel
         nb_channels_in = int(tensor.get_shape()[-1])
         W = weight_variable(list(filter_shape) + [nb_channels_in, nb_channels_out])
-        # W = _weights_distribution(filter_shape+[nb_channels_in, nb_channels_out], "weight_distribution", schema = "he")
-        # b = bias_variable([nb_channels_out])
-        tensor = tf.nn.conv3d(input=tensor, filter=W, strides=stride, padding="SAME") # + b
+        b = bias_variable([nb_channels_out])
+        tensor = tf.nn.conv3d(input=tensor, filter=W, strides=stride, padding="SAME") + b
     return tensor
 
 
@@ -104,12 +103,16 @@ def dense(tensor, channels):
 
 
 def flatten(tensor):
+    '''
+    Flatten the tensor from (b, z, y, x, c) to (b, z*y*x*c).
+    '''
     shape = np.prod(np.array(tensor.get_shape().as_list()[1:]))
     tensor = tf.reshape(tensor, [-1, shape])
     return tensor
 
 
 def dim_reshape(tensor, z=None):
+    ''' Reshape tensor from 2D to 3D or 3D to 2D.'''
     shape = [int(dim) for dim in list(tensor.get_shape())[1:]]
     # 2d --> 3d
     if len(shape) == 3:
@@ -129,13 +132,12 @@ def readout(tensor, shape):
     '''
     W = weight_variable(shape)
     b = bias_variable([shape[-1]])
-    # W = _weights_distribution(shape, name='weight')
-    # b = _weights_constant([shape[-1]], value=0.1, name='bias')
     tensor = tf.matmul(tensor, W) + b
     return tensor
 
 
 def weight_variable(shape):
+    ''' Initialize weight with: w = truncated normal * sqrt(2 / n) where n = number of neurons feeding into it.'''
     n = shape[-2]
     initial = tf.truncated_normal(shape, stddev=0.1, name='weight')
     initial = initial * np.sqrt(2.0 / n)
@@ -146,12 +148,8 @@ def bias_variable(shape):
     initial = tf.constant(0., shape=shape, name='bias')
     return tf.Variable(initial)
 
-
-def maxpool2d(tensor, strides=[1, 2, 2, 1]):
-    return tf.nn.max_pool(tensor, ksize=[1, 1, 1, 1], strides=strides, padding='SAME')
-
-
 def maxpool3d(tensor, strides=[1, 1, 2, 2, 1]):
+    ''' Return max pool 3D'''
     return tf.nn.max_pool3d(tensor, ksize=[1, 1, 1, 1, 1], strides=strides, padding='SAME')
 
 

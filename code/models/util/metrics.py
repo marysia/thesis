@@ -4,6 +4,7 @@ from augmentation import augment_dataset
 BATCH = 100
 
 def get_batch_size(sess, model, x):
+    ''' Return largest batch size possible for network to perform inference on.'''
     batch_size = 512
     while batch_size > 1:
         try:
@@ -16,6 +17,7 @@ def get_batch_size(sess, model, x):
 
 
 def get_results(meta, scope, symmetry):
+    """ Returns predictions and labels """
     labels = meta['labels-' + scope + '-set']
     predictions_str = scope
     predictions_str += '-symmetry' if symmetry else ''
@@ -24,6 +26,7 @@ def get_results(meta, scope, symmetry):
     return predictions, labels
 
 def get_accuracy(meta, scope, symmetry):
+    """ Return accuracy """
     predictions, labels = get_results(meta, scope, symmetry)
 
     correct = 0

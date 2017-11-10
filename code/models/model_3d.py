@@ -1,38 +1,44 @@
 import util.base_layers as base
 import util.gconv_layers as gconv
-import util.layers as layer
 from basemodel import BaseModel
 
-from models.util.helpers import total_parameters
 class CNN(BaseModel):
     def build_graph(self):
+        '''
+        Build graph for regular CNN: convolution-batch normalization-(relu)activation layers with max pooling
+        Returns model logits
+        '''
+        # set filters and activation
         num_filters = [16, 32, 64]
         self.activation = 'relu'
 
+        # 1
         tensor = self.conv_bn_act(self.x, num_filters[0], first=True)
-
         tensor = base.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
-
+        # 2
         tensor = self.conv_bn_act(tensor, num_filters[0])
         tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
-
+        # 3
         tensor = self.conv_bn_act(tensor, num_filters[1])
         tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
-
+        # 4
         tensor = self.conv_bn_act(tensor, num_filters[1])
         tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
-
-
+        # 5
         tensor = self.conv_bn_act(tensor, num_filters[2])
         tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
-
+        # 6
         tensor = self.conv_bn_act(tensor, num_filters[2])
 
+        # finalize
         tensor = base.flatten(tensor)
         final = base.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
         return final
 
     def conv_bn_act(self, tensor, filters, first=False):
+        ''' Implements (g)-convolution - batch normalization - activation'''
+
+        # determine convolution type -- regular convolution or gconv convolution
         if self.group == 'Z3':
             tensor = base.convolution3d(tensor, [3, 3, 3], filters)
         else:
@@ -45,31 +51,39 @@ class CNN(BaseModel):
 
 class WideBoostingNetwork(BaseModel):
     def build_graph(self):
+        ''' Build graph for a WideBoostingNetwork: ResNet blocks with max pooling, batch normalization, crelu
+        activation and (g)convolutions.
+        Returns model logits
+        '''
+        # set number of filters and activation type
         k = 2
         num_filters = [8 * k, 16 * k, 32 * k, 64 * k]
         self.activation = 'crelu'
 
-        tensor = self.x
-        tensor = self.convolution3d(tensor, 16, (3, 3, 3), (1, 1, 1), first=True)
+        # initial convolution
+        tensor = self.convolution3d(self.x, 16, (3, 3, 3), (1, 1, 1), first=True)
+
+        # four resnet blocks
         tensor = self.resnet_block(tensor, num_filters[0], self.activation, length=3, strided=False)
         tensor = self.resnet_block(tensor, num_filters[1], self.activation, length=3, strided=True)
         tensor = self.resnet_block(tensor, num_filters[2], self.activation, length=3, strided=True)
         tensor = self.resnet_block(tensor, num_filters[3], self.activation, length=3, strided=True)
 
+        # last
         tensor = base.batch_normalization(tensor)
         tensor = base.activation(tensor, key=self.activation)
-
-        # global average pooling instead
-        tensor = base.maxpool3d(tensor, strides=[1, 2, 9, 9, 1])
-
+        tensor = base.maxpool3d(tensor, strides=[1, 2, 9, 9, 1])   # use global avg. pooling instead?
         tensor = base.convolution3d(tensor, nb_channels_out=2, filter_shape=(1, 1, 1))
 
-        # just sigmoid or softmax instead
+        # finalize
         tensor = base.flatten(tensor)
         final = base.readout(tensor, [int(tensor.get_shape()[-1]), self.data.nb_classes])
         return final
 
     def resnet_block(self, tensor, filters, activation, length=3, strided=True):
+        ''' Implementation of ResNet block
+        Save tensor to variable, execute bn/act/conv, and merge saved tensor with new tensor.
+         Repeat this process _length_ times. '''
 
         for i in xrange(length):
             save_tensor = tensor
@@ -94,6 +108,7 @@ class WideBoostingNetwork(BaseModel):
         return tensor
 
     def convolution3d(self, tensor, filters, filter_shape, stride, first=False):
+        ''' Implements (g)-convolution based on the given group.'''
         if self.group == 'Z3':
             return base.convolution3d(tensor, filter_shape, filters, stride)
         else:

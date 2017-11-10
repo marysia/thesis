@@ -8,9 +8,6 @@ def add_noise(x):
     x += np.random.randn(x.shape[0], x.shape[1], x.shape[2]) * 0.05
     return x
 
-def add_blur(x, scalar):
-    return scipy.ndimage.gaussian_filter(x, sigma=scalar)
-
 def rotate_dataset(x, rotation):
     """ Rotates batch n times 90 degrees. """
     x_out = np.empty_like(x)
@@ -20,7 +17,6 @@ def rotate_dataset(x, rotation):
             im = np.rot90(im, rotation)
             x_out[i, j, :, :, 0] = im
     return x
-
 
 def flip_dataset(x, flip):
     """ Flips the entire batch in the z, y or x axis."""
@@ -39,11 +35,12 @@ def scale_volume(x, scalar):
 
 
 def rotate_volume(x, rotation):
-    """ Rotates the volume 0-360 degrees. """
+    """ Rotates the volume 0-360 degrees by rotating each individual image in the volume. """
     x_out = np.empty_like(x)
     for i in xrange(x.shape[0]):
         im = x[i, :, :]
 
+        # suppress scipy warnings
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', UserWarning)
             im = scipy.ndimage.rotate(im, rotation, reshape=False)
@@ -63,7 +60,7 @@ def flip_volume(x, flip):
         return x[:, :, ::-1]
 
 def crop_volume(x, shape):
-    """ Crops the volume to the desired shape. """
+    """ Crops the volume to the desired shape, with translations from the center. """
     center = {
         'x': x.shape[2] / 2 + np.random.randint(-3, 4),
         'y': x.shape[1] / 2 + np.random.randint(-3, 4),
@@ -80,6 +77,7 @@ def crop_volume(x, shape):
            center['x'] - dif['x']:center['x'] + dif['x']]
 
 def remap(x, map):
+    """ Value remapping. """
     from_start = -0.84375
     from_end = -0.6875
     to_start =  0.5625
@@ -98,23 +96,29 @@ def remap(x, map):
 def augment_batch(x, transformations, shape, keep_prob=.2):
     """  Perform augmentations on batch with chance.
     Possible augmentations: flips, rotations, scaling. Always crop, to get the right shape.
+
+    Perform different augmentations for each volume in the batch.
     """
 
+    # initialize output batch
     x_out = np.zeros((x.shape[0], shape[0], shape[1], shape[2], 1))
+
+    # loop over every volume in the batch
     for i in xrange(x.shape[0]):
+        # determine augmentations
         flip = np.random.randint(0, 4)
         rotation = np.random.randint(0, 360)
         scale = np.random.uniform(low=.8, high=1.2)
-        blur = np.random.randint(0, 2)
         map = np.random.random((4,))
 
+        # get volume and perform augmentations
         volume = x[i, :, :, :, 0]
         volume = scale_volume(volume, scale) if 'scale' in transformations and np.random.random() > keep_prob else volume
         volume = rotate_volume(volume, rotation) if 'rotate' in transformations and np.random.random() > keep_prob else volume
         volume = flip_volume(volume, flip) if 'flip' in transformations and np.random.random() > keep_prob else volume
         volume = remap(volume, map) if 'remap' in transformations and np.random.random() > keep_prob else volume
         volume = add_noise(volume) if 'noise' in transformations and np.random.random() > keep_prob else volume
-        volume = add_blur(volume, blur) if 'blur' in transformations and np.random.random() > keep_prob else volume
+
         # crop with translation (calculate after scaling/rotation)
         volume = crop_volume(volume, shape)
         x_out[i, :, :, :, 0] = volume
