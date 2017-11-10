@@ -6,10 +6,12 @@ import numpy as np
 from groupy.garray.C4_array import C4
 from groupy.garray.D4_array import D4
 from groupy.garray.O_array import O
+from groupy.garray.Oh_array import Oh
 from groupy.garray.C4h_array import C4h
 from groupy.garray.D4h_array import D4h
 from groupy.garray.p4_array import C4_halfshift
 from groupy.gfunc.otfunc_array import OtFuncArray
+from groupy.gfunc.ohtfunc_array import OhtFuncArray
 from groupy.gfunc.c4htfunc_array import C4htFuncArray
 from groupy.gfunc.d4htfunc_array import D4htFuncArray
 from groupy.gfunc.p4func_array import P4FuncArray
@@ -94,6 +96,22 @@ def make_o_ot_indices(ksize):
     li = f.left_translation_indices(O[:, None, None, None, None])
     return li.astype('int32')
 
+def make_oh_z3_indices(ksize):
+    assert ksize % 2 == 1
+    x = np.random.randn(1, ksize, ksize, ksize)
+    f = Z3FuncArray(v=x)
+    a = Oh[:, None, None, None, None]
+    uvw = f.left_translation_indices(a)
+    i = np.zeros(uvw.shape[:-1] + (1,))
+    iuvw = np.c_[i, uvw]
+    return iuvw.astype('int32')
+
+def make_oh_oht_indices(ksize):
+    assert ksize % 2 == 1
+    x = np.random.randn(48, ksize, ksize, ksize)
+    f = OhtFuncArray(v=x)
+    li = f.left_translation_indices(Oh[:, None, None, None, None])
+    return li.astype('int32')
 
 def make_d4_z2_indices(ksize):
     assert ksize % 2 == 1  # TODO

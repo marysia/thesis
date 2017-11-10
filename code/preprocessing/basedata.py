@@ -14,7 +14,7 @@ class BaseData:
     def load(self):
         raise NotImplementedError
 
-    def preprocess(self):
+    def preprocess(self, data, scope):
         raise NotImplementedError
 
     def shuffle(self, x, y):
@@ -44,7 +44,12 @@ class Data:
         self.balanced = balanced
         self.samples = len(x)
 
-        self.x, self.y , self.id = self.shuffle(self.data, self.labels)
+        if 'test' in self.scope:
+            self.id = np.array(xrange(self.samples))
+            self.x = self.data
+            self.y = self.labels
+        else:
+            self.x, self.y , self.id = self.shuffle(self.data, self.labels)
 
 
     def shuffle(self, x, y):

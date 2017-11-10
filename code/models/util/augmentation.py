@@ -79,6 +79,22 @@ def crop_volume(x, shape):
     return x[center['z'] - dif['z']:center['z'] + dif['z'], center['y'] - dif['y']:center['y'] + dif['y'],
            center['x'] - dif['x']:center['x'] + dif['x']]
 
+def remap(x, map):
+    from_start = -0.84375
+    from_end = -0.6875
+    to_start =  0.5625
+    to_end = 0.71875
+
+    start_from = map[0] * (from_end - from_start) + from_start
+    start_to = map[1] * (from_end - from_start) + from_start
+
+    end_from = map[2] * (to_end - to_start) + to_start
+    end_to = map[3] * (to_end - to_start) + to_start
+
+    a = (end_to - start_to) / (end_from - start_from)
+    b = start_to - start_from * a
+    return a * x + b
+
 def augment_batch(x, transformations, shape, keep_prob=.2):
     """  Perform augmentations on batch with chance.
     Possible augmentations: flips, rotations, scaling. Always crop, to get the right shape.
@@ -90,11 +106,13 @@ def augment_batch(x, transformations, shape, keep_prob=.2):
         rotation = np.random.randint(0, 360)
         scale = np.random.uniform(low=.8, high=1.2)
         blur = np.random.randint(0, 2)
+        map = np.random.random((4,))
 
         volume = x[i, :, :, :, 0]
         volume = scale_volume(volume, scale) if 'scale' in transformations and np.random.random() > keep_prob else volume
         volume = rotate_volume(volume, rotation) if 'rotate' in transformations and np.random.random() > keep_prob else volume
         volume = flip_volume(volume, flip) if 'flip' in transformations and np.random.random() > keep_prob else volume
+        volume = remap(volume, map) if 'remap' in transformations and np.random.random() > keep_prob else volume
         volume = add_noise(volume) if 'noise' in transformations and np.random.random() > keep_prob else volume
         volume = add_blur(volume, blur) if 'blur' in transformations and np.random.random() > keep_prob else volume
         # crop with translation (calculate after scaling/rotation)

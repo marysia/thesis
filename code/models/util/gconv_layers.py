@@ -7,7 +7,7 @@ from base_layers import batch_normalization, activation, weight_variable, bias_v
 
 def _channels(x, in_group, out_group, out_channels):
 
-    mapping = {'C4': 4, 'D4': 8, 'O': 24, 'C4H': 8, 'D4H': 16}
+    mapping = {'C4': 4, 'D4': 8, 'O': 24, 'C4H': 8, 'D4H': 16, 'OH': 48}
     in_c = int(x.get_shape()[-1]) / mapping[in_group] if in_group != 'Z2' and in_group != 'Z3'  else 1
     out_c = int(out_channels / round(np.sqrt(mapping[out_group])))
     return in_c, out_c

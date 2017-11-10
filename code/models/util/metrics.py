@@ -3,6 +3,18 @@ import tensorflow as tf
 from augmentation import augment_dataset
 BATCH = 100
 
+def get_batch_size(sess, model, x):
+    batch_size = 512
+    while batch_size > 1:
+        try:
+            feed_dict = {model.x: x[0:batch_size]}
+            sess.run(model.model_logits, feed_dict=feed_dict)
+            return batch_size
+        except:
+            batch_size /= 2
+    return 1
+
+
 def get_results(meta, scope, symmetry):
     labels = meta['labels-' + scope + '-set']
     predictions_str = scope
@@ -16,6 +28,7 @@ def get_accuracy(meta, scope, symmetry):
 
     correct = 0
     for i in xrange(len(labels)):
+        print 'Ground Truth: ', labels[i], ' Probabilities: ', predictions[i]
         if labels[i] == np.argmax(predictions[i]):
             correct += 1
     return correct / float(len(labels))
@@ -39,20 +52,25 @@ def get_confusion_matrix(meta, scope, symmetry):
     return confusion_matrix, accuracies
 
 def get_pred(sess, model, x):
+    BATCH = get_batch_size(sess, model, x)
     results = []
-    for i in xrange(int(x.shape[0] / BATCH)):
-        feed_dict = {model.x: x[i * BATCH:(i + 1) * BATCH]}
+    if BATCH > x.shape[0]:
+        feed_dict = {model.x: x[:]}
         probabilities = tf.nn.softmax(model.model_logits)
-        sub_results = sess.run(probabilities, feed_dict=feed_dict)
-        # sub_results = sess.run(model.model_logits, feed_dict=feed_dict)
-        results += sub_results.tolist()
-
-    # finalize last sub-batch
-    if x.shape[0] % BATCH != 0:
-        feed_dict = {model.x: x[(i + 1) * BATCH:]}
-        probabilities = tf.nn.softmax(model.model_logits)
-        sub_results = sess.run(probabilities, feed_dict=feed_dict)
-        results += sub_results.tolist()
+        results = sess.run(probabilities, feed_dict=feed_dict).tolist()
+    else:
+        for i in xrange(int(x.shape[0] / BATCH)):
+            feed_dict = {model.x: x[i * BATCH:(i + 1) * BATCH]}
+            probabilities = tf.nn.softmax(model.model_logits)
+            sub_results = sess.run(probabilities, feed_dict=feed_dict)
+            # sub_results = sess.run(model.model_logits, feed_dict=feed_dict)
+            results += sub_results.tolist()
+        # finalize last sub-batch
+        if x.shape[0] % BATCH != 0:
+            feed_dict = {model.x: x[(i + 1) * BATCH:]}
+            probabilities = tf.nn.softmax(model.model_logits)
+            sub_results = sess.run(probabilities, feed_dict=feed_dict)
+            results += sub_results.tolist()
     return results
 
 def get_predictions(sess, model, x, symmetry):

@@ -10,13 +10,12 @@ from utils.logger import Logger
 from utils.config import LOGDIR
 
 models3d = {
-    #'WBN': WideBoostingNetwork,
+    #'WBN': WideBoostingNetwork#,
     'CNN': CNN
 }
 
 # global program ender
 ender = ProgramEnder()
-LOGDIR = '/home/marysia/thesis/logs/'
 
 
 def train(data, log, trainmodels, args):
@@ -27,7 +26,7 @@ def train(data, log, trainmodels, args):
 
     for name, model in trainmodels.items():
         for group in args.groups:
-            for iteration in xrange(args.repeats):
+            for iteration in xrange(args.iteration, (args.repeats+args.iteration)):
                 if not ender.terminate:
                     # initialize the model
                     log.info('\n\nStarting model %s with group %s, iteration %d.' % (name, group, iteration), time=True)
@@ -38,7 +37,7 @@ def train(data, log, trainmodels, args):
                     tot_params += model_parameters
                     log.info('Number of parameters is... %d ' % (model_parameters))
 
-                    # train
+                    #train
                     graph.train(args, ender=ender, log=log)
 
                     # save results
@@ -84,6 +83,7 @@ if __name__ == "__main__":
 
     # model
     parser.add_argument("--groups", nargs="+", default=['Z3'])
+    parser.add_argument("--iteration", nargs="?", type=int, default=0)
     parser.add_argument("--repeats", nargs="?", type=int, default=1)
 
     parser.add_argument("--mode", nargs="?", type=str, default="epochs", choices=["epochs", "time", "batches"])
@@ -96,11 +96,15 @@ if __name__ == "__main__":
     parser.add_argument("--test", nargs="?", type=str, default="lidc-localization")
     parser.add_argument("--samples", nargs="+", default=[5000])
     parser.add_argument("--shape", nargs="+", default=[12, 72, 72])
+    parser.add_argument("--save_fraction", nargs="?", type=float, default=.7)
 
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--submission", action="store_true")
     parser.add_argument("--ensemble", action="store_true")
     parser.add_argument("--symmetry", action="store_true")
+
+    parser.add_argument("--batch_size", type=int, default=30)
+    parser.add_argument("--learning_rate", type=float, default=0.0001)
 
     # old
     parser.add_argument("--zoomed", action="store_true")

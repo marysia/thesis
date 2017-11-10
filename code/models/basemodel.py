@@ -18,6 +18,7 @@ class BaseModel:
             self.x = tf.placeholder(tf.float32, shape=[None] + self.data.shape + [1])
             self.y = tf.placeholder(tf.float32, shape=[None, self.data.nb_classes])
 
+        self.training = True
         self.model_logits = self.build_graph()
 
     def build_graph(self):
@@ -34,11 +35,12 @@ class BaseModel:
         self.symmetry = args.symmetry
         self.discard = args.discard
         self.mode_param = args.mode_param
+        self.save_fraction = args.save_fraction
 
         self.augmentation = args.augment
 
-        self.batch_size = 30
-        self.learning_rate = 0.0001
+        self.batch_size = args.batch_size
+        self.learning_rate = args.learning_rate
         self.steps = (self.data.train.samples / self.batch_size)
 
         self.cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=self.y, logits=self.model_logits))
@@ -48,6 +50,8 @@ class BaseModel:
         self.losses = []
         self.validation_losses = []
         self.progress = 0
+
+        self.training = True    # for dropout
 
     def train(self, args, ender, log):
         ''' Function to call to train the model. '''
@@ -66,6 +70,7 @@ class BaseModel:
             elif args.mode == 'batches':
                 iteration = self.train_batches()
 
+            self.training = False
             if iteration > 0:
                 elapsed_time = (time.time() - start_time) / 60
                 self.log.info('\nTraining took approximately %d minutes.' % elapsed_time, time=True)
@@ -172,24 +177,28 @@ class BaseModel:
         ''' Calculates the loss on the validation set.
         Additionally, after 3/4th of training has been done, keeps track
         of the lowest loss and evaluates if necessary. '''
+        self.training = False
         if 'empty' not in self.data.val.scope:
             cost = 0
-            batch_size = 100
+            batch_size = 100 if self.data.val.samples > 100 else self.data.val.samples
             steps = self.data.val.samples / batch_size
             for i in xrange(steps):
                 x, y = self.data.val.get_next_batch(i, batch_size)
                 cost += self.sess.run([self.cross_entropy], feed_dict={self.x: x, self.y: y})[0]
             cost /= steps
             self.validation_losses.append(cost)
-
-            if (self.progress / float(self.mode_param)) > .7:
-                if cost <= min(self.validation_losses):
+            #print('Loss: ' + str(cost))
+            if (self.progress / float(self.mode_param)) > self.save_fraction:
+                if (self.progress / float(self.mode_param) == 1) and ('permutation-test-set' not in self.meta.keys()):
+                    self.log.info('\nReached end of train cycle; evaluating validation and test set.')
+                    self.evaluate()
+                elif cost <= min(self.validation_losses):
                     self.log.info('\nLowest validation loss: %.4f at %.2f per cent.' % (cost, (self.progress / float(self.mode_param))*100))
                     self.evaluate()
+        elif (self.progress / float(self.mode_param) == 1):
+            self.evaluate()
 
-            if (self.progress / float(self.mode_param) == 1) and ('permutation-test-set' not in self.meta.keys()):
-                self.evaluate()
-
+        self.training = True
 
 
     def set_meta(self, iteration, parameters):

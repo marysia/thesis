@@ -32,11 +32,12 @@ def save_json(dict, fname):
 
 def save_meta(dict):
     if not dict == {}:
-        elements = [dict['log-identifier'], dict['name'], dict['group'], str(dict['training-set-samples'])]
+        elements = [dict['log-identifier'], dict['name'], dict['group'], str(dict['training-set-samples']), str(dict['iteration'])]
         fname = os.path.join(RESULTSDIR, 'pickles', '-'.join(elements) + '.pkl')
         print(fname)
         with open(fname, 'wb') as f:
             pickle.dump(dict, f)
+
 
 def create_submission(graphmeta, symmetry):
     if graphmeta['test-dataset'] != 'lidc-localization':
@@ -63,7 +64,7 @@ def create_submission(graphmeta, symmetry):
 
         nodules.append([seriesuid, x, y, z, probability])
 
-    name = '-'.join([graphmeta['log-identifier'], graphmeta['name'], graphmeta['group'], str(graphmeta['training-set-samples'])])
+    name = str(symmetry) + '-'.join([graphmeta['log-identifier'], graphmeta['name'], graphmeta['group'], str(graphmeta['training-set-samples']), str(graphmeta['iteration'])])
     fname = os.path.join(RESULTSDIR, 'submissions', '%s.csv' % name)
     with open(fname, 'wb') as f:
         writer = csv.writer(f)

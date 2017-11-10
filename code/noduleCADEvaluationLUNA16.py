@@ -2,7 +2,6 @@ import os
 import math
 import sys
 import glob
-import pickle
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -12,6 +11,7 @@ import sklearn.metrics as skl_metrics
 import numpy as np
 import argparse
 import re
+import pickle
 
 from utils.config import HOME, RESULTSDIR
 luna_evaluation_dir = os.path.join(HOME, 'thesis', 'luna_evaluation')
@@ -434,10 +434,23 @@ def noduleCADEvaluation(annotations_filename,annotations_excluded_filename,serie
                 maxNumberOfCADMarks=100, performBootstrapping=bPerformBootstrapping,
                 numberOfBootstrapSamples=bNumberOfBootstrapSamples, confidence=bConfidence)
 
-
+def get_setsize(fname):
+    sizes = [30, 300, 3000, 30000]
+    for s in sizes:
+        if str(s)+'-' in fname:
+            return s
+def get_group(fname):
+    groups = ['C4h', 'D4h', 'O', 'Z3']
+    fn = fname.split('/')[-1][7:]
+    for g in groups:
+        if g.upper() in fn:
+            return g
+def get_symmetry(fname):
+    return False if 'False' in fname else True
 
 def create_froc_curve(result_files, fname):
-    outputDir = os.path.join(RESULTSDIR, 'CADEvaluation')
+    vectors = []
+    outputDir = os.path.join(RESULTSDIR, 'froc')
 
     with open(os.path.join(luna_evaluation_dir, 'allNodules.pkl'), 'rb') as f:
         allNodules = pickle.load(f)
@@ -455,6 +468,12 @@ def create_froc_curve(result_files, fname):
                                     maxNumberOfCADMarks=100, performBootstrapping=bPerformBootstrapping,
                                     numberOfBootstrapSamples=bNumberOfBootstrapSamples, confidence=bConfidence)
         plt.plot(fps_itp, sens_itp, label="(%.3f) \t %s" % (overall_score, CADSystemName), lw=2)
+
+        print '\nFile: ', results_filename
+        print 'Group ',  get_group(results_filename)
+        print 'Size ', get_setsize(results_filename)
+
+        vectors.append((get_group(results_filename), get_setsize(results_filename), get_symmetry(results_filename), sens_itp))
 
 
     xmin = FROC_minX
@@ -476,7 +495,11 @@ def create_froc_curve(result_files, fname):
     plt.grid(b=True, which='both')
     plt.tight_layout()
 
-    plt.savefig(os.path.join(outputDir, "%s.png" % fname), bbox_inches=0, dpi=300)
+    plt.savefig(os.path.join(outputDir, "%s-froc.png" % fname), bbox_inches=0, dpi=300)
+
+    # save vectors
+    with open(os.path.join(RESULTSDIR, 'froc-vectors', fname+'.pkl'), 'w') as f:
+        pickle.dump(vectors, f)
 
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -487,10 +510,12 @@ def get_files(files, constraints):
     negative_files = []
     for f in files:
         file = f.split('/')[-1]
+        split_file = file.split('-')
+        file = '-'.join(split_file[1:])
         for c in constraints:
             try:
                 int(c)
-                if not '-' + c + '.csv' in file.lower():
+                if not '-' + c + '-' in file.lower():
                     negative_files.append(f)
             except:
                 if not c.lower() in file.lower():
@@ -504,16 +529,19 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--constraints", nargs="+", default=[])
-    parser.add_argument("--fname", nargs="?", type=str, default='froc')
     parser.add_argument("--final", action="store_true")     # in the final_submissions folder instead of submissions
 
     args = parser.parse_args()
 
     if args.final:
-        all_files = glob.glob(os.path.join(RESULTSDIR, 'final_submissions', '*.csv'))
+        all_files = glob.glob(os.path.join(RESULTSDIR, 'submissions-best', '*.csv'))
     else:
         all_files = glob.glob(os.path.join(RESULTSDIR, 'submissions', '*.csv'))
 
     files = get_files(all_files, args.constraints)
+    print(files)
 
-    create_froc_curve(files, args.fname)
+    fname = '-'.join(args.constraints)
+    print(fname)
+    if len(files) > 0:
+        create_froc_curve(files, fname)

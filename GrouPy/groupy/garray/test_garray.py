@@ -2,39 +2,39 @@
 # TODO: test all left_actions, not just composition in group
 
 
-# def test_p4_array():
-#     from groupy.garray import p4_array
-#     check_wallpaper_group(p4_array, p4_array.P4Array)
-#
-#
-# def test_p4m_array():
-#     from groupy.garray import p4m_array
-#     check_wallpaper_group(p4m_array, p4m_array.P4MArray)
-#
-#
-# def test_z2_array():
-#     from groupy.garray import Z2_array
-#     check_wallpaper_group(Z2_array, Z2_array.Z2Array)
-#
-#
-# def test_z3_array():
-#     from groupy.garray import Z3_array
-#     check_space_group(Z3_array, Z3_array.Z3Array)
-#
-#
-# def test_c4_array():
-#     from groupy.garray import C4_array
-#     check_finite_group(C4_array, C4_array.C4Array, C4_array.C4)
-#
-#
-# def test_d4_array():
-#     from groupy.garray import D4_array
-#     check_finite_group(D4_array, D4_array.D4Array, D4_array.D4)
-#
-#
-# def test_o_array():
-#     from groupy.garray import O_array
-#     check_finite_group(O_array, O_array.OArray, O_array.O)
+def test_p4_array():
+    from groupy.garray import p4_array
+    check_wallpaper_group(p4_array, p4_array.P4Array)
+
+
+def test_p4m_array():
+    from groupy.garray import p4m_array
+    check_wallpaper_group(p4m_array, p4m_array.P4MArray)
+
+
+def test_z2_array():
+    from groupy.garray import Z2_array
+    check_wallpaper_group(Z2_array, Z2_array.Z2Array)
+
+
+def test_z3_array():
+    from groupy.garray import Z3_array
+    check_space_group(Z3_array, Z3_array.Z3Array)
+
+
+def test_c4_array():
+    from groupy.garray import C4_array
+    check_finite_group(C4_array, C4_array.C4Array, C4_array.C4)
+
+
+def test_d4_array():
+    from groupy.garray import D4_array
+    check_finite_group(D4_array, D4_array.D4Array, D4_array.D4)
+
+
+def test_o_array():
+    from groupy.garray import O_array
+    check_finite_group(O_array, O_array.OArray, O_array.O)
 
 
 def test_c4h_array():
@@ -53,19 +53,18 @@ def test_d4ht_array():
     from groupy.garray import D4ht_array
     check_space_group(D4ht_array, D4ht_array.D4htArray)
 
-# def test_oh_array():
-#     from groupy.garray import Oh_array
-#     check_finite_group(Oh_array, Oh_array.OhArray, Oh_array.Oh)
-#
-#
-# def test_ot_array():
-#     from groupy.garray import Ot_array
-#     check_space_group(Ot_array, Ot_array.OtArray)
-#
-#
-# def test_oht_array():
-#     from groupy.garray import Oht_array
-#     check_space_group(Oht_array, Oht_array.OhtArray)
+def test_oh_array():
+    from groupy.garray import Oh_array
+    check_finite_group(Oh_array, Oh_array.OhArray, Oh_array.Oh)
+
+
+def test_ot_array():
+    from groupy.garray import Ot_array
+    check_space_group(Ot_array, Ot_array.OtArray)
+
+def test_oht_array():
+    from groupy.garray import Oht_array
+    check_space_group(Oht_array, Oht_array.OhtArray)
 
 
 def check_space_group(garray_module, garray_class):

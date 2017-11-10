@@ -29,36 +29,16 @@ def create_plot():
     plt.savefig('val.png')
 
 
-def loss_plot(identifier, mode, losstype):
-    print losstype
-    fname = glob.glob(os.path.join(RESULTSDIR, 'pickles', identifier + '*'))[0]
+def loss_plot(meta):
 
-    with open(fname, 'rb') as f:
-        meta = pickle.load(f)
-    fname = '-'.join([meta['log-identifier'], meta['name'], meta['group'], str(meta['training-set-samples'])])
+    fname = '-'.join([meta['log-identifier'], meta['name'], meta['group'], str(meta['training-set-samples']), str(meta['log-identifier'])])
 
     # epochs
-    if mode == 'epochs':
-        y_train = meta['train-loss']
-        y_val = meta[losstype]
-        step_size = len(meta['train-loss']) / 10
-        x_train = list(xrange(1, len(meta['train-loss'])+1))
-        x_val = list(xrange(1, len(meta[losstype])+1))
-    elif mode == 'batches':
-        cost_batch = 10
-        batch_size = meta['batch-size']
-        nr_epochs = (len(meta['train-loss']) * cost_batch * batch_size) / meta['training-set-samples']
-        save_step = len(meta['train-loss']) / nr_epochs
-        y_train = []
-        y_val = []
-
-        for i in xrange(0, len(meta['train-loss']), save_step):
-            y_train.append(np.mean(meta['train-loss'][i:(i+save_step)]))
-            y_val.append(np.mean(meta[losstype][i:(i+save_step)]))
-        print y_train[0:3]
-        x_train = list(xrange(1, nr_epochs+1))
-        x_val = list(xrange(1, nr_epochs+1))
-        step_size = 1
+    y_train = meta['train-loss']
+    y_val = meta['val-loss']
+    step_size = len(meta['train-loss']) / 10
+    x_train = list(xrange(1, len(meta['train-loss'])+1))
+    x_val = list(xrange(1, len(meta['val-loss'])+1))
 
     # print x_train, y_train
     # print x_val, y_val
@@ -81,7 +61,11 @@ def loss_plot(identifier, mode, losstype):
 
 if __name__ == '__main__':
     identifier = sys.argv[1]
-    mode = sys.argv[2]
-    losstype = 'val-loss' if len(sys.argv) > 3 and sys.argv[3] == 'val' else 'test-loss'
-    print(identifier)
-    loss_plot(identifier, mode, losstype)
+
+    fnames = glob.glob(os.path.join(RESULTSDIR, 'pickles', identifier + '*'))
+
+    for fname in fnames:
+        print(fname)
+        with open(fname, 'rb') as f:
+            meta = pickle.load(f)
+        loss_plot(meta)

@@ -59,7 +59,7 @@ class Logger():
                     f.write(self.get_time())
                 f.write(code + str(text))
 
-    def result(self, text, time=True):
+    def result(self, text, time=False):
         ''' Writes result to log file. '''
         self.write_to_file(text, '[RESULT] \t', time)
 
@@ -103,7 +103,7 @@ class Logger():
         '''
 
 
-        for i in xrange(1, 10):
+        for i in xrange(1, 16):
             files = glob.glob(os.path.join(self.logdir, 'running_%d*' % i))
             if len(files) == 0:
                 filepath = os.path.join(self.logdir, 'running_%d_%s.log' % (i, self.logname))

@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from groupy.gconv.make_gconv_indices import make_o_z3_indices, \
-    make_o_ot_indices, make_c4h_z3_indices, make_c4h_c4ht_indices, make_d4h_z3_indices, make_d4h_d4ht_indices, flatten_indices_3d
+    make_o_ot_indices, make_c4h_z3_indices, make_c4h_c4ht_indices, make_d4h_z3_indices, make_d4h_d4ht_indices, make_oh_z3_indices, make_oh_oht_indices, flatten_indices_3d
 from groupy.gconv.tensorflow_gconv.transform_filter import transform_filter_3d_nhwc
 
 
@@ -62,6 +62,14 @@ def gconv3d_util(h_input, h_output, in_channels, out_channels, ksize):
         gconv_indices = flatten_indices_3d(make_d4h_d4ht_indices(ksize=ksize))
         nti = 16
         nto = 16
+    elif h_input == 'Z3' and h_output == 'OH':
+        gconv_indices = flatten_indices_3d(make_oh_z3_indices(ksize=ksize))
+        nti = 1
+        nto = 48
+    elif h_input == 'OH' and h_output == 'OH':
+        gconv_indices = flatten_indices_3d(make_oh_oht_indices(ksize=ksize))
+        nti = 48
+        nto = 48
     else:
         raise ValueError('Unknown (h_input, h_output) pair:' + str((h_input, h_output)))
 

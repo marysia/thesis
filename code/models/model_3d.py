@@ -3,23 +3,24 @@ import util.gconv_layers as gconv
 import util.layers as layer
 from basemodel import BaseModel
 
-
+from models.util.helpers import total_parameters
 class CNN(BaseModel):
     def build_graph(self):
         num_filters = [16, 32, 64]
         self.activation = 'relu'
 
         tensor = self.conv_bn_act(self.x, num_filters[0], first=True)
+
         tensor = base.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
 
         tensor = self.conv_bn_act(tensor, num_filters[0])
-        # tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
+        tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
 
         tensor = self.conv_bn_act(tensor, num_filters[1])
         tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
 
         tensor = self.conv_bn_act(tensor, num_filters[1])
-        # tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
+        tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
 
 
         tensor = self.conv_bn_act(tensor, num_filters[2])
@@ -44,9 +45,9 @@ class CNN(BaseModel):
 
 class WideBoostingNetwork(BaseModel):
     def build_graph(self):
-        k = 1
+        k = 2
         num_filters = [8 * k, 16 * k, 32 * k, 64 * k]
-        self.activation = 'relu'
+        self.activation = 'crelu'
 
         tensor = self.x
         tensor = self.convolution3d(tensor, 16, (3, 3, 3), (1, 1, 1), first=True)
@@ -77,12 +78,14 @@ class WideBoostingNetwork(BaseModel):
 
             tensor = base.batch_normalization(tensor)
             tensor = base.activation(tensor, activation)
-            tensor = self.convolution3d(tensor, filters, (3, 3, 3), (1, 1, 1))  # CHANGED
+            tensor = self.convolution3d(tensor, filters, (3, 3, 3), stride)
 
             tensor = base.batch_normalization(tensor)
             tensor = base.activation(tensor, activation)
+
             # dropout
-            tensor = self.convolution3d(tensor, filters, (3, 3, 3), stride)
+            #tensor = base.dropout(tensor, .5, self.training)
+            tensor = self.convolution3d(tensor, filters, (3, 3, 3), (1, 1, 1))
 
             if i == 0:
                 save_tensor = self.convolution3d(save_tensor, filters, (1, 1, 1), stride)

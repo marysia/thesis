@@ -12,4 +12,12 @@ print 'Testing D4h and D4ht'
 test_garray.test_d4h_array()
 test_garray.test_d4ht_array()
 
+print 'Testing O and Ot'
+test_garray.test_o_array()
+test_garray.test_ot_array()
+
+print 'Testing Oh and Oht'
+test_garray.test_oh_array()
+test_garray.test_oht_array()
+
 print 'Done'
