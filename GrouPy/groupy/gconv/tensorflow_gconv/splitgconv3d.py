@@ -7,6 +7,23 @@ from groupy.gconv.tensorflow_gconv.transform_filter import transform_filter_3d_n
 
 def gconv3d(input, filter, strides, padding, gconv_indices, gconv_shape_info,
             use_cudnn_on_gpu=None, data_format='NHWC', name=None):
+    """
+    Implements the g-convolution. Similar interface as the standard 3D convolution in tensorflow, with gconv_indices
+    and gconv_shape_info as additional parameters. These can be obtained using gconv3d_util.
+    Args:
+        input: tensor with (b, z, y, x, c) axes
+        filter: tensor with (ksize, ksize, ksize, in channels * transformations, out_channels) axes
+        strides: A list of ints. 1-D of length 5. The stride of the sliding window for each dimension of input.
+        padding: A string from: "SAME", "VALID". The type of padding algorithm to use.
+        gconv_indices:  indices used in the filter transformation step of the G-Conv.
+        gconv_shape_info: a tuple containing information for the gconv: in/out channels, in/out transformations, ksize
+        data_format: only nhwc supported
+        name: a name for the operation
+
+    Returns:
+        conv: tensor with (batch, z, y, x, c) axes
+
+    """
     if data_format != 'NHWC':
         raise NotImplemented('Currently only NHWC data_format is supported. Got:' + str(data_format))
 
@@ -21,60 +38,57 @@ def gconv3d(input, filter, strides, padding, gconv_indices, gconv_shape_info,
 
 def gconv3d_util(h_input, h_output, in_channels, out_channels, ksize):
     """
-    Convenience function for setting up static data required for the G-Conv.
-     This function returns:
-      1) an array of indices used in the filter transformation step of gconv2d
-      2) shape information required by gconv2d
-      5) the shape of the filter tensor to be allocated and passed to gconv2d
+    Convenience function for setting up static data required for the G-Conv. The number of 3D channels will be
+    1, 8, 16, 24 or 48 times larger depending on the value of h_input and h_output.
 
-    :param h_input: one of ('Z2', 'C4', 'D4'). Use 'Z2' for the first layer. Use 'C4' or 'D4' for later layers.
-    :param h_output: one of ('C4', 'D4'). What kind of transformations to use (rotations or roto-reflections).
-      The choice of h_output of one layer should equal h_input of the next layer.
-    :param in_channels: the number of input channels. Note: this refers to the number of (3D) channels on the group.
-    The number of 2D channels will be 1, 4, or 8 times larger, depending the value of h_input.
-    :param out_channels: the number of output channels. Note: this refers to the number of (3D) channels on the group.
-    The number of 2D channels will be 1, 4, or 8 times larger, depending on the value of h_output.
-    :param ksize: the spatial size of the filter kernels (typically 3, 5, or 7).
-    :return: gconv_indices
+    Args:
+        h_input: Z3, C4H, D4H, O, OH -- use one. Z3 for first layer.
+        h_output: Z3, C4H, D4H, O, OH -- use one.
+        in_channels: number of input channels of the 3D channels on the group.
+        out_channels: number of output channels of the 3D channels on the group.
+        ksize: the spatial size of filter kernels, typicall 3, 5 or 7. Only uneven ksize is supported.
+
+    Returns:
+        gconv_indices: an array of indices used in the filter transformation step of gconv3d
+        w_shape: the shape of the filter tensor to be allocated and passed to gconv3d
+        gconv_shape_info: shape information required by gconv3d
+                          -- (nr. out channels, nr. out transformations, nr. in channels, nr. in tranformations, ksize)
     """
 
+    # uppercase for consistency
+    h_input = h_input.upper()
+    h_output = h_output.upper()
+
+    # get number of transformations in and out
+    mapping = {'C4': 4, 'D4': 8, 'O': 24, 'C4H': 8, 'D4H': 16, 'OH': 48}
+    nti = mapping[h_input]
+    nto = mapping[h_output]
+
+    # get gconv_indices
     if h_input == 'Z3' and h_output == 'O':
-        gconv_indices = flatten_indices_3d(make_o_z3_indices(ksize=ksize))
-        nti = 1
-        nto = 24
+        gconv_indices = make_o_z3_indices(ksize=ksize)
     elif h_input == 'O' and h_output == 'O':
-        gconv_indices = flatten_indices_3d(make_o_ot_indices(ksize=ksize))
-        nti = 24
-        nto = 24
+        gconv_indices = make_o_ot_indices(ksize=ksize)
     elif h_input == 'Z3' and h_output == 'C4H':
-        gconv_indices = flatten_indices_3d(make_c4h_z3_indices(ksize=ksize))
-        nti = 1
-        nto = 8
+        gconv_indices = make_c4h_z3_indices(ksize=ksize)
     elif h_input == 'C4H' and h_output == 'C4H':
-        gconv_indices = flatten_indices_3d(make_c4h_c4ht_indices(ksize=ksize))
-        nti = 8
-        nto = 8
+        gconv_indices = make_c4h_c4ht_indices(ksize=ksize)
     elif h_input == 'Z3' and h_output == 'D4H':
-        gconv_indices = flatten_indices_3d(make_d4h_z3_indices(ksize=ksize))
-        nti = 1
-        nto = 16
+        gconv_indices = make_d4h_z3_indices(ksize=ksize)
     elif h_input == 'D4H' and h_output == 'D4H':
-        gconv_indices = flatten_indices_3d(make_d4h_d4ht_indices(ksize=ksize))
-        nti = 16
-        nto = 16
+        gconv_indices = make_d4h_d4ht_indices(ksize=ksize)
     elif h_input == 'Z3' and h_output == 'OH':
-        gconv_indices = flatten_indices_3d(make_oh_z3_indices(ksize=ksize))
-        nti = 1
-        nto = 48
+        gconv_indices = make_oh_z3_indices(ksize=ksize)
     elif h_input == 'OH' and h_output == 'OH':
-        gconv_indices = flatten_indices_3d(make_oh_oht_indices(ksize=ksize))
-        nti = 48
-        nto = 48
+        gconv_indices = make_oh_oht_indices(ksize=ksize)
     else:
         raise ValueError('Unknown (h_input, h_output) pair:' + str((h_input, h_output)))
 
+    # flatten and get shape information and filter tensor shape
+    gconv_indices = flatten_indices_3d(gconv_indices)
     w_shape = (ksize, ksize, ksize, in_channels * nti, out_channels)
     gconv_shape_info = (out_channels, nto, in_channels, nti, ksize)
+
     return gconv_indices, gconv_shape_info, w_shape
 
 

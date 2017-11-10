@@ -12,7 +12,6 @@ from groupy.gfunc.ohtfunc_array import OhtFuncArray
 from groupy.gfunc.z3func_array import Z3FuncArray
 
 
-
 def check_o_z3_conv_equivariance():
     li = [3, 5, 7, 9]
     for ksize in li:
