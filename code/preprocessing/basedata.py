@@ -5,6 +5,7 @@ import numpy as np
 import sys
 sys.path.append('..')
 from utils.config import DATADIR
+
 class BaseData:
     def __init__(self, datadir=DATADIR):
         self.datadir = datadir
@@ -100,14 +101,18 @@ class Data:
         self.samples = len(self.x)
 
     def get_next_batch(self, i, batch_size):
-        ''' Get the next batch, based on whether the data is balanced or unbalanced.'''
+        '''
+        Get the next batch, based on whether the data is balanced or unbalanced.
+        '''
         if self.balanced:
             return self.get_balanced_batch(i, batch_size)
         else:
             return self.get_balanced_batch(i, batch_size)
 
     def get_balanced_batch(self, i, batch_size):
-        ''' Get the next balanced batch. In case the next batch cannot be retrieved, get random indices.'''
+        '''
+        Get the next balanced batch. In case the next batch cannot be retrieved, get random indices.
+        '''
         start = i * batch_size
         end = (i + 1) * batch_size
         if len(self.x) > end:
@@ -120,98 +125,3 @@ class Data:
             y = np.concatenate([self.y[start:], self.y[indices]])
 
             return x, y
-
-
-
-class Data_old:
-    def __init__(self, scope, x, y, id, balanced):
-        self.scope = scope
-        self.x = x
-        self.y = y
-        self.id = id
-        self.balanced = balanced
-        self.samples = len(x)
-
-        if not self.balanced:
-            self.set_balanced_values()
-
-    def resize(self, samples):
-
-        if not samples > len(self.x):
-            if self.balanced:
-                self.x = self.x[:samples]
-                self.y = self.y[:samples]
-                self.id = self.id[:samples]
-                self.samples = len(self.x)
-
-            else:
-                pos_number = int(samples / (len(self.neg_idx) / float(len(self.pos_idx))))
-                self.pos_idx = self.pos_idx[:pos_number]
-                self.neg_idx = self.neg_idx[:(samples-pos_number)]
-
-                self.pos_step = 0
-                self.neg_step = 0
-                self.samples = len(self.pos_idx) + len(self.neg_idx)
-
-    def get_images(self):
-        return self.x
-
-    def get_labels(self):
-        return self.y
-
-    def get_sample(self):
-        i = random.randint(0, self.x.shape[0])
-        return Data(self.scope + '-sample', self.x[i], self.y[i])
-
-    def get_next_batch(self, i, batch_size):
-        if self.balanced:
-            return self.get_balanced_batch(i, batch_size)
-        else:
-            return self.get_unbalanced_batch(i, batch_size)
-
-    def get_balanced_batch(self, i, batch_size):
-        start = i * batch_size
-        end = (i + 1) * batch_size
-        if len(self.x) > end:
-            return self.x[start:end], self.y[start:end]
-        else:
-            p = np.random.permutation(len(self.x))
-            indices = p[: (batch_size - (len(self.x) - start))]
-
-            x = np.concatenate([self.x[start:], self.x[indices]])
-            y = np.concatenate([self.y[start:], self.y[indices]])
-
-            return x, y
-
-    def get_unbalanced_batch(self, i, batch_size):
-
-        idx_pos = self.pos_idx[self.pos_step*(batch_size / 2):(self.pos_step+1)*(batch_size / 2)]
-        idx_neg = self.neg_idx[self.neg_step*(batch_size / 2):(self.neg_step+1)*(batch_size / 2)]
-
-        if len(idx_pos) < (batch_size / 2):
-            self.pos_step = 0
-            idx_pos = self.pos_idx[:(batch_size / 2)]
-
-        if len(idx_neg) < batch_size / 2:
-            self.neg_step = 0
-            idx_neg = self.neg_idx[:(batch_size / 2)]
-
-
-        x = np.concatenate([self.x[idx_pos], self.x[idx_neg]])
-        y = np.concatenate([self.y[idx_pos], self.y[idx_neg]])
-        p = np.random.permutation(len(x))
-
-        self.pos_step = self.pos_step + 1 if ((self.pos_step + 1) * (batch_size / 2)) <= len(self.pos_idx) else 0
-        self.neg_step = self.neg_step + 1 if ((self.neg_step + 1) * (batch_size / 2)) <= len(self.neg_idx) else 0
-
-        return x[p], y[p]
-
-    def set_balanced_values(self):
-        self.pos_idx = [i for i, elem in enumerate(self.y) if np.argmax(elem) == 1]
-        self.neg_idx = [i for i, elem in enumerate(self.y) if np.argmax(elem) == 0]
-
-        self.pos_step = 0
-        self.neg_step = 0
-
-    def shape(self):
-        return self.x.shape, self.y.shape

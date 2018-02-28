@@ -54,7 +54,9 @@ class BaseModel:
         self.training = True    # for dropout
 
     def train(self, args, ender, log):
-        ''' Function to call to train the model. '''
+        '''
+        Function to call to train the model.
+        '''
         self.set_variables(args, ender, log)
         start_time = time.time()
 
@@ -77,7 +79,9 @@ class BaseModel:
                 #self.evaluate()
 
     def train_epochs(self):
-        ''' Train for _epochs_ number of epochs. '''
+        '''
+        Train for _epochs_ number of epochs.
+        '''
         iteration = 0
         while not self.ender.terminate and iteration < self.mode_param:
             iteration += 1
@@ -91,7 +95,9 @@ class BaseModel:
         return iteration
 
     def train_time(self):
-        ''' Train for _minutes_ number of minutes. '''
+        '''
+        Train for _minutes_ number of minutes.
+        '''
         iteration = 0
 
         base_time = time.time()
@@ -115,7 +121,9 @@ class BaseModel:
         return iteration
 
     def train_batches(self):
-        ''' Train for a specific amount of batches. '''
+        '''
+        Train for a specific amount of batches.
+        '''
         self.mode_param *= 100
         cost = 0
         cost_batch = 10
@@ -153,7 +161,9 @@ class BaseModel:
 
 
     def train_step(self, prefix):
-        ''' Perform training step. Retrieve batch, apply augmentations and run optimizer. '''
+        '''
+        Perform training step. Retrieve batch, apply augmentations and run optimizer.
+        '''
         avg_cost_train = 0
         for step in xrange(self.steps):
             # retrieve batch
@@ -164,6 +174,8 @@ class BaseModel:
             feed_dict = {self.x: batch_x, self.y: batch_y}
 
             _, cost_train = self.sess.run([self.optimizer, self.cross_entropy], feed_dict=feed_dict)
+
+
             avg_cost_train += cost_train
 
             # report progress
@@ -174,9 +186,11 @@ class BaseModel:
         self.losses.append(avg_cost_train)
 
     def validation_loss(self):
-        ''' Calculates the loss on the validation set.
+        '''
+        Calculates the loss on the validation set.
         Additionally, after a fraction of training has been done, keeps track
-        of the lowest loss and evaluates if necessary. '''
+        of the lowest loss and evaluates if necessary.
+        '''
         self.training = False
         if 'empty' not in self.data.val.scope:
             cost = 0
@@ -186,6 +200,7 @@ class BaseModel:
                 x, y = self.data.val.get_next_batch(i, batch_size)
                 cost += self.sess.run([self.cross_entropy], feed_dict={self.x: x, self.y: y})[0]
             cost /= steps
+            print 'Loss: ', cost
             self.validation_losses.append(cost)
 
             if (self.progress / float(self.mode_param)) > self.save_fraction:
@@ -202,7 +217,9 @@ class BaseModel:
 
 
     def set_meta(self, iteration, parameters):
-        ''' Sets metadata to be saved in pickle later on. '''
+        '''
+        Sets metadata to be saved in pickle later on.
+        '''
         if not self.discard:
             # model info
             self.meta['name'] = self.name
@@ -233,7 +250,8 @@ class BaseModel:
 
         
     def evaluate(self):
-        ''' Saves validation and test set results to meta variable
+        '''
+        Saves validation and test set results to meta variable
             Saved per set:
                 * Permutation of data shuffle to retrieve original series uid
                 * Labels (not one-hot encoded)

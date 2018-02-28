@@ -66,8 +66,12 @@ class DataPatches(BaseData):
         datadir = datadir.replace('thesis/patches', 'thesis/zoomed-patches') if self.zoomed else datadir
 
         # Load, preprocess, shuffle and return
-        pos = np.load(os.path.join(datadir, '%spositive_%s_patches.npz' % (small, f_scope)))['data']
-        neg = np.load(os.path.join(datadir, '%s%snegative_%s_patches.npz' % (all, small, f_scope)))['data']
+        if self.zoomed:
+            pos = np.load(os.path.join(datadir, 'positive_%s_patches.npz' % (f_scope)))['data']
+            neg = np.load(os.path.join(datadir, 'negative_%s_patches.npz' % (f_scope)))['data']
+        else:
+            pos = np.load(os.path.join(datadir, '%spositive_%s_patches.npz' % (small, f_scope)))['data']
+            neg = np.load(os.path.join(datadir, '%s%snegative_%s_patches.npz' % (all, small, f_scope)))['data']
         data = np.concatenate([pos, neg])
         data = self.preprocess(data, scope)
         labels = np.concatenate([np.ones(pos.shape[0]), np.zeros(neg.shape[0])])

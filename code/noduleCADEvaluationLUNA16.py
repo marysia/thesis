@@ -494,7 +494,6 @@ def create_froc_curve(result_files, fname):
     ax.yaxis.set_ticks(np.arange(0, 1.1, 0.1))
     plt.grid(b=True, which='both')
     plt.tight_layout()
-
     plt.savefig(os.path.join(outputDir, "%s-froc.png" % fname), bbox_inches=0, dpi=300)
 
     # save vectors
@@ -537,7 +536,7 @@ if __name__ == '__main__':
         all_files = glob.glob(os.path.join(RESULTSDIR, 'submissions-best', '*.csv'))
     else:
         all_files = glob.glob(os.path.join(RESULTSDIR, 'submissions', '*.csv'))
-
+    print('hi')
     files = get_files(all_files, args.constraints)
     print(files)
 

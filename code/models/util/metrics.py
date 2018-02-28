@@ -4,7 +4,9 @@ from augmentation import augment_dataset
 BATCH = 100
 
 def get_batch_size(sess, model, x):
-    ''' Return largest batch size possible for network to perform inference on.'''
+    '''
+    Return largest batch size possible for network to perform inference on.
+    '''
     batch_size = 512
     while batch_size > 1:
         try:
@@ -17,7 +19,9 @@ def get_batch_size(sess, model, x):
 
 
 def get_results(meta, scope, symmetry):
-    """ Returns predictions and labels """
+    '''
+    Returns predictions and true labels
+    '''
     labels = meta['labels-' + scope + '-set']
     predictions_str = scope
     predictions_str += '-symmetry' if symmetry else ''
@@ -26,7 +30,9 @@ def get_results(meta, scope, symmetry):
     return predictions, labels
 
 def get_accuracy(meta, scope, symmetry):
-    """ Return accuracy """
+    '''
+    Returns accuracy
+    '''
     predictions, labels = get_results(meta, scope, symmetry)
 
     correct = 0
@@ -37,6 +43,9 @@ def get_accuracy(meta, scope, symmetry):
     return correct / float(len(labels))
 
 def get_confusion_matrix(meta, scope, symmetry):
+    '''
+    Returns confusion matrix
+    '''
     predictions, labels = get_results(meta, scope, symmetry)
 
     nb_classes = predictions[0].shape[0]
@@ -55,6 +64,9 @@ def get_confusion_matrix(meta, scope, symmetry):
     return confusion_matrix, accuracies
 
 def get_pred(sess, model, x):
+    '''
+    Returns predictions
+    '''
     BATCH = get_batch_size(sess, model, x)
     results = []
     if BATCH > x.shape[0]:
@@ -77,8 +89,9 @@ def get_pred(sess, model, x):
     return results
 
 def get_predictions(sess, model, x, symmetry):
-    ''' Get list of lists based on trained model.
-    Process in small batches to prevent resource exhausted error.'''
+    '''
+    Returns predictions
+    '''
     model.training = False
     results = []
     if not symmetry:
@@ -92,19 +105,13 @@ def get_predictions(sess, model, x, symmetry):
         for row in li:
             if row not in results:
                 results.append(row)
-
-
-        # for axis in xrange(2):
-        #     for rotations in xrange(4):
-        #         for flips in xrange(2):
-        #             data = augment_dataset(x, axis, rotations, flips)
-        #             results.append(get_pred(sess, model, data))
-
     return list(np.mean(results, axis=0))
 
 
 def run_session_to_get_accuracy(model, x, y):
-    ''' Get accuracy in BATCHes to prevent resource exhausted error '''
+    '''
+    Get accuracy in batches to prevent resource exhausted error
+    '''
     model.training = False
 
     BATCH = 200
@@ -148,8 +155,10 @@ def confusion_matrix(results, y):
 
 
 def get_metrics(conf):
-    ''' Get true positive, true negative, false positve and false negatives from confusion matrix
-    Calculate accuracy, precision, and sensitivity based on these values. '''
+    '''
+    Get true positive, true negative, false positve and false negatives from confusion matrix
+    Calculate accuracy, precision, and sensitivity based on these values.
+    '''
     tp, tn = conf[1][1], conf[0][0]
     fp, fn = conf[0][1], conf[1][0]
 

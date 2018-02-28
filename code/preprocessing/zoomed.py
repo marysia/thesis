@@ -12,23 +12,6 @@ new_folder = '/home/marysia/data/thesis/zoomed-patches/'
 
 scope = 'lidc-localization-patches/'
 
-# npzs = glob.glob(orig_folder + scope + "*")
-#
-# for npz in npzs:
-#     data = np.load(npz)['data']
-#
-#     with warnings.catch_warnings():
-#         warnings.simplefilter('ignore', UserWarning)
-#         volumes = []
-#         for i in xrange(data.shape[0]):
-#             new_volume = scipy.ndimage.interpolation.zoom(data[i], zoom=zoom_factor)
-#             volumes.append(new_volume)
-#
-#     volumes = np.asarray(volumes)
-#
-#     fname = new_folder + scope + npz.split('/')[-1]
-#     np.savez(fname, data=volumes)
-
 print("Starting.")
 file = '/home/marysia/data/thesis/patches/nlst-patches/positive_train_patches.npz'
 data = np.load(file)['data']

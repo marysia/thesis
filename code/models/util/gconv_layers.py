@@ -1,19 +1,26 @@
 import numpy as np
 from groupy.gconv.tensorflow_gconv.splitgconv3d import gconv3d, gconv3d_util
-from base_layers import weight_variable
+from base_layers import weight_variable, bias_variable
 
 
 def get_channels(x, in_group, out_group, out_channels):
-    ''' Helper function to determine the number of channels in and out based on the input tensor
-    and desired output channel for a regular CNN.'''
-    mapping = {'C4': 4, 'D4': 8, 'O': 24, 'C4H': 8, 'D4H': 16, 'OH': 48}
-    in_c = int(x.get_shape()[-1]) / mapping[in_group] if in_group != 'Z2' and in_group != 'Z3'  else 1
-    out_c = int(out_channels / round(np.sqrt(mapping[out_group])))
-    return in_c, out_c
+    ''' Helper function
+    Helper function to determine the number of channels in and out based on the input tensor
+    and desired output channel for a regular CNN.
+    '''
+    # Associate point groups with their number of stable elements
+    mapping = {'C4': 4., 'D4': 8., 'O': 24., 'C4H': 8., 'D4H': 16., 'OH': 48., 'Z2': 1., 'Z3': 1.}
+
+    # Determine in channels and out channels
+    in_c = round(int(x.get_shape()[-1]) / mapping[in_group]) if in_group != 'Z2' and in_group != 'Z3'  else 1.0
+    out_c = round(out_channels / np.sqrt(mapping[out_group]))
+    return int(in_c), int(out_c)
 
 
 def gconvolution3d(x, in_group, out_group, out_channels, ksize=3):
-    ''' Performs 3D convolution based on in- and out-group. '''
+    '''
+    Performs 3D convolution based on in- and out-group.
+    '''
     # get input channel and output channel
     in_c, out_c = get_channels(x, in_group, out_group, out_channels)
 
@@ -26,6 +33,7 @@ def gconvolution3d(x, in_group, out_group, out_channels, ksize=3):
     # perform group convolution
     gconv = gconv3d(input=x, filter=w, strides=[1, 1, 1, 1, 1],
                     padding="SAME", gconv_indices=indices, gconv_shape_info=shape_info)
-    return gconv 
+
+    return gconv
 
 

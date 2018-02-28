@@ -33,7 +33,6 @@ def scale_volume(x, scalar):
     """ Scales the volume between 0.9 and 1.1 time the original volume. """
     return scipy.ndimage.zoom(x, scalar)
 
-
 def rotate_volume(x, rotation):
     """ Rotates the volume 0-360 degrees by rotating each individual image in the volume. """
     x_out = np.empty_like(x)
@@ -121,6 +120,7 @@ def augment_batch(x, transformations, shape, keep_prob=.2):
 
         # crop with translation (calculate after scaling/rotation)
         volume = crop_volume(volume, shape)
+
         x_out[i, :, :, :, 0] = volume
 
     return x_out

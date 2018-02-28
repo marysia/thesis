@@ -17,13 +17,13 @@ class CNN(BaseModel):
         tensor = base.maxpool3d(tensor, strides=[1, 1, 2, 2, 1])
         # 2
         tensor = self.conv_bn_act(tensor, num_filters[0])
-        tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
+        #tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
         # 3
         tensor = self.conv_bn_act(tensor, num_filters[1])
         tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])
         # 4
         tensor = self.conv_bn_act(tensor, num_filters[1])
-        tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
+        #tensor = base.dropout(tensor, keep_prob=.7, training=self.training)
         # 5
         tensor = self.conv_bn_act(tensor, num_filters[2])
         tensor = base.maxpool3d(tensor, strides=[1, 2, 2, 2, 1])

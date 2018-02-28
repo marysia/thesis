@@ -2,6 +2,9 @@ import numpy as np
 
 
 def data_metrics(data, log):
+    '''
+    Logs some metrics related to the used dataset.
+    '''
     log.info('Metrics for %s dataset.' % data.name)
     log.info(
         'Datasets used: \ntrain: %s \t val: %s \t test: %s' % (data.train_dataset, data.val_dataset, data.test_dataset))

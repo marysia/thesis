@@ -12,6 +12,9 @@ sys.path.append('../../')
 from utils.config import RESULTSDIR
 
 def error_plot(errors, epoch_interval):
+    '''
+    Plot the training and validation error
+    '''
     train_errors = [elem[0] for elem in errors]
     val_errors = [elem[1] for elem in errors]
 
@@ -51,6 +54,9 @@ def progress(prefix, step, steps):
 
 
 def pretty_print_confusion_matrix(confusion_matrix):
+    '''
+    Print confusion matrix for true positives, false positives, true negatives and false negatives.
+    '''
     str = 'Confusion matrix: \n'
     str += '\t TN: %d \t FP: %d \n' % (confusion_matrix[0][0], confusion_matrix[0][1])
     str += '\t FN: %d \t TP: %d ' % (confusion_matrix[1][0], confusion_matrix[1][1])

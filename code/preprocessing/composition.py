@@ -23,15 +23,19 @@ class DataComposition(BaseData):
         BaseData.__init__(self)
 
     def load(self):
+        '''
+        Load the patches
+        '''
         loaded = np.load(os.path.join(DATADIR, 'patches', 'lidc-localization-patches', 'composition.npz'))
-
-
 
         self.solids = loaded['solid']
         self.parts = loaded['partsolid']
         self.ggo = loaded['ggo']
 
     def set_two_class_fold(self, fold, type):
+        '''
+        Set train and test data based on the fold.
+        '''
         self.nb_classes = 2
 
         test_idx = list(range(fold * 10, (fold+1) * 10))

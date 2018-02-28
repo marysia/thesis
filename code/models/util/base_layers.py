@@ -30,10 +30,6 @@ def dropout(tensor, keep_prob, training):
     Performs dropout if training, returns tensor otherwise.
     '''
     with tf.name_scope('dropout'):
-        # tensor = tf.cond(training,
-        #                 lambda: tf.nn.dropout(tensor, keep_prob=keep_prob),
-        #                lambda: tensor)
-
         if training:
             tensor_dropout = tf.nn.dropout(tensor, keep_prob=keep_prob)
         else:
@@ -112,7 +108,9 @@ def flatten(tensor):
 
 
 def dim_reshape(tensor, z=None):
-    ''' Reshape tensor from 2D to 3D or 3D to 2D.'''
+    '''
+    Reshape tensor from 2D to 3D or 3D to 2D.
+    '''
     shape = [int(dim) for dim in list(tensor.get_shape())[1:]]
     # 2d --> 3d
     if len(shape) == 3:
@@ -137,20 +135,24 @@ def readout(tensor, shape):
 
 
 def weight_variable(shape):
-    ''' Initialize weight with: w = truncated normal * sqrt(2 / n) where n = number of neurons feeding into it.'''
-    n = shape[-2]
-    initial = tf.truncated_normal(shape, stddev=0.1, name='weight')
-    initial = initial * np.sqrt(2.0 / n)
+    '''
+    Initialize weight with: w = truncated normal * sqrt(2 / n) where n = number of neurons feeding into it.
+    '''
+    initializer = tf.contrib.layers.xavier_initializer()
+    initial = initializer(shape)
     return tf.Variable(initial)
 
 
 def bias_variable(shape):
+    '''
+    Return bias variable
+    '''
     initial = tf.constant(0., shape=shape, name='bias')
     return tf.Variable(initial)
 
 def maxpool3d(tensor, strides=[1, 1, 2, 2, 1]):
     ''' Return max pool 3D'''
-    return tf.nn.max_pool3d(tensor, ksize=[1, 1, 1, 1, 1], strides=strides, padding='SAME')
+    return tf.nn.max_pool3d(tensor, ksize=strides, strides=strides, padding='SAME')
 
 
 def _weights_distribution(shape, name, schema="he"):
